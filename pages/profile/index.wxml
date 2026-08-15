@@ -13,7 +13,7 @@
 
   <view class="section-head"><view class="section-title">管理设置</view></view>
   <view class="card menu-list">
-    <view class="menu-row" bindtap="showAccountSecurity"><view class="menu-icon">云</view><text>微信账号与云同步</text><view>›</view></view>
+    <view class="menu-row" bindtap="showAccountSecurity"><view class="menu-icon">服</view><text>账号与服务器同步</text><view>›</view></view>
     <view class="menu-row" data-title="员工与权限" bindtap="showComingSoon"><view class="menu-icon">人</view><text>员工与权限</text><view>›</view></view>
     <view class="menu-row" data-title="供应商管理" bindtap="showComingSoon"><view class="menu-icon">供</view><text>供应商管理</text><view>›</view></view>
     <view class="menu-row" data-title="分类与提醒" bindtap="showComingSoon"><view class="menu-icon">类</view><text>分类与低库存设置</text><view>›</view></view>
@@ -22,5 +22,5 @@
   </view>
 
   <button class="logout-button" bindtap="logoutAccount">退出登录</button>
-  <view class="local-note">微信账号已登录 · 经营数据自动同步云端</view>
+  <view class="local-note">微信账号已登录 · 经营数据自动同步自有服务器</view>
 </view>

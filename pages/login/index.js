@@ -1,5 +1,5 @@
 const auth = require('../../utils/auth')
-const cloudSync = require('../../utils/cloud-sync')
+const serverSync = require('../../utils/server-sync')
 const store = require('../../utils/store')
 
 Page({
@@ -20,8 +20,8 @@ Page({
     } catch (error) {
       console.warn('读取窗口信息失败：', error.message || error)
     }
-    Promise.resolve().then(() => cloudSync.initCloud()).catch(error => {
-      this.setData({ errorText: error.message || '云开发初始化失败' })
+    Promise.resolve().then(() => serverSync.initServer()).catch(error => {
+      this.setData({ errorText: error.message || '自有服务器地址配置不正确' })
     })
     const user = auth.getCurrentUser()
     if (user) {
@@ -30,7 +30,7 @@ Page({
         this.setData({
           restoring: false,
           offlineAvailable: true,
-          errorText: `云端同步失败：${error.message || '请检查网络和云环境'}`
+          errorText: `服务器同步失败：${error.message || '请检查网络和 API 配置'}`
         })
       })
     }
@@ -45,12 +45,12 @@ Page({
   },
 
   async syncAndEnter(user) {
-    const remote = await cloudSync.pullState()
+    const remote = await serverSync.pullState()
     if (remote.exists && remote.state) {
-      store.replaceStateFromCloud(remote.state, user)
+      store.replaceStateFromServer(remote.state, user)
     } else {
       store.setCurrentUser(user)
-      await cloudSync.pushState(store.getState())
+      await serverSync.pushState(store.getState())
     }
     this.setData({ submitting: false, restoring: false, offlineAvailable: false })
     wx.switchTab({ url: '/pages/home/index' })
@@ -87,7 +87,7 @@ Page({
       this.setData({
         restoring: false,
         offlineAvailable: true,
-        errorText: `云端同步失败：${error.message || '请稍后重试'}`
+        errorText: `服务器同步失败：${error.message || '请稍后重试'}`
       })
     })
   },

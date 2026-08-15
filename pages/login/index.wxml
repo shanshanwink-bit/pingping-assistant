@@ -10,17 +10,17 @@
   <view class="login-safe" style="height: {{statusBarHeight}}px;"></view>
   <view class="login-brand">
     <view class="brand-icon"><image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" /></view>
-    <view><view>萍萍小助手</view><text>服装 · 化妆品云端库存管理</text></view>
+    <view><view>萍萍小助手</view><text>服装 · 化妆品门店库存管理</text></view>
   </view>
 
   <view class="login-welcome">
     <view>{{restoring ? '正在同步店铺' : '微信账号登录'}}</view>
-    <text>{{restoring ? '正在读取这个微信账号的云端经营数据' : '一个微信账号，对应一份独立店铺数据'}}</text>
+    <text>{{restoring ? '正在读取服务器上的经营数据' : '微信登录，数据保存在自有服务器'}}</text>
   </view>
 
   <view class="login-card">
     <view class="login-card-glow"></view>
-    <view class="mode-pill"><view class="mode-dot"></view>微信云开发 · OpenID 身份</view>
+    <view class="mode-pill"><view class="mode-dot"></view>自有云服务器 · 微信身份</view>
 
     <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar">
       <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill" />
@@ -35,17 +35,17 @@
 
     <view class="cloud-features">
       <view><text>✓</text><view><view>微信身份识别</view><text>使用 OpenID 区分不同店主</text></view></view>
-      <view><text>✓</text><view><view>云端库存同步</view><text>登录后自动读取与保存经营数据</text></view></view>
+      <view><text>✓</text><view><view>自有服务器同步</view><text>登录后自动读取与保存经营数据</text></view></view>
       <view><text>✓</text><view><view>本地缓存保护</view><text>断网时仍可保留当前设备数据</text></view></view>
     </view>
 
     <view class="login-error" wx:if="{{errorText}}">{{errorText}}</view>
-    <button class="login-button wechat-button" loading="{{submitting || restoring}}" disabled="{{submitting || restoring}}" bindtap="submitWechatLogin"><text class="wechat-mark">微</text>{{restoring ? '正在同步云端数据' : '微信账号登录'}}</button>
+    <button class="login-button wechat-button" loading="{{submitting || restoring}}" disabled="{{submitting || restoring}}" bindtap="submitWechatLogin"><text class="wechat-mark">微</text>{{restoring ? '正在同步服务器数据' : '微信账号登录'}}</button>
     <view class="offline-actions" wx:if="{{offlineAvailable}}"><button bindtap="retrySync">重新同步</button><button bindtap="enterOffline">使用本机缓存</button></view>
   </view>
 
   <view class="login-note">
     <view class="note-icon">i</view>
-    <text>首次微信登录会把当前设备已有库存上传到云端；以后使用同一微信账号登录即可读取该店铺数据。</text>
+    <text>首次微信登录会把当前设备已有库存上传到自有服务器；以后使用同一微信账号登录即可读取该店铺数据。</text>
   </view>
 </view>

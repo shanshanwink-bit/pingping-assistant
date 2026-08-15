@@ -1,5 +1,5 @@
-const config = require('./cloud-config')
-const cloudSync = require('./cloud-sync')
+const config = require('./server-config')
+const serverSync = require('./server-sync')
 
 function getCurrentUser() {
   const session = wx.getStorageSync(config.sessionKey)
@@ -10,19 +10,25 @@ function getCurrentUser() {
     account: session.openid,
     name: session.name || '微信店主',
     avatarUrl: session.avatarUrl || '',
-    role: 'owner',
+    role: session.role || 'owner',
+    storeId: session.storeId || '',
+    storeName: session.storeName || '',
     loggedInAt: session.loggedInAt || ''
   }
 }
 
 async function loginWithWechat(profile) {
-  const identity = await cloudSync.wechatLogin()
+  const identity = await serverSync.wechatLogin(profile)
+  const remoteUser = identity.user
   const session = {
-    openid: identity.openid,
-    appid: identity.appid || '',
-    unionid: identity.unionid || '',
-    name: String(profile && profile.name || '').trim() || '微信店主',
-    avatarUrl: profile && profile.avatarUrl || '',
+    token: identity.token,
+    openid: remoteUser.openid,
+    unionid: remoteUser.unionid || '',
+    name: remoteUser.name || String(profile && profile.name || '').trim() || '微信店主',
+    avatarUrl: remoteUser.avatarUrl || profile && profile.avatarUrl || '',
+    role: remoteUser.role || 'owner',
+    storeId: remoteUser.storeId || '',
+    storeName: remoteUser.storeName || '',
     loggedInAt: new Date().toISOString()
   }
   wx.setStorageSync(config.sessionKey, session)
@@ -31,6 +37,7 @@ async function loginWithWechat(profile) {
 
 function logout() {
   wx.removeStorageSync(config.sessionKey)
+  serverSync.resetSyncState()
 }
 
 module.exports = {

@@ -35,7 +35,6 @@
   "appid": "touristappid",
   "projectname": "萍萍小助手",
   "miniprogramRoot": "./",
-  "cloudfunctionRoot": "cloudfunctions/",
   "simulatorPluginLibVersion": {},
   "editorSetting": {}
 }

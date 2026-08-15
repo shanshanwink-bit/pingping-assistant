@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'clothing_inventory_state_v2'
 const LEGACY_STORAGE_KEYS = ['clothing_inventory_state_v1']
-const cloudSync = require('./cloud-sync')
+const serverSync = require('./server-sync')
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -144,11 +144,11 @@ function setCurrentUser(user) {
   return clone(state.currentUser)
 }
 
-function replaceStateFromCloud(cloudState, user) {
-  if (!cloudState || !Array.isArray(cloudState.products) || !Array.isArray(cloudState.operations)) {
-    throw new Error('云端库存数据格式不正确')
+function replaceStateFromServer(serverState, user) {
+  if (!serverState || !Array.isArray(serverState.products) || !Array.isArray(serverState.operations)) {
+    throw new Error('服务器库存数据格式不正确')
   }
-  const state = clone(cloudState)
+  const state = clone(serverState)
   if (state.version !== 10) state.nextProductNumber = migrateProductCodes(state.products)
   state.version = 10
   state.products.forEach(product => {
@@ -185,7 +185,7 @@ function replaceStateFromCloud(cloudState, user) {
 
 function saveState(state) {
   wx.setStorageSync(STORAGE_KEY, state)
-  cloudSync.queuePush(state)
+  serverSync.queuePush(state)
   return clone(state)
 }
 
@@ -937,7 +937,7 @@ module.exports = {
   ensureState,
   getState,
   setCurrentUser,
-  replaceStateFromCloud,
+  replaceStateFromServer,
   getProducts,
   getProduct,
   getSuppliers,
