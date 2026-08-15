@@ -1,63 +1,77 @@
 const assert = require('assert')
 
 const storage = {}
-let cloudState = null
-let cloudInitialized = false
-let sharedCloudOptions = null
-
-function callFunction({ name, data }) {
-  if (name === 'login') {
-    return Promise.resolve({ result: { openid: 'openid_test_owner', appid: 'wx_test_current_app' } })
-  }
-  if (name === 'store-sync' && data.action === 'pull') {
-    return Promise.resolve({ result: { ok: true, exists: Boolean(cloudState), state: cloudState } })
-  }
-  if (name === 'store-sync' && data.action === 'push') {
-    cloudState = JSON.parse(JSON.stringify(data.state))
-    return Promise.resolve({ result: { ok: true } })
-  }
-  return Promise.resolve({ result: { ok: false, message: 'unexpected call' } })
-}
+let serverState = null
+let serverRevision = 0
 
 global.wx = {
-  getAccountInfoSync() {
-    return { miniProgram: { appId: 'wx_test_current_app' } }
-  },
   getStorageSync(key) { return storage[key] },
   setStorageSync(key, value) { storage[key] = JSON.parse(JSON.stringify(value)) },
   removeStorageSync(key) { delete storage[key] },
-  cloud: {
-    Cloud: class {
-      constructor(options) {
-        sharedCloudOptions = options
+  login(options) {
+    options.success({ code: 'wechat_code_test' })
+  },
+  request(options) {
+    const path = new URL(options.url).pathname
+    if (options.method === 'POST' && path.endsWith('/auth/wechat/login')) {
+      options.success({
+        statusCode: 200,
+        data: {
+          ok: true,
+          token: 'server-token-test',
+          user: {
+            id: 'user-test-owner',
+            openid: 'openid_test_owner',
+            unionid: '',
+            name: options.data.profile.name,
+            avatarUrl: options.data.profile.avatarUrl || '',
+            role: 'owner',
+            storeId: 'store-test',
+            storeName: '测试店铺'
+          }
+        }
+      })
+      return
+    }
+    if (options.method === 'GET' && path.endsWith('/store/state')) {
+      options.success({
+        statusCode: 200,
+        data: {
+          ok: true,
+          exists: Boolean(serverState),
+          state: serverState,
+          revision: serverRevision
+        }
+      })
+      return
+    }
+    if (options.method === 'PUT' && path.endsWith('/store/state')) {
+      if (Number(options.data.revision) !== serverRevision) {
+        options.success({ statusCode: 409, data: { ok: false, message: '版本冲突' } })
+        return
       }
-      init() {
-        cloudInitialized = true
-        return Promise.resolve()
-      }
-      callFunction(options) {
-        return callFunction(options)
-      }
-    },
-    init() { cloudInitialized = true },
-    callFunction
+      serverState = JSON.parse(JSON.stringify(options.data.state))
+      serverRevision += 1
+      options.success({ statusCode: 200, data: { ok: true, revision: serverRevision } })
+      return
+    }
+    options.success({ statusCode: 404, data: { ok: false, message: 'unexpected request' } })
   }
 }
 
 const auth = require('../utils/auth')
-const cloudSync = require('../utils/cloud-sync')
+const serverSync = require('../utils/server-sync')
 const store = require('../utils/store')
 
 async function run() {
-  await cloudSync.initCloud()
-  assert.strictEqual(cloudInitialized, true)
-  assert.strictEqual(sharedCloudOptions, null)
+  const connection = await serverSync.initServer()
+  assert.strictEqual(connection.baseUrl, 'http://106.13.176.125/api/v1')
   assert.strictEqual(auth.getCurrentUser(), null)
 
   store.ensureState()
   const product = store.addProduct({
     businessType: 'clothing',
-    name: '云登录测试商品',
+    name: '服务器登录测试商品',
     category: '上衣',
     costPrice: 10,
     salePrice: 20,
@@ -68,23 +82,26 @@ async function run() {
   const user = await auth.loginWithWechat({ name: '水水店主' })
   assert.strictEqual(user.openid, 'openid_test_owner')
   assert.strictEqual(user.name, '水水店主')
+  assert.strictEqual(user.storeId, 'store-test')
   store.setCurrentUser(user)
-  await cloudSync.pushState(store.getState())
-  assert.strictEqual(cloudState.products[0].id, product.id)
-  assert.strictEqual(cloudState.currentUser.id, user.id)
+  await serverSync.pushState(store.getState())
+  assert.strictEqual(serverState.products[0].id, product.id)
+  assert.strictEqual(serverState.currentUser.id, user.id)
 
   auth.logout()
   assert.strictEqual(auth.getCurrentUser(), null)
   assert.strictEqual(store.getProduct(product.id).totalStock, 3)
 
   const loggedInAgain = await auth.loginWithWechat({ name: '水水店主' })
-  const remote = await cloudSync.pullState()
+  const remote = await serverSync.pullState()
   assert.strictEqual(remote.exists, true)
-  store.replaceStateFromCloud(remote.state, loggedInAgain)
+  assert.strictEqual(remote.revision, 1)
+  store.replaceStateFromServer(remote.state, loggedInAgain)
   assert.strictEqual(store.getProduct(product.id).totalStock, 3)
   assert.strictEqual(store.getState().currentUser.account, 'openid_test_owner')
 
-  console.log('wechat cloud login and sync: PASS')
+  serverSync.resetSyncState()
+  console.log('wechat self-hosted login and sync: PASS')
 }
 
 run().catch(error => {

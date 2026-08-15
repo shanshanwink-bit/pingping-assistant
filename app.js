@@ -1,12 +1,12 @@
 const store = require('./utils/store')
 const auth = require('./utils/auth')
-const cloudSync = require('./utils/cloud-sync')
+const serverSync = require('./utils/server-sync')
 
 App({
   onLaunch() {
     store.ensureState()
-    Promise.resolve().then(() => cloudSync.initCloud()).catch(error => {
-      console.warn('云开发初始化失败：', error.message || error)
+    Promise.resolve().then(() => serverSync.initServer()).catch(error => {
+      console.warn('自有服务器初始化失败：', error.message || error)
     })
   },
   onShow() {
