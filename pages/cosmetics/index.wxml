@@ -1,0 +1,86 @@
+<view class="page inventory-page clothing-page cosmetics-page cosmetic-dashboard">
+  <view class="clothing-orb orb-blue"></view>
+  <view class="clothing-orb orb-pink"></view>
+  <view class="clothing-drop drop-one"></view>
+  <view class="clothing-drop drop-two"></view>
+
+  <view class="clothing-heading">
+    <view>
+      <view class="clothing-overline">BEAUTY STOCK</view>
+      <view class="page-title">化妆品管理</view>
+      <text class="page-subtitle">细致管理每一份美丽</text>
+    </view>
+    <button class="new-product-mini" bindtap="addProduct"><text>＋</text><view>新建</view></button>
+  </view>
+
+  <view class="clothing-hero cosmetic-hero">
+    <view class="hero-thread thread-one"></view>
+    <view class="hero-thread thread-two"></view>
+    <view class="clothing-hero-main">
+      <view class="clothing-stock-copy">
+        <text>当前化妆品库存</text>
+        <view>{{summary.totalStock}}<text>件</text></view>
+        <view class="style-count">{{summary.productCount}} 款商品</view>
+      </view>
+      <view class="clothing-visual">
+        <view class="visual-ring ring-one"></view>
+        <view class="visual-ring ring-two"></view>
+        <view class="hanger-drop cosmetic-drop"><image src="/assets/icons/tab-cosmetics-active.svg" mode="aspectFit" /></view>
+      </view>
+    </view>
+    <view class="clothing-flow">
+      <view><text>今日库存</text><view class="flow-in">更新 {{todayStockSaveCount}} 次</view><text>库存变化</text></view>
+      <view><text>今日卖货</text><view class="flow-out">－{{summary.todaySaleQuantity}} 件</view><text>{{todaySaleAmountText}}</text></view>
+    </view>
+  </view>
+
+  <view class="clothing-actions cosmetic-actions">
+    <button class="clothing-action primary" bindtap="addSale">
+      <view class="action-bubble"><image src="/assets/icons/bag-white.svg" mode="aspectFit" /></view>
+      <text>卖货</text><view>记录收款</view>
+    </button>
+    <button class="clothing-action" bindtap="openStockRecords">
+      <view class="action-symbol inbound">库</view>
+      <text>库存记录</text><view>查看变化</view>
+    </button>
+    <button class="clothing-action" bindtap="openSales">
+      <view class="action-symbol outbound">售</view>
+      <text>卖货记录</text><view>查看明细</view>
+    </button>
+  </view>
+
+  <view class="closet-heading">
+    <view><view class="section-title">我的美妆柜</view><text>按名称、编号、货号或分类查找</text></view>
+    <view class="closet-total">{{filteredProducts.length}} 款</view>
+  </view>
+
+  <view class="clothing-search cosmetic-search">
+    <view class="search-lens"></view>
+    <input placeholder="搜索名称、编号或货号" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <scroll-view class="category-scroll clothing-categories" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="category-row">
+      <view wx:for="{{categories}}" wx:key="*this" class="category-chip {{activeCategory === item ? 'selected' : ''}}" data-category="{{item}}" bindtap="selectCategory">{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="clothing-product-stack" wx:if="{{filteredProducts.length}}">
+    <view class="clothing-product-card cosmetic-product-card" wx:for="{{filteredProducts}}" wx:key="id" data-id="{{item.id}}" bindtap="openProduct">
+      <image wx:if="{{item.image}}" class="clothing-product-image" src="{{item.image}}" mode="aspectFill" />
+      <view wx:else class="clothing-product-placeholder cosmetic-placeholder"><image src="/assets/icons/tab-cosmetics-active.svg" mode="aspectFit" /></view>
+      <view class="clothing-product-main">
+        <view class="clothing-product-name">{{item.name}}</view>
+        <view class="clothing-product-meta">编号 {{item.code}}<text wx:if="{{item.itemNumber}}"> · 货号 {{item.itemNumber}}</text> · {{item.specCount}} 个规格</view>
+        <view class="clothing-status {{item.stockStatus === '库存正常' ? 'normal' : 'warning'}}">{{item.stockStatus}}</view>
+      </view>
+      <view class="clothing-product-stock"><view><text>{{item.totalStock}}</text> 件</view><text class="card-arrow">›</text></view>
+    </view>
+  </view>
+
+  <view wx:else class="clothing-empty cosmetic-empty">
+    <view class="empty-hanger"><image src="/assets/icons/tab-cosmetics-active.svg" mode="aspectFit" /></view>
+    <view>{{products.length ? '没有找到符合条件的化妆品' : '美妆柜还是空的'}}</view>
+    <text>{{products.length ? '试试其他名称或分类' : '点击右上角新建第一个商品'}}</text>
+  </view>
+</view>

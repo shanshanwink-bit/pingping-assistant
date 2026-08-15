@@ -1,0 +1,93 @@
+<view class="page home-page">
+  <view class="mist-orb mist-orb-blue"></view>
+  <view class="mist-orb mist-orb-pink"></view>
+  <view class="rain-scene" aria-hidden="true">
+    <view class="rain-drop rain-drop-one"></view>
+    <view class="rain-drop rain-drop-two"></view>
+    <view class="rain-drop rain-drop-three"></view>
+    <view class="rain-drop rain-drop-four"></view>
+  </view>
+
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px; height: {{navBarHeight}}px;">
+    <view class="custom-nav-content">
+      <view class="brand-mark"><view class="brand-drop"><image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" /></view><text>萍萍小助手</text></view>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{navSpacerHeight}}px;"></view>
+
+  <view class="welcome-block">
+    <view class="shop-name">{{greeting}}，店主</view>
+    <view class="shop-meta">{{dateText}} · 单店库存管理</view>
+  </view>
+
+  <view class="stock-hero">
+    <view class="hero-ripple hero-ripple-one"></view>
+    <view class="hero-ripple hero-ripple-two"></view>
+    <view class="hero-content">
+      <view class="hero-main">
+        <view class="hero-label">店里还有</view>
+        <view class="hero-value">{{summary.totalStock}}<text>件</text></view>
+        <view class="hero-cost"><text>剩余货值</text><view>{{stockValueText}}</view></view>
+      </view>
+      <view class="hero-water-visual" aria-hidden="true">
+        <view class="water-ripple ripple-outer"></view>
+        <view class="water-ripple ripple-inner"></view>
+        <view class="hero-drop combined-brand-drop"><image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" /></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-head quick-head"><view><view class="section-title">今天要做什么？</view><view class="section-subtitle">选择一件事就可以</view></view></view>
+  <view class="quick-grid">
+    <button class="quick-item inbound" bindtap="goPurchase">
+      <view class="quick-drop"></view>
+      <view class="quick-icon"><image src="/assets/icons/box-white.svg" mode="aspectFit" /></view>
+      <view class="quick-copy"><text>拿货</text><text class="quick-sub">增加库存</text></view>
+    </button>
+    <button class="quick-item outbound" bindtap="goSale">
+      <view class="quick-drop"></view>
+      <view class="quick-icon"><image src="/assets/icons/bag-white.svg" mode="aspectFit" /></view>
+      <view class="quick-copy"><text>卖货</text><text class="quick-sub">记录收款</text></view>
+    </button>
+    <button class="quick-item stocktake" bindtap="goInventory">
+      <view class="quick-drop"></view>
+      <view class="quick-icon"><image src="/assets/icons/hanger-white.svg" mode="aspectFit" /></view>
+      <view class="quick-copy"><text>查库存</text><text class="quick-sub">找商品</text></view>
+    </button>
+  </view>
+
+  <view class="section-head operation-head"><view><view class="section-title">今天的情况</view><view class="section-subtitle">一眼看看卖了多少、赚了多少</view></view></view>
+  <view class="operation-summary">
+    <view><text>卖了多少钱</text><view>{{todaySaleAmountText}}</view></view>
+    <view><text>赚了多少</text><view>{{todayProfitText}}</view></view>
+    <view><text>卖出</text><view>{{summary.todaySaleQuantity}}<text> 件</text></view></view>
+  </view>
+
+  <view class="attention-panel" wx:if="{{attentionItems.length}}">
+    <view class="attention-head"><view><view>需要关注</view><text>临期与库存提醒</text></view><view class="attention-count">{{attentionItems.length}}</view></view>
+    <view class="attention-row" wx:for="{{attentionItems}}" wx:key="id" data-id="{{item.productId}}" bindtap="openAttention">
+      <image wx:if="{{item.image}}" class="attention-image" src="{{item.image}}" mode="aspectFill" />
+      <view wx:else class="attention-icon"><image src="{{item.icon}}" mode="aspectFit" /></view>
+      <view class="attention-main"><view>{{item.title}}</view><text>{{item.detail}}</text></view>
+      <view class="attention-status {{item.tone}}">{{item.statusText}}</view>
+    </view>
+  </view>
+
+  <view class="recent-panel">
+    <view class="recent-head"><view>最近变动</view><view bindtap="goOperations">查看更多 <text>›</text></view></view>
+    <view class="recent-list" wx:if="{{recentOperations.length}}">
+      <view class="recent-card" wx:for="{{recentOperations}}" wx:key="id" data-id="{{item.productId}}" bindtap="openRecent">
+        <view class="recent-image-wrap">
+          <image wx:if="{{item.image}}" class="recent-image" src="{{item.image}}" mode="aspectFill" />
+          <view wx:else class="recent-placeholder"><image src="{{item.placeholderIcon}}" mode="aspectFit" /></view>
+        </view>
+        <view class="recent-main">
+          <view class="recent-name">{{item.productName}} · {{item.specText}}</view>
+          <view class="recent-change {{item.quantity < 0 ? 'negative' : ''}}"><text>{{item.businessText}}</text>{{item.typeText}} {{item.quantityText}} 件</view>
+        </view>
+        <view class="recent-time">{{item.timeText}}</view>
+      </view>
+    </view>
+    <view wx:else class="recent-empty">还没有库存变动记录</view>
+  </view>
+</view>

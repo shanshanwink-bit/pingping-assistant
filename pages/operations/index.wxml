@@ -1,0 +1,22 @@
+<view class="page operations-page">
+  <view class="page-title">{{pageTitle}}</view>
+
+  <view class="action-list" wx:if="{{!recordMode}}">
+    <button class="action-card" data-type="inbound" bindtap="goStockForm"><view class="action-icon inbound">入</view><view class="action-main"><view>商品入库</view><text>新货到店，增加对应规格库存</text></view><view class="arrow">›</view></button>
+    <button class="action-card" data-type="outbound" bindtap="goStockForm"><view class="action-icon outbound">出</view><view class="action-main"><view>商品出库</view><text>销售、损坏或退回供应商</text></view><view class="arrow">›</view></button>
+  </view>
+
+  <view class="section-head"><view class="section-title">{{recordMode ? '库存变化' : '操作记录'}}</view></view>
+  <view class="filter-row" wx:if="{{!recordMode}}">
+    <view wx:for="{{filters}}" wx:key="value" class="filter-chip {{activeFilter === item.value ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="selectFilter">{{item.label}}</view>
+  </view>
+
+  <view class="card record-list" wx:if="{{filteredOperations.length}}">
+    <view class="record-row" wx:for="{{filteredOperations}}" wx:key="id">
+      <view class="record-type {{item.typeClass}}">{{item.typeText}}</view>
+      <view class="record-main"><view class="record-name">{{item.productName}}</view><view class="record-meta">{{item.specText}} · {{item.displayReason}}</view><view class="record-time">库存 {{item.stockFlowText}} · {{item.dateText}}</view></view>
+      <view class="record-change {{item.quantity < 0 ? 'minus' : ''}}">{{item.quantityText}}</view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无相关操作记录</view>
+</view>

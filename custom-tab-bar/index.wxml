@@ -1,0 +1,11 @@
+<view class="tab-host">
+  <view class="tab-shell">
+    <view class="tab-item {{selected === index ? 'selected' : ''}} {{item.main ? 'main-tab' : ''}}" wx:for="{{list}}" wx:key="pagePath" data-index="{{index}}" bindtap="switchTab">
+      <view class="tab-icon-wrap">
+        <view class="active-ripple" wx:if="{{selected === index}}"></view>
+        <image class="tab-icon" src="{{selected === index ? item.activeIcon : item.icon}}" mode="aspectFit" />
+      </view>
+      <text>{{item.text}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,54 @@
+<view class="page detail-page" wx:if="{{product}}">
+  <view class="product-head">
+    <image wx:if="{{product.image}}" class="detail-image" src="{{product.image}}" mode="aspectFill" />
+    <view wx:else class="detail-placeholder">{{product.businessType === 'cosmetics' ? '妆' : '衣'}}</view>
+    <view class="head-main">
+      <view class="detail-name">{{product.name}}</view>
+      <view class="detail-code">编号 {{product.code}} · {{product.category}}</view>
+      <view class="tag">总库存 {{product.totalStock}} 件</view>
+    </view>
+  </view>
+
+  <view class="cost-summary">
+    <view><text>当前库存</text><view>{{product.totalStock}}<text> 件</text></view></view>
+    <view><text>平均拿货价</text><view>{{averageCostText}}</view></view>
+    <view class="stock-cost"><text>当前库存成本</text><view>{{stockCostText}}</view></view>
+  </view>
+
+  <view class="info-card card">
+    <view wx:if="{{product.itemNumber}}"><text>货号</text><text>{{product.itemNumber}}</text></view>
+    <view wx:if="{{product.businessType === 'cosmetics'}}"><text>品牌</text><text>{{product.brand || '未填写'}}</text></view>
+    <view wx:if="{{product.businessType === 'cosmetics'}}"><text>批次号</text><text>{{product.batchNumber || '未填写'}}</text></view>
+    <view wx:if="{{product.businessType === 'cosmetics'}}"><text>到期日期</text><text>{{product.expiryDate || '未填写'}}</text></view>
+    <view wx:else><text>供应商</text><text>{{product.supplier || '未填写'}}</text></view>
+    <view><text>参考售价</text><text>¥{{product.salePrice || 0}}</text></view>
+    <view wx:if="{{product.businessType !== 'cosmetics'}}"><text>低库存阈值</text><text>≤ {{product.lowStockThreshold}} 件</text></view>
+  </view>
+
+  <view class="section-head"><view class="section-title">规格库存</view><view class="spec-count">{{specs.length}} 个规格</view></view>
+  <view class="card spec-list">
+    <view class="spec-row" wx:for="{{specs}}" wx:key="id">
+      <view><view class="spec-name">{{item.color === '默认' ? '通用' : item.color}} / {{item.size}}</view><view class="spec-status {{item.statusText === '正常' ? '' : 'warning-text'}}">{{item.statusText}}</view></view>
+      <view class="spec-stock-editor">
+        <input type="number" value="{{item.stock}}" data-id="{{item.id}}" confirm-type="done" bindblur="updateSpecStock" />
+        <text>件</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="detail-actions">
+    <block wx:if="{{product.businessType === 'cosmetics'}}">
+      <button class="secondary-button" bindtap="goSale">卖货</button>
+      <button class="primary-button" data-type="stocktake" bindtap="goStockForm">库存</button>
+    </block>
+    <block wx:else>
+      <button class="secondary-button" bindtap="goSale">卖货</button>
+      <button class="primary-button" bindtap="goPurchase">登记进货</button>
+    </block>
+  </view>
+
+  <view class="product-maintenance">
+    <button class="edit-product-button" bindtap="editProduct">编辑商品</button>
+    <button class="delete-product-button" bindtap="deleteProduct">删除商品</button>
+  </view>
+</view>

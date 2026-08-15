@@ -1,0 +1,27 @@
+<view class="page stock-overview-page">
+  <view class="overview-heading">
+    <view class="page-title">{{meta.title}}</view>
+    <text>{{meta.subtitle}}</text>
+  </view>
+
+  <view class="business-filter">
+    <view wx:for="{{businessTabs}}" wx:key="value" class="business-filter-item {{activeBusiness === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="selectBusiness">{{item.label}}</view>
+  </view>
+
+  <view class="result-summary">{{resultText}}</view>
+
+  <view class="card overview-list" wx:if="{{rows.length}}">
+    <view class="overview-row" wx:for="{{rows}}" wx:key="id" data-id="{{item.productId}}" bindtap="openProduct">
+      <image wx:if="{{item.image}}" class="overview-image" src="{{item.image}}" mode="aspectFill" />
+      <view wx:else class="overview-placeholder {{item.businessType}}">{{item.businessType === 'cosmetics' ? '妆' : '衣'}}</view>
+      <view class="overview-main">
+        <view class="overview-name">{{item.productName}}</view>
+        <view class="overview-detail">{{item.code}} · {{item.detailText}}</view>
+        <view class="overview-tags"><text>{{item.businessText}}</text><text class="status {{item.statusText === '已缺货' ? 'out' : ''}}">{{item.statusText}}</text></view>
+      </view>
+      <view class="overview-stock"><text>{{item.stockText}}</text><view>›</view></view>
+    </view>
+  </view>
+
+  <view wx:else class="empty overview-empty">当前分类下暂无{{meta.title}}数据</view>
+</view>

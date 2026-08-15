@@ -1,0 +1,59 @@
+<view class="page purchase-page sale-page">
+  <view class="purchase-heading">
+    <view class="page-title">记一笔卖货</view>
+    <text>选商品、填数量和卖价，库存自动减少</text>
+  </view>
+
+  <view wx:if="{{products.length}}">
+    <view class="selection-card">
+      <picker range="{{productNames}}" value="{{productIndex}}" bindchange="onProductChange">
+        <view class="selection-row"><view><text>商品</text><view>{{currentProduct.name}}</view></view><text class="selection-arrow">更换 ›</text></view>
+      </picker>
+      <picker range="{{specNames}}" value="{{specIndex}}" bindchange="onSpecChange">
+        <view class="selection-row"><view><text>{{specLabel}}</text><view>{{currentSpec.color}} / {{currentSpec.size}}</view></view><text class="selection-arrow">更换 ›</text></view>
+      </picker>
+    </view>
+
+    <view class="core-entry-card sale-entry-card">
+      <view class="entry-grid">
+        <view class="entry-field">
+          <label><text>*</text> 卖货数量</label>
+          <view class="entry-input"><input type="number" placeholder="0" data-field="quantity" value="{{quantity}}" bindinput="onInput" /><text>件</text></view>
+        </view>
+        <view class="entry-field">
+          <label><text>*</text> 单件卖价</label>
+          <view class="entry-input"><text>¥</text><input type="digit" placeholder="0.00" data-field="unitPrice" value="{{unitPrice}}" bindinput="onInput" /></view>
+        </view>
+      </view>
+
+      <view class="stock-change {{afterStock < 0 ? 'danger' : ''}}" wx:if="{{currentSpec}}">
+        库存将从 <text>{{currentSpec.stock}}</text> 件变为 <text>{{afterStock}}</text> 件
+      </view>
+
+      <view class="total-row sale-total-row">
+        <view><text>本次收款</text><view>{{quantity || 0}} 件 × ¥{{unitPrice || '0.00'}}</view></view>
+        <view>{{totalAmountText}}</view>
+      </view>
+    </view>
+
+    <view class="payment-card">
+      <view class="payment-label">收款方式</view>
+      <view class="payment-options">
+        <view wx:for="{{paymentMethods}}" wx:key="*this" class="payment-chip {{paymentIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="selectPayment">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="more-toggle" bindtap="toggleMore">
+      <view><view>备注</view><text>选填</text></view>
+      <text>{{showMore ? '收起' : '填写'}} {{showMore ? '⌃' : '⌄'}}</text>
+    </view>
+    <view class="more-card" wx:if="{{showMore}}">
+      <view class="field last-field"><textarea class="textarea" maxlength="100" placeholder="可填写顾客需求或其他说明" data-field="note" value="{{note}}" bindinput="onInput" /></view>
+    </view>
+
+    <view class="stock-warning" wx:if="{{afterStock < 0}}">库存不足，当前只有 {{currentSpec.stock}} 件</view>
+    <button class="save-purchase save-sale" bindtap="submit">确认卖货 · {{totalAmountText}}</button>
+  </view>
+
+  <view wx:else class="empty-product"><view class="empty-icon">{{emptyIcon}}</view><view>还没有商品档案</view><text>{{emptyHint}}</text><button class="primary-button" bindtap="addProduct">新建第一个商品</button></view>
+</view>

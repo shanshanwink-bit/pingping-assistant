@@ -1,0 +1,19 @@
+@import "../inventory/index.wxss";
+
+.cosmetic-dashboard .clothing-overline { color: #bd7e9d; }
+.cosmetic-dashboard .new-product-mini { color: #a7688a; }
+.cosmetic-dashboard .new-product-mini text { color: #e16f9a; }
+.cosmetic-dashboard .cosmetic-hero { background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(225,242,255,.76) 42%, rgba(255,218,235,.78)); }
+.cosmetic-dashboard .style-count { background: rgba(255,218,234,.35); color: #9e6682; }
+.cosmetic-dashboard .cosmetic-drop { background: linear-gradient(145deg, rgba(255,255,255,.86), rgba(244,154,193,.46)); box-shadow: inset 10rpx 10rpx 20rpx rgba(255,255,255,.55), 0 15rpx 30rpx rgba(194,91,135,.16); }
+.cosmetic-dashboard .cosmetic-drop image { width: 70rpx; height: 70rpx; transform: rotate(-45deg); }
+.cosmetic-dashboard .visual-ring { border-color: rgba(221,112,158,.2); }
+.cosmetic-dashboard .clothing-action.primary { background: linear-gradient(145deg, rgba(255,230,240,.9), rgba(222,241,255,.82)); }
+.cosmetic-dashboard .action-bubble { background: linear-gradient(145deg, #ffc7dd, #e879a3); }
+.cosmetic-dashboard .action-symbol.inbound { background: linear-gradient(145deg, #e5f4ff, #c8e5f8); color: #568eb0; }
+.cosmetic-dashboard .category-chip.selected { border-color: rgba(226,118,162,.4); background: linear-gradient(135deg, #e1f3ff, #ffe2ed); color: #b46085; }
+.cosmetic-dashboard .cosmetic-placeholder { background: linear-gradient(145deg, #ffe5f0, #e5f2ff); }
+.cosmetic-dashboard .cosmetic-placeholder image { width: 66rpx; height: 66rpx; }
+.cosmetic-dashboard .clothing-status.normal { background: rgba(255,226,238,.72); color: #b76789; }
+.cosmetic-dashboard .clothing-product-stock > view text { color: #d56d96; }
+.cosmetic-dashboard .empty-hanger { background: linear-gradient(145deg, #ffe2ee, #e1f2ff); }

@@ -1,0 +1,41 @@
+{
+  "description": "萍萍小助手 - 服装与化妆品库存管理小程序",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "setting": {
+    "useCompilerPlugins": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "checkSiteMap": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "compileType": "miniprogram",
+  "libVersion": "trial",
+  "appid": "touristappid",
+  "projectname": "萍萍小助手",
+  "miniprogramRoot": "./",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
+}

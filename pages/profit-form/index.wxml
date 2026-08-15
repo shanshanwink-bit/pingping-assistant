@@ -1,0 +1,67 @@
+<view class="page manual-profit-page">
+  <view class="form-mist mist-blue"></view>
+  <view class="form-mist mist-pink"></view>
+
+  <view class="form-heading">
+    <view class="form-icon"><image src="/assets/icons/tab-profit-active.svg" mode="aspectFit" /></view>
+    <view><view class="page-title">收支补录</view><text>记录系统没有自动计算的收入或支出</text></view>
+  </view>
+
+  <view class="notice-card">
+    <view>i</view>
+    <text>正常记录卖货后会自动计算盈利，不需要重复补录。</text>
+  </view>
+
+  <view class="entry-type-card">
+    <view class="entry-type-title">这是一笔什么记录？</view>
+    <view class="entry-type-options">
+      <view class="entry-type-option income {{entryType === 'income' ? 'active' : ''}}" data-type="income" bindtap="selectEntryType">
+        <view class="type-symbol">＋</view>
+        <view><view>额外收入</view><text>增加经营盈利</text></view>
+        <view class="type-check">✓</view>
+      </view>
+      <view class="entry-type-option expense {{entryType === 'expense' ? 'active' : ''}}" data-type="expense" bindtap="selectEntryType">
+        <view class="type-symbol">－</view>
+        <view><view>额外支出</view><text>从经营盈利中扣除</text></view>
+        <view class="type-check">✓</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="form-card">
+    <view class="money-section {{entryType}}">
+      <label>金额</label>
+      <view class="money-input"><text>¥</text><input type="digit" placeholder="0.00" data-field="amount" value="{{amount}}" bindinput="onInput" /></view>
+      <text>只填写正数，系统会自动按收入或支出计算</text>
+    </view>
+
+    <view class="form-row">
+      <view><view class="row-label">归属分类</view><text>计入哪类商品经营</text></view>
+      <view class="business-choice">
+        <view wx:for="{{businessTabs}}" wx:key="value" class="business-choice-item {{businessType === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="selectBusiness">{{item.label}}</view>
+      </view>
+    </view>
+
+    <picker mode="date" value="{{date}}" end="{{todayDate}}" bindchange="selectDate">
+      <view class="form-row date-row">
+        <view><view class="row-label">发生日期</view><text>选择这笔收支所属日期</text></view>
+        <view class="date-value">{{date}} <text>›</text></view>
+      </view>
+    </picker>
+
+    <view class="note-section">
+      <view class="row-label">备注 <text>选填</text></view>
+      <view class="note-presets">
+        <view wx:for="{{notePresets}}" wx:key="*this" class="note-chip {{note === item ? 'active' : ''}}" data-note="{{item}}" bindtap="selectNotePreset">{{item}}</view>
+      </view>
+      <textarea class="note-input" maxlength="100" placeholder="也可以自己填写说明" data-field="note" value="{{note}}" bindinput="onInput" />
+    </view>
+  </view>
+
+  <view class="entry-preview">
+    <view><text>本次将计入</text><view>{{businessTitle}} · {{entryType === 'expense' ? '额外支出' : '额外收入'}}</view></view>
+    <view class="preview-amount {{entryType}}">{{amountPreview}}</view>
+  </view>
+
+  <button class="submit-button {{entryType}}" loading="{{saving}}" disabled="{{saving}}" bindtap="submit">{{submitText}}</button>
+</view>

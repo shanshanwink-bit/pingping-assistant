@@ -1,0 +1,25 @@
+.operations-page { padding-top: 16rpx; }
+.action-list { display: grid; gap: 18rpx; }
+.action-card { display: flex; align-items: center; width: 100%; gap: 20rpx; padding: 24rpx; border: 1rpx solid #f0dfe6; border-radius: 26rpx; background: #ffffff; color: #3f2d35; text-align: left; box-shadow: 0 9rpx 20rpx rgba(126, 48, 78, .05); }
+.action-icon { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; border-radius: 22rpx; background: #fde4ee; color: #bd4774; font-weight: 600; }
+.action-icon.outbound { background: #fff0df; color: #8a5709; }
+.action-icon.stocktake { background: #f1e5f4; color: #805c8d; }
+.action-main { flex: 1; line-height: 1.3; }
+.action-main view { font-size: 29rpx; font-weight: 600; }
+.action-main text { display: block; margin-top: 8rpx; color: #907a84; font-size: 23rpx; }
+.arrow { color: #94a098; font-size: 42rpx; }
+.filter-row { display: flex; gap: 14rpx; margin-bottom: 18rpx; }
+.filter-chip { padding: 12rpx 23rpx; border: 1rpx solid #efdce4; border-radius: 999rpx; background: #ffffff; color: #806b74; font-size: 24rpx; }
+.filter-chip.selected { border-color: #d45b89; background: #fde6ef; color: #bf4776; }
+.record-row { display: flex; gap: 18rpx; align-items: center; padding: 24rpx; border-bottom: 1rpx solid #f3e7ec; }
+.record-row:last-child { border-bottom: 0; }
+.record-type { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 62rpx; height: 62rpx; border-radius: 18rpx; background: #fde4ee; color: #bd4774; font-size: 22rpx; }
+.record-type.outbound { background: #fff0df; color: #8a5709; }
+.record-type.stocktake { background: #f1e5f4; color: #805c8d; }
+.record-type.initial { background: #e3f3ff; color: #508fb5; }
+.record-main { flex: 1; min-width: 0; }
+.record-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.record-meta,
+.record-time { margin-top: 6rpx; overflow: hidden; color: #917c85; font-size: 22rpx; text-overflow: ellipsis; white-space: nowrap; }
+.record-change { color: #c94f7f; font-size: 31rpx; font-weight: 600; }
+.record-change.minus { color: #a95a17; }

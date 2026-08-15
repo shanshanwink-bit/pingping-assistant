@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/home/index",
+    "pages/inventory/index",
+    "pages/quick-action/index",
+    "pages/cosmetics/index",
+    "pages/profit/index",
+    "pages/profile/index",
+    "pages/purchases/index",
+    "pages/sales/index",
+    "pages/operations/index",
+    "pages/product-form/index",
+    "pages/product-detail/index",
+    "pages/stock-form/index",
+    "pages/purchase-form/index",
+    "pages/sale-form/index",
+    "pages/profit-form/index",
+    "pages/stock-overview/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "萍萍小助手",
+    "navigationBarBackgroundColor": "#edf7ff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f4f7ff",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8da2b2",
+    "selectedColor": "#ec7fa8",
+    "backgroundColor": "#fffafd",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/inventory/index", "text": "商品" },
+      { "pagePath": "pages/quick-action/index", "text": "记一笔" },
+      { "pagePath": "pages/profit/index", "text": "账本" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

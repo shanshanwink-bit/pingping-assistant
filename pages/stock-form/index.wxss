@@ -1,0 +1,11 @@
+.stock-form-page { padding-bottom: 70rpx; }
+.operation-banner { display: flex; gap: 22rpx; align-items: center; margin-bottom: 36rpx; padding: 28rpx; border-radius: 28rpx; background: linear-gradient(135deg, #fde4ee, #fbd5e4); color: #a93f69; }
+.operation-banner.outbound { background: #fff0df; color: #7b4a05; }
+.operation-banner.stocktake { background: #f1e5f4; color: #765383; }
+.banner-icon { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; border: 2rpx solid currentColor; border-radius: 20rpx; font-weight: 600; }
+.banner-title { font-size: 32rpx; font-weight: 600; }
+.banner-sub { margin-top: 6rpx; font-size: 22rpx; opacity: .78; }
+.picker-value { display: flex; justify-content: space-between; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.current-stock { display: flex; align-items: center; justify-content: space-between; margin: -8rpx 0 28rpx; padding: 22rpx 24rpx; border-radius: 20rpx; background: #fceaf1; color: #775f69; }
+.current-stock-value { color: #c64e7b; font-size: 31rpx; font-weight: 600; }
+.quantity-input { font-size: 38rpx; font-weight: 600; }

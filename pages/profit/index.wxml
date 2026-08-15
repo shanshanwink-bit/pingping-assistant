@@ -1,0 +1,143 @@
+<view class="page profit-page">
+  <view class="profit-mist mist-blue"></view>
+  <view class="profit-mist mist-pink"></view>
+  <view class="profit-rain" aria-hidden="true">
+    <view class="mini-drop drop-one"></view>
+    <view class="mini-drop drop-two"></view>
+    <view class="mini-drop drop-three"></view>
+  </view>
+
+  <view class="profit-heading">
+    <view>
+      <view class="page-title">账本</view>
+      <text>卖了多少、赚了多少，都在这里</text>
+    </view>
+    <button class="manual-button" bindtap="goManualProfit"><text>＋</text> 记收支</button>
+  </view>
+
+  <view class="business-switch">
+    <view wx:for="{{businessTabs}}" wx:key="value" class="business-option {{activeBusinessType === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="selectBusiness">
+      <view class="business-option-icon"><image src="{{item.icon}}" mode="aspectFit" /></view>
+      <view><text>{{item.label}}</text><text>{{item.value === 'clothing' ? '服装经营' : '美妆经营'}}</text></view>
+      <view class="business-check"></view>
+    </view>
+  </view>
+
+  <view class="ledger-shortcuts">
+    <view bindtap="openStockLedger"><text>{{activeBusinessType === 'clothing' ? '拿货记录' : '库存记录'}}</text><view>›</view></view>
+    <view bindtap="openSaleLedger"><text>卖货记录</text><view>›</view></view>
+    <view bindtap="openAllChanges"><text>全部变化</text><view>›</view></view>
+  </view>
+
+  <scroll-view class="period-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="period-row">
+      <view wx:for="{{periods}}" wx:key="value" class="period-item {{activePeriod === item.value ? 'active' : ''}}" data-period="{{item.value}}" bindtap="selectPeriod">{{item.label}}</view>
+      <picker mode="date" value="{{customDate}}" end="{{todayDate}}" bindchange="selectCustomDate">
+        <view class="period-item date-item {{activePeriod === 'custom' ? 'active' : ''}}">{{activePeriod === 'custom' ? customDateLabel : '选择日期'}}</view>
+      </picker>
+    </view>
+  </scroll-view>
+
+  <view class="profit-hero {{summary.profit < 0 ? 'negative' : ''}}">
+    <view class="hero-glow"></view>
+    <view class="hero-ripple ripple-one"></view>
+    <view class="hero-ripple ripple-two"></view>
+    <view class="hero-top">
+      <view>
+        <view class="hero-label">{{periodTitle}}</view>
+        <view class="hero-date">{{periodRangeText}}</view>
+      </view>
+      <view class="hero-health {{healthClass}}"><text></text>{{healthText}}</view>
+    </view>
+    <view class="hero-main">
+      <view>
+        <view class="hero-value">{{profitText}}</view>
+        <view class="hero-comparison {{comparisonClass}}">{{comparisonText}}</view>
+        <view class="hero-manual" wx:if="{{summary.manualCount}}">商品盈利 {{salesProfitText}} · 补录 {{manualProfitText}}</view>
+      </view>
+      <view class="hero-water-mark">
+        <view class="hero-drop"><image src="{{businessIcon}}" mode="aspectFit" /></view>
+        <view class="drop-ripple"></view>
+      </view>
+    </view>
+    <view class="hero-divider"></view>
+    <view class="hero-footer">
+      <view><text>卖货收入</text><view>{{revenueText}}</view></view>
+      <view><text>卖出商品成本</text><view>{{costText}}</view></view>
+      <view><text>卖出</text><view>{{summary.quantity}}<text> 件</text></view></view>
+    </view>
+  </view>
+
+  <view class="simple-metrics">
+    <view><text>毛利率</text><view>{{summary.margin}}%</view></view>
+    <view><text>销售笔数</text><view>{{summary.count}}<text> 笔</text></view></view>
+    <view><text>平均每单</text><view>{{averageOrderText}}</view></view>
+  </view>
+
+  <view class="old-warning" wx:if="{{summary.unpricedCount}}"><view>!</view><text>有 {{summary.unpricedCount}} 笔卖货记录没有拿货成本，收款已统计，但暂未计入商品盈利。</text></view>
+
+  <view class="details-toggle" bindtap="toggleDetails">
+    <view><view>经营明细</view><text>趋势、每日记录、商品排行和收款方式</text></view>
+    <view class="details-action">{{showDetails ? '收起' : '查看'}} <text class="details-arrow {{showDetails ? 'open' : ''}}">⌄</text></view>
+  </view>
+
+  <block wx:if="{{showDetails}}">
+    <view class="chart-card">
+      <view class="chart-head">
+        <view><view>盈利趋势</view><text>点击折线查看对应时段数据</text></view>
+        <view class="chart-water-icon"><image src="/assets/icons/tab-profit-active.svg" mode="aspectFit" /></view>
+      </view>
+      <view class="trend-tabs">
+        <view wx:for="{{trendRanges}}" wx:key="value" class="trend-item {{activeTrend === item.value ? 'active' : ''}}" data-range="{{item.value}}" bindtap="selectTrend">{{item.label}}</view>
+      </view>
+      <view class="chart-legend"><view><text class="legend-line revenue"></text>卖货收入</view><view><text class="legend-line profit"></text>赚了多少</view></view>
+      <canvas canvas-id="profitTrend" class="profit-chart" bindtap="selectChartPoint"></canvas>
+      <view class="selected-point"><text>{{selectedTrend.label || '暂无数据'}}</text><view><text>收入 {{selectedTrend.revenueText}}</text><text>盈利 {{selectedTrend.profitText}}</text></view></view>
+    </view>
+
+    <view class="section-head"><view><view class="section-title">每日盈利</view><view class="section-subtitle">每天的收入、成本和实际盈利</view></view><view class="section-badge">{{dailyRows.length}} 天</view></view>
+    <view class="card daily-list" wx:if="{{dailyRows.length}}">
+      <view class="daily-row" wx:for="{{dailyRows}}" wx:key="date">
+        <view class="daily-date"><view>{{item.dateText}}</view><text>{{item.quantity}} 件 · {{item.count}} 笔</text></view>
+        <view class="daily-money"><text>收款 {{item.revenueText}} · 卖出成本 {{item.costText}}</text><view class="{{item.profitClass}}">{{item.profitText}}</view></view>
+        <view class="daily-manual" wx:if="{{item.manualCount}}">含补录 {{item.manualProfitText}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty-block"><view class="empty-water">∿</view><view>该时间段还没有盈利数据</view><text>记录卖货后，收入和盈利会自动出现在这里</text></view>
+
+    <view class="section-head" wx:if="{{manualProfits.length}}"><view><view class="section-title">补录记录</view><view class="section-subtitle">额外收入或支出记录</view></view></view>
+    <view class="card manual-list" wx:if="{{manualProfits.length}}">
+      <view class="manual-row" wx:for="{{manualProfits}}" wx:key="id">
+        <view class="manual-date">{{item.dateText}}</view>
+        <view class="manual-main"><view class="{{item.amountClass}}">{{item.amountText}}</view><text>{{item.note || (item.entryType === 'expense' ? '额外支出' : '额外收入')}}</text></view>
+        <button data-id="{{item.id}}" bindtap="deleteManualProfit">删除</button>
+      </view>
+    </view>
+
+    <view class="section-head product-head"><view><view class="section-title">商品表现</view><view class="section-subtitle">查看真正赚钱和需要留意的商品</view></view></view>
+    <scroll-view class="ranking-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="ranking-tabs">
+        <view wx:for="{{rankingTabs}}" wx:key="value" class="ranking-item {{activeRanking === item.value ? 'active' : ''}}" data-ranking="{{item.value}}" bindtap="selectRanking">{{item.label}}</view>
+      </view>
+    </scroll-view>
+    <view class="card ranking-list" wx:if="{{rankingProducts.length}}">
+      <view class="ranking-row" wx:for="{{rankingProducts}}" wx:key="productId">
+        <view class="rank-number rank-{{item.rank}}">{{item.rank}}</view>
+        <view class="rank-main"><view>{{item.productName}}</view><text>卖出 {{item.quantity}} 件 · 收款 {{item.revenueText}} · 毛利率 {{item.marginText}}</text></view>
+        <view class="rank-value {{item.valueClass}}">{{item.mainValue}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty-block compact">{{rankingEmptyText}}</view>
+
+    <view class="section-head"><view><view class="section-title">收款方式</view><view class="section-subtitle">微信、现金等分别收了多少</view></view></view>
+    <view class="card payment-list" wx:if="{{paymentMethods.length}}">
+      <view class="payment-row" wx:for="{{paymentMethods}}" wx:key="method">
+        <view class="payment-line"><view><text class="payment-dot tone-{{item.tone}}"></text>{{item.method}}</view><view>{{item.amountText}}<text>{{item.percentText}}</text></view></view>
+        <view class="payment-track"><view class="payment-bar tone-bg-{{item.tone}}" style="width: {{item.barWidth}}%;"></view></view>
+      </view>
+    </view>
+    <view wx:else class="empty-block compact">该时间段还没有收款数据</view>
+  </block>
+
+  <view class="profit-note">自动盈利 = 卖货收入 - 卖出商品成本；补录收入会增加盈利，补录支出会扣减盈利。</view>
+</view>

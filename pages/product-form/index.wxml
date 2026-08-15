@@ -1,0 +1,178 @@
+<view class="page form-page">
+  <view class="quick-create-card" wx:if="{{quickCreate}}">
+    <view class="quick-create-step">快速建档</view>
+    <view class="quick-create-title">先把{{isCosmetics ? '化妆品' : '商品'}}创建出来</view>
+    <text>只填名称和分类即可，{{isCosmetics ? '色号、容量、品牌' : '颜色、尺码'}}、图片和价格都可以稍后完善。</text>
+  </view>
+
+  <view class="field">
+    <label class="field-label"><text class="required">*</text> {{nameLabel}}</label>
+    <input class="input" placeholder="{{namePlaceholder}}" data-field="name" value="{{form.name}}" bindinput="onInput" focus="{{quickCreate}}" />
+  </view>
+
+  <view class="field">
+    <label class="field-label"><text class="required">*</text> {{categoryLabel}}</label>
+    <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="picker-value">{{form.category}} <text>⌄</text></view>
+    </picker>
+    <view class="hint">分类仅用于筛选，不再影响商品编号。</view>
+  </view>
+
+  <view class="code-management-card {{quickCreate ? 'compact' : ''}}">
+    <view class="system-code-row">
+      <view><text>商品编号</text><view>{{systemCode || '保存后自动生成'}}</view></view>
+      <text>系统管理号</text>
+    </view>
+    <view class="field item-number-field" wx:if="{{!quickCreate}}">
+      <label class="field-label">货号（选填）</label>
+      <input class="input" placeholder="可填写吊牌、厂家货号或条形码" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
+    </view>
+  </view>
+
+  <view class="progressive-options" wx:if="{{quickCreate}}">
+    <view class="progressive-option {{showSpecs ? 'active' : ''}}" bindtap="toggleSpecs">
+      <view><view>{{colorLabel}}与{{sizeLabel}}</view><text>{{showSpecs ? '正在填写规格' : isCosmetics ? '不填则使用通用 / 标准规格' : '不填则使用通用 / 均码'}}</text></view>
+      <view class="progressive-action">{{showSpecs ? '收起' : '添加'}}</view>
+    </view>
+    <view class="progressive-option {{showAdvanced ? 'active' : ''}}" bindtap="toggleAdvanced">
+      <view><view>图片与更多资料</view><text>价格、供应商等选填信息</text></view>
+      <view class="progressive-action">{{showAdvanced ? '收起' : '完善'}}</view>
+    </view>
+  </view>
+
+  <block wx:if="{{showAdvanced}}">
+    <view class="optional-section-title" wx:if="{{quickCreate}}">选填资料</view>
+    <view class="field" wx:if="{{quickCreate}}">
+      <label class="field-label">货号（选填）</label>
+      <input class="input" placeholder="可填写吊牌、厂家货号或条形码" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
+    </view>
+    <view class="image-field">
+      <image wx:if="{{form.image}}" class="photo-preview" src="{{form.image}}" mode="aspectFill" bindtap="chooseImage" />
+      <view wx:else class="photo-picker" bindtap="chooseImage">
+        <view class="camera-symbol">＋</view>
+        <text>拍照或选择{{isCosmetics ? '化妆品' : '商品'}}图片</text>
+      </view>
+      <view wx:if="{{form.image}}" class="remove-photo" bindtap="removeImage">移除图片</view>
+    </view>
+
+    <view class="form-grid">
+      <view class="field">
+        <label class="field-label">{{isCosmetics ? '成本价' : (editing ? '当前平均拿货价' : '初始拿货价')}}（元）</label>
+        <input class="input" type="digit" placeholder="0.00" data-field="costPrice" value="{{form.costPrice}}" bindinput="onInput" />
+      </view>
+      <view class="field">
+        <label class="field-label">参考售价（元）</label>
+        <input class="input" type="digit" placeholder="0.00" data-field="salePrice" value="{{form.salePrice}}" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="field" wx:if="{{!isCosmetics}}">
+      <label class="field-label">低库存提醒</label>
+      <input class="input" type="number" data-field="lowStockThreshold" value="{{form.lowStockThreshold}}" bindinput="onInput" />
+    </view>
+
+    <view class="field" wx:if="{{!isCosmetics}}">
+      <label class="field-label">供应商</label>
+      <view class="supplier-options" wx:if="{{supplierOptions.length}}">
+        <view class="supplier-chip {{item.selected ? 'selected' : ''}}" wx:for="{{supplierOptions}}" wx:key="value" data-value="{{item.value}}" bindtap="selectSupplier">{{item.value}}</view>
+      </view>
+      <input class="input" placeholder="选择上方供应商，或输入新的供应商" data-field="supplier" value="{{form.supplier}}" bindinput="onInput" />
+      <view class="hint">新的供应商会在保存商品后自动加入常用列表。</view>
+    </view>
+
+    <block wx:if="{{isCosmetics}}">
+      <view class="field">
+        <label class="field-label">品牌</label>
+        <view class="supplier-options" wx:if="{{brandOptions.length}}">
+          <view class="supplier-chip {{item.selected ? 'selected' : ''}}" wx:for="{{brandOptions}}" wx:key="value" data-value="{{item.value}}" bindtap="selectBrand">{{item.value}}</view>
+        </view>
+        <input class="input" placeholder="选择上方品牌，或输入新的品牌" data-field="brand" value="{{form.brand}}" bindinput="onInput" />
+        <view class="hint">新的品牌会在保存化妆品后自动加入常用列表。</view>
+      </view>
+      <view class="form-grid">
+        <view class="field">
+          <label class="field-label">批次号</label>
+          <input class="input" placeholder="例如：202608-A" data-field="batchNumber" value="{{form.batchNumber}}" bindinput="onInput" />
+        </view>
+        <view class="field">
+          <label class="field-label">到期日期</label>
+          <picker mode="date" value="{{form.expiryDate}}" bindchange="onExpiryChange">
+            <view class="picker-value date-picker">{{form.expiryDate || '请选择日期'}} <text>⌄</text></view>
+          </picker>
+        </view>
+      </view>
+    </block>
+
+  </block>
+
+  <view class="spec-section" wx:if="{{showSpecs}}">
+    <view class="spec-title">{{colorLabel}}与{{sizeLabel}}</view>
+    <block wx:if="{{!isCosmetics}}">
+      <view class="field preset-field">
+        <label class="field-label">点击选择颜色（可多选）</label>
+        <view class="preset-chips">
+          <view class="preset-chip {{item.selected ? 'selected' : ''}}" wx:for="{{colorPresets}}" wx:key="value" data-field="colors" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+        </view>
+        <input class="input custom-spec-input" placeholder="没有的颜色可在这里补充，例如：酒红色" data-field="colors" value="{{form.colors}}" bindinput="onInput" />
+        <view class="hint">不选颜色时自动使用“通用”。</view>
+      </view>
+      <view class="field preset-field">
+        <label class="field-label"><text class="required">*</text> 点击选择尺码（可多选）</label>
+        <block wx:if="{{isPants}}">
+          <view class="preset-group-label">常用裤码</view>
+          <view class="preset-chips">
+            <view class="preset-chip size-chip {{item.selected ? 'selected' : ''}}" wx:for="{{numberSizePresets}}" wx:key="value" data-field="sizes" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+          </view>
+          <view class="preset-group-label number-label">字母尺码</view>
+          <view class="preset-chips">
+            <view class="preset-chip size-chip {{item.selected ? 'selected' : ''}}" wx:for="{{letterSizePresets}}" wx:key="value" data-field="sizes" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="preset-group-label">常用尺码</view>
+          <view class="preset-chips">
+            <view class="preset-chip size-chip {{item.selected ? 'selected' : ''}}" wx:for="{{letterSizePresets}}" wx:key="value" data-field="sizes" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+          </view>
+          <view class="preset-group-label number-label">数字尺码</view>
+          <view class="preset-chips">
+            <view class="preset-chip size-chip {{item.selected ? 'selected' : ''}}" wx:for="{{numberSizePresets}}" wx:key="value" data-field="sizes" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+          </view>
+        </block>
+        <input class="input custom-spec-input" placeholder="没有的尺码可在这里补充，例如：36、38、40" data-field="sizes" value="{{form.sizes}}" bindinput="onInput" />
+        <view class="hint">点击后自动组合颜色和尺码，当前共 {{variantCount}} 个规格。</view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="field preset-field">
+        <label class="field-label">点击选择款式 / 色号（可多选）</label>
+        <view class="preset-chips">
+          <view class="preset-chip {{item.selected ? 'selected' : ''}}" wx:for="{{cosmeticColorPresets}}" wx:key="value" data-field="colors" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+        </view>
+        <input class="input custom-spec-input" placeholder="没有的色号可在这里补充" data-field="colors" value="{{form.colors}}" bindinput="onInput" />
+        <view class="hint">不选款式或色号时自动使用“通用”。</view>
+      </view>
+      <view class="field preset-field">
+        <label class="field-label"><text class="required">*</text> 点击选择容量 / 规格（可多选）</label>
+        <view class="preset-chips">
+          <view class="preset-chip size-chip {{item.selected ? 'selected' : ''}}" wx:for="{{cosmeticSpecPresets}}" wx:key="value" data-field="sizes" data-value="{{item.value}}" bindtap="togglePreset">{{item.value}}</view>
+        </view>
+        <input class="input custom-spec-input" placeholder="没有的规格可在这里补充" data-field="sizes" value="{{form.sizes}}" bindinput="onInput" />
+        <view class="hint">点击后自动组合色号和容量，当前共 {{variantCount}} 个规格。</view>
+      </view>
+    </block>
+    <view class="variant-stock-section" wx:if="{{variants.length}}">
+      <view class="variant-stock-head"><view>分别填写库存</view><text>未填写按 0 件保存</text></view>
+      <view class="variant-stock-row" wx:for="{{variants}}" wx:key="key">
+        <view class="variant-name"><view>{{item.color === '默认' ? '通用' : item.color}}</view><text>{{item.size}}</text></view>
+        <view class="variant-stock-input"><input type="number" value="{{item.stock}}" placeholder="0" data-index="{{index}}" bindinput="onVariantStockInput" /><text>件</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="quick-default-spec" wx:if="{{quickCreate && !showSpecs}}">
+    <view>默认规格</view>
+    <text>{{isCosmetics ? '通用 / 标准规格' : '通用 / 均码'}} · 库存 0 件，创建后可随时修改</text>
+  </view>
+
+  <button class="primary-button save-button" bindtap="submit">{{saveButtonText}}</button>
+</view>

@@ -1,0 +1,26 @@
+<view class="page profile-page">
+  <view class="page-title">我的</view>
+  <view class="owner-card card" wx:if="{{user}}">
+    <view class="owner-avatar">{{avatarText}}</view>
+    <view class="owner-main"><view>{{user.name}}</view><text>{{accountDisplay}} · 微信店主</text></view>
+    <view class="tag">店主</view>
+  </view>
+
+  <view class="stat-grid">
+    <view><text>商品款数</text><text class="stat-value">{{productCount}}</text></view>
+    <view><text>库存总数</text><text class="stat-value">{{totalStock}}</text></view>
+  </view>
+
+  <view class="section-head"><view class="section-title">管理设置</view></view>
+  <view class="card menu-list">
+    <view class="menu-row" bindtap="showAccountSecurity"><view class="menu-icon">云</view><text>微信账号与云同步</text><view>›</view></view>
+    <view class="menu-row" data-title="员工与权限" bindtap="showComingSoon"><view class="menu-icon">人</view><text>员工与权限</text><view>›</view></view>
+    <view class="menu-row" data-title="供应商管理" bindtap="showComingSoon"><view class="menu-icon">供</view><text>供应商管理</text><view>›</view></view>
+    <view class="menu-row" data-title="分类与提醒" bindtap="showComingSoon"><view class="menu-icon">类</view><text>分类与低库存设置</text><view>›</view></view>
+    <view class="menu-row" bindtap="exportData"><view class="menu-icon">表</view><text>复制库存表格数据</text><view>›</view></view>
+    <view class="menu-row" bindtap="showAbout"><view class="menu-icon">i</view><text>版本说明</text><view>›</view></view>
+  </view>
+
+  <button class="logout-button" bindtap="logoutAccount">退出登录</button>
+  <view class="local-note">微信账号已登录 · 经营数据自动同步云端</view>
+</view>

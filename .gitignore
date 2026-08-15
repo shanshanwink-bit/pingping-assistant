@@ -1,0 +1,44 @@
+# WeChat Developer Tools local settings
+project.private.config.json
+*.private.config.json
+
+# Local environment and secret files
+.env
+.env.*
+!.env.example
+*.local
+*.local.*
+secrets/
+credentials/
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa*
+id_ed25519*
+
+# Dependencies and generated files
+node_modules/
+miniprogram_npm/
+coverage/
+dist/
+tmp/
+temp/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local previews and exports
+outputs/*.png
+outputs/*.json

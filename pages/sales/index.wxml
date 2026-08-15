@@ -1,0 +1,22 @@
+<view class="page flow-page">
+  <view class="page-heading"><view><view class="page-title">卖货记录</view><text>每次卖了什么、收了多少，都在这里</text></view><button class="new-record-mini" bindtap="addSale"><text>＋</text><view>{{actionText}}</view></button></view>
+
+  <view class="flow-hero sale-hero">
+    <view class="hero-decoration"></view>
+    <view class="hero-label">今日卖货</view>
+    <view class="hero-number">{{todayQuantity}}<text> 件</text></view>
+    <view class="hero-amount"><text>今日收款</text><view>{{todayAmountText}}</view></view>
+  </view>
+
+  <view class="tip-card"><view class="tip-icon">卖</view><view><view>卖货后自动减库存</view><text>库存不足时会提醒，不会把库存减成负数。</text></view></view>
+
+  <view class="section-head"><view><view class="section-title">每次卖货明细</view><view class="section-subtitle">共 {{records.length}} 条记录</view></view></view>
+  <view class="card record-list" wx:if="{{records.length}}">
+    <view class="record-row" wx:for="{{records}}" wx:key="id">
+      <view class="record-badge">卖{{item.quantity}}</view>
+      <view class="record-main"><view class="record-name">{{item.productName}}</view><view class="record-meta">{{item.specText}} · {{item.paymentMethod}}</view><view class="record-time">{{item.timeText}} · {{item.operator}}</view></view>
+      <view class="record-money"><view>{{item.totalAmountText}}</view><text>{{item.unitPriceText}}/件</text></view>
+    </view>
+  </view>
+  <view wx:else class="empty-flow"><view class="empty-symbol">卖</view><view>还没有卖货记录</view><text>有商品库存后，就可以记录卖货。</text><view class="empty-actions"><button bindtap="addProduct">新建商品</button><button class="record-create-button" bindtap="addSale">＋ {{actionText}}</button></view></view>
+</view>

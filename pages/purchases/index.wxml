@@ -1,0 +1,27 @@
+<view class="page flow-page">
+  <view class="page-heading"><view><view class="page-title">拿货记录</view><text>每次拿货花了多少钱，都在这里</text></view><button class="new-record-mini" bindtap="addPurchase"><text>＋</text><view>登记拿货</view></button></view>
+
+  <view class="flow-hero purchase-hero">
+    <view class="hero-decoration"></view>
+    <view class="hero-label">今日拿货</view>
+    <view class="hero-number">{{todayQuantity}}<text> 件</text></view>
+    <view class="hero-amount"><text>今日拿货总额</text><view>{{todayAmountText}}</view></view>
+  </view>
+
+  <view class="month-summary">
+    <view><text>本月拿货</text><view>{{monthQuantity}}<text> 件</text></view><text>{{monthCount}} 次</text></view>
+    <view><text>本月拿货总额</text><view>{{monthAmountText}}</view><text>实际采购支出</text></view>
+  </view>
+
+  <view class="tip-card"><view class="tip-icon">进</view><view><view>拿货后自动入库</view><text>单件拿货价会用于计算平均进价和当前库存成本。</text></view></view>
+
+  <view class="section-head"><view><view class="section-title">每次拿货明细</view><view class="section-subtitle">共 {{records.length}} 条记录</view></view></view>
+  <view class="card record-list" wx:if="{{records.length}}">
+    <view class="record-row" wx:for="{{records}}" wx:key="id">
+      <view class="record-badge">＋{{item.quantity}}</view>
+      <view class="record-main"><view class="record-name">{{item.productName}}</view><view class="record-meta">{{item.specText}} · {{item.supplier || '未填供应商'}}</view><view class="record-time">{{item.timeText}} · {{item.operator}}</view></view>
+      <view class="record-money"><text>拿货总额</text><view>{{item.totalCostText}}</view><text>单价 {{item.unitCostText}}</text></view>
+    </view>
+  </view>
+  <view wx:else class="empty-flow"><view class="empty-symbol">进</view><view>还没有拿货记录</view><text>先新建商品，再登记第一批拿货。</text><view class="empty-actions"><button bindtap="addProduct">新建商品</button><button class="record-create-button" bindtap="addPurchase">＋ 登记拿货</button></view></view>
+</view>

@@ -1,0 +1,5 @@
+@import "../purchases/index.wxss";
+
+.sale-hero { background: linear-gradient(135deg, rgba(255,255,255,.84), rgba(229,238,255,.74) 50%, rgba(255,229,240,.68)); }
+.sale-hero + .tip-card .tip-icon { background: #f0e2f1; color: #815888; }
+.record-badge { background: #f3e6f3; color: #805987; }

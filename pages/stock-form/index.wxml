@@ -1,0 +1,48 @@
+<view class="page stock-form-page">
+  <view class="operation-banner {{type}}">
+    <view class="banner-icon">{{bannerIcon}}</view>
+    <view><view class="banner-title">{{meta.title}}</view><view class="banner-sub">{{bannerSub}}</view></view>
+  </view>
+
+  <view wx:if="{{products.length}}">
+    <view class="field">
+      <label class="field-label"><text class="required">*</text> 商品</label>
+      <picker range="{{productNames}}" value="{{productIndex}}" bindchange="onProductChange">
+        <view class="picker-value">{{productNames[productIndex]}} <text>⌄</text></view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <label class="field-label"><text class="required">*</text> {{specLabel}}</label>
+      <picker range="{{specNames}}" value="{{specIndex}}" bindchange="onSpecChange">
+        <view class="picker-value">{{specNames[specIndex]}} <text>⌄</text></view>
+      </picker>
+    </view>
+
+    <view class="current-stock" wx:if="{{currentSpec}}">
+      <text>当前库存</text><text class="current-stock-value">{{currentSpec.stock}} 件</text>
+    </view>
+
+    <view class="field">
+      <label class="field-label"><text class="required">*</text> {{meta.quantityLabel}}</label>
+      <input class="input quantity-input" type="number" placeholder="请输入数量" value="{{quantity}}" bindinput="onQuantityInput" />
+      <view class="hint" wx:if="{{increaseMode}}">当前 {{currentSpec.stock}} 件，本次填写的数量会直接累加。</view>
+      <view class="hint" wx:elif="{{type === 'stocktake'}}">请填写当前实际数量，保存后会替换原库存。</view>
+    </view>
+
+    <view class="field" wx:if="{{!simpleMode}}">
+      <label class="field-label">操作原因</label>
+      <picker range="{{meta.reasons}}" value="{{reasonIndex}}" bindchange="onReasonChange">
+        <view class="picker-value">{{meta.reasons[reasonIndex]}} <text>⌄</text></view>
+      </picker>
+    </view>
+
+    <view class="field" wx:if="{{!simpleMode}}">
+      <label class="field-label">备注</label>
+      <textarea class="textarea" maxlength="100" placeholder="可填写进货单号、损坏原因等" value="{{remark}}" bindinput="onRemarkInput" />
+    </view>
+
+    <button class="primary-button" bindtap="submit">{{meta.buttonText}}</button>
+  </view>
+  <view wx:else class="empty">请先新建商品，再进行库存操作。</view>
+</view>

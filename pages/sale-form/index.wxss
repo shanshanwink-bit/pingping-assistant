@@ -1,0 +1,15 @@
+@import "../purchase-form/index.wxss";
+
+.sale-entry-card { background: rgba(255,255,255,.72); }
+.sale-entry-card .entry-field:last-child .entry-input > text { color: #d2688d; }
+.stock-change.danger { background: rgba(255,228,235,.72); color: #bc5c78; }
+.stock-change.danger text { color: #d15178; }
+.sale-total-row { background: linear-gradient(135deg, rgba(227,240,255,.75), rgba(255,226,238,.76)); }
+.sale-total-row > view:last-child { color: #ca5d84; }
+.payment-card { position: relative; z-index: 1; margin-top: 16rpx; padding: 19rpx 20rpx 20rpx; border: 2rpx solid rgba(255,255,255,.9); border-radius: 23rpx; background: rgba(255,255,255,.62); }
+.payment-label { color: #506f83; font-size: 20rpx; font-weight: 600; }
+.payment-options { display: flex; flex-wrap: wrap; gap: 9rpx; margin-top: 13rpx; }
+.payment-chip { padding: 10rpx 17rpx; border: 1rpx solid rgba(255,255,255,.92); border-radius: 999rpx; background: rgba(225,241,252,.58); color: #6b8799; font-size: 19rpx; }
+.payment-chip.active { border-color: rgba(112,187,230,.4); background: linear-gradient(135deg, rgba(210,239,255,.94), rgba(255,224,237,.9)); color: #438eb7; box-shadow: 0 6rpx 15rpx rgba(75,132,172,.09); font-weight: 600; }
+.stock-warning { position: relative; z-index: 1; margin-top: 13rpx; padding: 14rpx 18rpx; border: 1rpx solid rgba(225,120,148,.24); border-radius: 17rpx; background: rgba(255,229,236,.75); color: #b84f70; text-align: center; font-size: 19rpx; }
+.save-sale { background: linear-gradient(135deg, #80c8ed, #e489ad) !important; }
