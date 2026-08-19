@@ -1,95 +1,122 @@
 # AGENTS.md
 
-## 项目
+## 适用范围与稳定基线
 
-- 本仓库包含微信原生小程序、Vue 3 管理后台和自有服务器 API；根目录的 `app.*`、项目配置与 `sitemap.json` 保持原位。
-- 小程序页面只处理展示与交互，共享业务逻辑放 `utils/`。
-- 管理后台前端放 `admin/`；Go 管理后台 API 放 `server-go/`；原有 Node.js 小程序 API 与兼容能力放 `server/`。
-- 小程序、管理后台与服务端共享同一业务口径和 MySQL 数据，不在前端复制服务端权限或库存规则。
+- 本文件位于正式项目根目录 `C:\Users\DELL1\Documents\萍萍的小助手`，适用于整个仓库及全部子目录。
+- `C:\Users\DELL1\Documents\服装` 只是指向正式目录的 Windows Junction。工具可能仍通过该 Junction 工作，不得自行删除、重建、重命名或改变它的目标。
+- 当前 v1.0 稳定基线为提交 `9237e91`（`feat: complete Pingping Assistant v1.0`）。不得擅自改写该提交。
+- v1.0 已进入封版阶段，默认不增加新功能。后续优先处理 Bug 修复、部署验证、真机验证、文档、README 和面试准备，不自行扩大产品范围。
 
-## 目录
+## 产品定位与当前边界
 
-- `pages/` 页面；`custom-tab-bar/` 自定义导航；`assets/` 静态资源。
-- `admin/` Vue 3 管理后台；`server-go/` Go 管理后台 API。
-- `server/` 原有 Node.js API、共享 MySQL 迁移及兼容层。
-- `docs/product/` 需求文档；`docs/guides/` 使用与部署说明。
-- `tests/` 自动化测试；`outputs/` 预览或导出产物。
+「萍萍小助手」是面向小型服装、美妆零售场景的轻量经营管理系统，包含微信原生小程序、Vue 3 管理后台、Node.js 小程序 API、Go 管理后台 API 和 MySQL 数据库。
 
-## 分层
+### 微信小程序
 
-### 小程序
+- 小程序是高频经营操作端，不是只读端。
+- 正式 TabBar 固定为：`首页`、`商品`、`账本`、`我的`。
+- 主要承载今日经营、商品与库存查询、卖货、拿货、记一笔、账本、库存预警和操作记录。
+- 卖货、拿货和其他收支从首页、商品详情或账本中的明确入口进入；已删除的 `quick-action` 页面不得重新注册或恢复。
+- `pages/` 只处理页面状态、事件绑定和渲染适配；共享业务计算、校验、同步与鉴权放在 `utils/`。同一逻辑出现第二次复用时应提取，不通过复制函数共享。
 
-- `pages/` 只包含页面状态、事件绑定和渲染适配；可复用业务计算、校验、同步与鉴权放 `utils/`。
-- 页面之间不得通过复制函数共享逻辑；出现第二次复用时立即提取到 `utils/`。
+### Web 管理后台
 
-### Vue 管理后台
+- Web 是低频管理与经营分析端，不是主要高频经营录入端。
+- 当前正式导航仅保留：`经营看板`、`商品中心`、`库存中心`、`销售与收支`（以查看核对为主）、`经营分析`、`员工与权限`、`操作日志`。
+- `采购与供应商` 和无效的 `基础设置` 当前不属于正式导航，不得为了看似完整而重新加入空壳页面、入口或模块。
+- `admin/src/App.vue` 只负责应用壳、页面入口和全局状态装配；页面放 `admin/src/views/`，布局放 `admin/src/components/layout/`，跨页面组件放 `admin/src/components/common/`，领域组件放对应模块目录。
+- HTTP 请求统一放 `admin/src/services/`，组合式状态与交互逻辑放 `admin/src/composables/`，纯格式化与校验放 `admin/src/utils/`。组件不得直接拼接 API 地址、解析数据库字段或实现服务端权限判断。
+- 设计令牌放 `admin/src/styles/tokens.css`；页面专属样式随页面组件维护。不得新增全局 CSS 覆盖层，也不得用大量 `!important` 修补样式。
 
-- `admin/src/App.vue` 只负责应用壳、路由入口和全局状态装配，不承载完整业务页面。
-- 页面级组件放 `admin/src/views/`；布局放 `admin/src/components/layout/`；跨页面通用组件放 `admin/src/components/common/`；领域组件放对应模块目录。
-- HTTP 请求统一放 `admin/src/services/`，组合式状态与交互逻辑放 `admin/src/composables/`，纯格式化与校验函数放 `admin/src/utils/`。
-- 设计令牌放 `admin/src/styles/tokens.css`，布局与通用组件样式按文件拆分；页面专属样式随页面组件维护。
-- 组件不得直接拼接 API 地址、解析数据库字段或实现服务端权限判断。
-- 后台会话统一由 `admin/src/services/api.js` 和 `admin/src/composables/useAuth.js` 管理；页面不得自行读写或复制登录令牌逻辑。
-- 登录页只负责采集账号密码和展示错误；是否允许登录、角色和权限结果均以 Go API 返回为准。
-- 收到 `401` 时清理本地会话并返回登录页；退出登录必须同时调用服务端注销接口和清理浏览器令牌。
-- `员工与权限` 页面修改成员后必须重新读取服务端结果，不以本地乐观状态代替服务端最终权限。
+## 服务职责
 
-### Go 服务端
+### Node 服务：`server/`
 
-- 当前可执行入口为 `server-go/main.go`，只完成配置读取、依赖装配和服务启动；新增其他可执行程序时放 `server-go/cmd/`。
-- HTTP 路由与参数转换放 `server-go/internal/httpapi/`；业务规则放 `internal/service/`；MySQL 访问放 `internal/repository/`；领域结构放 `internal/domain/`；配置放 `internal/config/`。
-- Handler 不写 SQL，Repository 不处理 HTTP，Service 不依赖具体路由或响应格式。
-- 跨层依赖方向固定为 `http -> service -> repository`；禁止反向引用和循环依赖。
-- 数据库迁移放 `server/migrations/`，每个迁移只表达一个可回滚、可核对的变更意图。
+- Node.js 服务真实负责微信登录、小程序会话、`store/state`、小程序商品目录、小程序销售事务和小程序采购/拿货事务。
+- Node API、共享 MySQL 迁移及兼容能力都保留在 `server/`；不要未经确认删除、替换或降级为无业务作用的兼容壳。
+- Node 与 Go 当前各有真实职责。禁止为了“统一技术栈”自行合并、迁移或废弃其中任何一方。
 
-### 后台鉴权与权限
+### Go 服务：`server-go/`
+
+- Go 服务真实负责 Web 后台登录与会话、商品管理、聚合库存、后台经营数据读取、经营分析、员工与权限和审计日志。
+- 当前可执行入口为 `server-go/main.go`，只负责配置读取、依赖装配和服务启动；新增其他可执行程序时放 `server-go/cmd/`。
+- HTTP 路由与参数转换放 `server-go/internal/httpapi/`，业务规则放 `internal/service/`，MySQL 访问放 `internal/repository/`，领域结构放 `internal/domain/`，配置放 `internal/config/`。
+- 依赖方向固定为 `http -> service -> repository`：Handler 不写 SQL，Repository 不处理 HTTP，Service 不依赖具体路由或响应格式；禁止反向引用和循环依赖。
+- 数据库迁移统一放 `server/migrations/`，每个迁移只表达一个可回滚、可核对的变更意图。
+
+## 数据口径
+
+- 小程序和 Web 必须使用相同经营口径，不在前端复制或改写服务端权限、库存和盈利规则。
+- 统一经营盈利为：`可靠成本销售毛利 + 其他收入 - 其他支出`。
+- 采购属于现金支出，但不能再次从经营盈利中扣除，否则会重复计算成本。
+- 缺少可靠成本的销售应计入收入，但不得伪造毛利，也不得计入经营盈利。
+- 不得用占位值、估算值、演示值或前端补值伪造经营数据。
+
+## 数据模型边界
+
+- 当前小程序在 `store_states` 的商品状态中保存规格库存；Web 的 `admin_products` 主要保存聚合库存，两者不是同一库存粒度。
+- `store_states` 与部分 `admin_*` 表仍是历史形成的双体系；修改同步或聚合逻辑时必须先确认现有实现和兼容路径。
+- v1.0 不进行 SKU 数据库重构、统一交易表重构或完整采购系统重构。这些只是未来优化方向。
+- 不得因为发现架构不完美就自行扩表、增加迁移或重构数据库，也不得为了 UI 效果修改数据库。
+
+## 后台鉴权与权限
 
 - 管理后台使用独立账号和会话，不复用小程序微信令牌；API 前缀固定为 `/admin-api/v1`。
 - 密码只保存 PBKDF2-SHA256 摘要；服务端会话只保存随机令牌的 SHA-256 摘要，不记录明文密码或明文令牌。
 - 除登录和健康检查外，管理 API 默认要求 Bearer 会话；每次请求重新校验账号状态、角色和权限，使停用与权限回收立即生效。
-- 权限判断只在 `server-go/internal/service/` 完成；Vue 页面可以按权限隐藏入口，但不得把前端隐藏当作安全边界。
-- 店主账号不可被普通管理员降级或停用，也不得停用当前登录账号；修改角色、状态或细粒度权限必须写入服务端审计记录。
-- 后台角色模板为 `owner`、`admin`、`finance`、`clerk`；新增权限项时同步更新迁移默认值、服务端白名单、前端权限文案和测试。
-- 初始化管理员密码属于部署凭据，不得写入 `AGENTS.md`、README、产品文档、日志或前端源码；首次登录后应立即重置。
+- 权限判断只在 `server-go/internal/service/` 完成；Vue 可以按权限隐藏入口，但前端隐藏不是安全边界。
+- 后台会话统一由 `admin/src/services/api.js` 和 `admin/src/composables/useAuth.js` 管理。收到 `401` 时清理本地会话并返回登录页；退出必须同时调用服务端注销接口并清理浏览器令牌。
+- 店主账号不可被普通管理员降级或停用，也不得停用当前登录账号；角色、状态或细粒度权限变化必须写入服务端审计记录。`员工与权限` 修改成员后必须重新读取服务端最终结果。
+- 角色模板为 `owner`、`admin`、`finance`、`clerk`。新增权限项时须同步迁移默认值、服务端白名单、前端文案和测试。
+- 初始化管理员密码属于部署凭据，不得写入说明、文档、日志或前端源码；前端不得加入演示账号、默认密码、生产令牌或绕过鉴权的 fallback。
+
+## 修改原则
+
+1. 优先修 Bug，不盲目增加功能。
+2. 修改前先阅读现有实现和相关测试，不大面积重写已经稳定的页面。
+3. 不伪造经营数据。
+4. 不为了 UI 效果修改数据库。
+5. 不新增全局 CSS 覆盖层，不大量新增 `!important`。
+6. 不重新引入已删除或隐藏的空壳功能。
+7. 涉及数据库迁移必须先向用户报告变更意图、范围和回滚方式，得到确认后再执行。
+8. 涉及线上服务器部署必须先报告；不得把本地完成描述成已部署。
+9. 涉及 `git reset`、`git clean`、强制 checkout 或 `git push` 必须先报告并取得明确授权；不得使用 `reset --hard`、`clean -fd`，不得自动 push 或强推。
+10. 不自动操作生产数据，不向生产数据库写入测试交易。
+11. 不提交密钥、真实 AppID、密码、Token、私钥、环境文件或用户数据。真实 AppID 属于本地 `project.config.json` 配置，不得因 Git 清理破坏微信开发者工具。
+12. 修改页面时同步检查同目录的 `.js`、`.json`、`.wxml`、`.wxss`；API 字段变化必须同步检查小程序、Vue、Node/Go 兼容层、迁移和相关测试。
 
 ## 文件规模
 
 - 优先按职责拆分，不以“先写进一个文件、以后再整理”为默认做法。
-- 新增或明显扩展的 `.js`、`.ts`、`.vue`、`.go` 文件接近 300 行时应拆分；CSS 文件接近 400 行时应按令牌、布局、组件或页面拆分。
+- 新增或明显扩展的 `.js`、`.ts`、`.vue`、`.go` 文件接近 300 行时应拆分；CSS 文件接近 400 行时按令牌、布局、组件或页面拆分。
 - 单个函数尽量控制在 50 行以内；同时负责取数、业务判断和渲染/响应时必须拆分。
-- Vue 单文件组件应保持单一页面或单一组件职责；列表、筛选器、指标卡、弹窗和表格应拆为独立组件。
-- Go 文件按领域与职责命名，避免使用持续膨胀的 `main.go`、`handlers.go`、`utils.go` 或 `common.go`。
-- 修改已有大文件时，若本次新增会继续扩大其职责，先完成相关部分的最小拆分再实现功能。
-
-## 修改
-
-- 修改页面时同步检查同目录的 `.js`、`.json`、`.wxml`、`.wxss`。
-- 优先复用 `utils/` 与现有样式；不要提交密钥、真实 AppID 或用户数据。
-- 管理后台修改需同步检查对应 view、组件、service、composable 与样式文件，避免只改视觉或只改请求层。
-- API 字段变化必须同步检查 Vue 管理后台、小程序兼容层、MySQL 迁移和相关测试。
-- 登录、退出、员工或权限变化必须同步检查 `admin_accounts`、`admin_roles`、`admin_sessions`、审计记录和现有会话失效行为。
-- 不得在前端加入演示账号、默认密码、生产令牌或绕过鉴权的 fallback；API 不可用时应显示明确错误状态。
+- Vue 单文件组件保持单一页面或单一组件职责；列表、筛选器、指标卡、弹窗和表格按职责拆分。
+- 修改已有大文件时，若本次新增会继续扩大其职责，应先完成相关部分的最小拆分；不要借机做无关重构。
 
 ## 验证
 
-- 运行 `node --test tests/*.test.js`。
-- 服务端变更在 `server/` 运行 `npm run check`，部署前确认数据库迁移与 `/api/v1/health`。
-- 管理后台在 `admin/` 运行 `pnpm build`；Go 服务在 `server-go/` 运行 `go test ./...` 和 `go build ./...`。
-- 后台鉴权变更至少验证：未登录访问返回 `401`、管理员登录、`/auth/me`、员工与角色读取、退出后原令牌再次访问返回 `401`。
-- 员工权限变更至少验证：店主保护、停用账号拒绝登录、无 `system.staff.manage` 权限返回 `403`、角色默认权限与成员例外权限一致。
-- 页面或配置变更还需在微信开发者工具中编译检查。
+按变更范围执行下列真实可用检查；不得写入或假装运行不存在的命令。
 
-## 管理后台部署
+- Node 自动测试（仓库根目录）：`node --test tests/*.test.js`。
+- Node API 静态检查（`server/`）：`pnpm run check`。
+- Vue production build（`admin/`）：`pnpm build`。
+- Go 测试与构建（`server-go/`）：`go test ./...`、`go build ./...`。
+- Go 格式检查（PowerShell，仓库根目录）：`Get-ChildItem server-go -Recurse -Filter *.go | ForEach-Object { gofmt -l $_.FullName }`，正常结果应无输出；需要格式化时只对本轮修改的 Go 文件运行 `gofmt -w`。
+- 小程序 JS 语法检查（PowerShell，仓库根目录）：`@('app.js') + (Get-ChildItem custom-tab-bar,pages,utils -Recurse -Filter *.js).FullName | ForEach-Object { node --check $_ }`。
+- 小程序路由检查（仓库根目录）：`node tests/miniprogram-readonly.test.js`；该历史文件名虽保留，但当前断言验证四栏 TabBar、高频操作页面已注册且旧 `quick-action` 未注册。
+- 页面或配置变化还要在微信开发者工具中编译，至少核对首页、商品、账本、我的、卖货、拿货、记一笔、库存预警和操作记录；不要向生产数据写入测试记录。
+- 若本机缺少 Node、pnpm、Go、`gofmt` 或微信开发者工具，应明确报告哪些检查未运行及原因，不得假装通过。
+- 后台鉴权变化至少验证：未登录返回 `401`、管理员登录、`/auth/me`、员工与角色读取、退出后原令牌再次访问返回 `401`。
+- 员工权限变化至少验证：店主保护、停用账号拒绝登录、无 `system.staff.manage` 权限返回 `403`、角色默认权限与成员例外权限一致。
 
-- 线上入口为 `http://106.13.176.125/admin/`，Nginx 将 `/admin-api/` 转发至 `127.0.0.1:3001`；正式长期使用前应配置 HTTPS。
-- Vue 构建产物部署到 `/var/www/admin/`；Go 二进制部署到 `/opt/pingping-admin-api/pingping-admin-api`；systemd 服务名为 `pingping-admin-api`。
-- 管理 API 与 Node API 共用服务器环境文件 `/etc/pingping-assistant-api.env` 和 MySQL 数据库，但使用独立会话表。
-- 数据库迁移按 `001`、`002`、`003` 及后续编号顺序执行；不得跳过迁移、重复重置生产管理员或直接修改线上表结构。
-- 部署前依次完成前端构建、Go 测试和 Go 构建；上线前备份 MySQL、`/var/www/admin/`、Go 二进制和 systemd 配置。
-- 切换后检查 `/admin-api/v1/health`、后台 HTML 与哈希资源、登录/员工权限/退出流程，并确认 `nginx`、`mysql`、`pingping-admin-api` 均为 `active`。
-- 发布包只上传到服务器 `/tmp`，部署完成后清理临时包和解压目录；备份保留在 `/var/backups/pingping-admin-<timestamp>` 以便回滚。
+## 部署状态
 
-## Git 发布
+- 本地代码已完成 v1.0，但线上服务器仍是旧版本；新版 Web、Node 和 Go 尚未正式部署。
+- 域名备案、HTTPS 和微信正式合法域名尚未完成。禁止将“本地完成”写成“线上已部署”或“已正式发布”。
+- 任何部署前都必须先报告，并完成适用的前端构建、Node 检查、Go 测试与构建、数据库迁移核对、备份及健康检查；部署步骤以 `docs/guides/` 中说明为参考，但执行前必须结合当前线上状态重新核对。
 
-- 本仓库为个人项目；用户要求提交或推送时，默认直接提交并推送到 `main`，无需新建功能分支或 Pull Request，除非用户明确要求。
-- Git 提交信息使用英文，保持简短并准确概括变更。
+## Git
+
+- 保护 v1.0 稳定基线和用户本地改动；不得用 reset、clean 或强制 checkout 清除工作区。
+- 只提交任务明确要求的文件。提交前检查 `git diff`、暂存区和敏感信息，不得顺带提交本地 `project.config.json` AppID 差异。
+- 未经用户明确要求不得创建提交；用户要求本地提交时使用简短准确的英文提交信息。提交与 push 是两项独立授权，本地提交不代表可以 push。
