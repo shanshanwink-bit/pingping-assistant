@@ -106,7 +106,7 @@ async function main() {
     ai: {
       apiKey: process.env.DASHSCOPE_API_KEY,
       baseUrl: String(process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1').replace(/\/$/, ''),
-      model: String(process.env.QWEN_VISION_MODEL || 'qwen3-vl-plus'),
+      model: String(process.env.QWEN_VISION_MODEL || 'qwen3.7-plus'),
       timeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS || 30000),
       maxImageBytes: 4 * 1024 * 1024,
       rateLimitWindowMs: 60000,

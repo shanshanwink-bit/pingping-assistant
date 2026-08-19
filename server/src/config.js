@@ -47,7 +47,7 @@ function loadConfig(env) {
     ai: {
       apiKey: String(source.DASHSCOPE_API_KEY || '').trim(),
       baseUrl: String(source.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1').replace(/\/$/, ''),
-      model: String(source.QWEN_VISION_MODEL || 'qwen3-vl-plus').trim(),
+      model: String(source.QWEN_VISION_MODEL || 'qwen3.7-plus').trim(),
       timeoutMs: positiveInteger('AI_REQUEST_TIMEOUT_MS', source.AI_REQUEST_TIMEOUT_MS || 15000),
       maxImageBytes: positiveInteger('AI_MAX_IMAGE_BYTES', source.AI_MAX_IMAGE_BYTES || 4 * 1024 * 1024),
       rateLimitWindowMs: positiveInteger('AI_RATE_LIMIT_WINDOW_MS', source.AI_RATE_LIMIT_WINDOW_MS || 60000),
