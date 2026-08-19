@@ -1,59 +1,93 @@
-<view class="page purchase-page sale-page">
-  <view class="purchase-heading">
-    <view class="page-title">记一笔卖货</view>
-    <text>选商品、填数量和卖价，库存自动减少</text>
+<view class="page transaction-page sale-page">
+  <view wx:if="{{isLoading}}" class="transaction-state"><view class="loading-ring"></view><text>正在读取商品</text></view>
+
+  <view wx:elif="{{success}}" class="success-panel">
+    <view class="success-mark">✓</view>
+    <view class="success-title">{{successView.title}}</view>
+    <view class="success-product">{{successView.productName}}</view>
+    <view class="success-spec">{{successView.specText}} · {{successView.quantityText}}</view>
+    <view class="success-grid">
+      <view><text>库存</text><view>{{successView.stockChangeText}}</view></view>
+      <view><text>{{successView.amountLabel}}</text><view>{{successView.amountText}}</view></view>
+    </view>
+    <view wx:if="{{successView.profitText}}" class="success-profit">本次毛利 {{successView.profitText}}</view>
+    <view class="success-actions">
+      <button class="outline-action" bindtap="viewProduct">查看商品</button>
+      <button class="primary-action" bindtap="continueTransaction">继续卖货</button>
+    </view>
+    <button class="finish-action" bindtap="finish">完成</button>
   </view>
 
-  <view wx:if="{{products.length}}">
-    <view class="selection-card">
-      <picker range="{{productNames}}" value="{{productIndex}}" bindchange="onProductChange">
-        <view class="selection-row"><view><text>商品</text><view>{{currentProduct.name}}</view></view><text class="selection-arrow">更换 ›</text></view>
-      </picker>
-      <picker range="{{specNames}}" value="{{specIndex}}" bindchange="onSpecChange">
-        <view class="selection-row"><view><text>{{specLabel}}</text><view>{{currentSpec.color}} / {{currentSpec.size}}</view></view><text class="selection-arrow">更换 ›</text></view>
-      </picker>
-    </view>
+  <block wx:else>
+    <view class="transaction-heading"><view class="page-title">卖货</view><text>{{pageHint}}</text></view>
 
-    <view class="core-entry-card sale-entry-card">
-      <view class="entry-grid">
-        <view class="entry-field">
-          <label><text>*</text> 卖货数量</label>
-          <view class="entry-input"><input type="number" placeholder="0" data-field="quantity" value="{{quantity}}" bindinput="onInput" /><text>件</text></view>
+    <view wx:if="{{products.length}}">
+      <view class="form-section">
+        <view class="form-section-label">选择商品</view>
+        <view wx:if="{{currentProduct && !showProductChooser}}" class="selected-product" bindtap="toggleProductChooser">
+          <view><text>{{currentProduct.name}}</text><view>{{currentProduct.itemNumber || currentProduct.code ? '货号 ' + (currentProduct.itemNumber || currentProduct.code) : '暂无货号'}}</view></view>
+          <text>更换 ›</text>
         </view>
-        <view class="entry-field">
-          <label><text>*</text> 单件卖价</label>
-          <view class="entry-input"><text>¥</text><input type="digit" placeholder="0.00" data-field="unitPrice" value="{{unitPrice}}" bindinput="onInput" /></view>
+        <view wx:if="{{showProductChooser}}" class="product-chooser">
+          <view class="transaction-search"><view class="search-symbol"></view><input placeholder="搜索商品名称 / 货号" value="{{keyword}}" bindinput="onProductSearch" /><button wx:if="{{keyword}}" bindtap="clearProductSearch">清除</button></view>
+          <view wx:if="{{productOptions.length}}" class="product-option-list">
+            <view class="product-option" wx:for="{{productOptions}}" wx:key="id" data-id="{{item.id}}" bindtap="selectProduct">
+              <view><text>{{item.name}}</text><view>{{item.typeLabel}} · {{item.identifier ? '货号 ' + item.identifier : '暂无货号'}}</view></view><text>库存 {{item.stockText}}件</text>
+            </view>
+          </view>
+          <view wx:else class="chooser-empty">没有找到相关商品</view>
         </view>
       </view>
 
-      <view class="stock-change {{afterStock < 0 ? 'danger' : ''}}" wx:if="{{currentSpec}}">
-        库存将从 <text>{{currentSpec.stock}}</text> 件变为 <text>{{afterStock}}</text> 件
+      <view wx:if="{{currentProduct}}" class="form-section">
+        <view class="form-section-head"><view class="form-section-label">选择规格</view><text wx:if="{{specOptions.length === 1}}">已自动选择</text></view>
+        <view wx:if="{{specOptions.length === 1}}" class="single-spec"><view><text>{{specOptions[0].displayLabel}}</text><view>{{specOptions[0].statusText}}</view></view><text class="{{specOptions[0].disabled ? 'danger' : 'selected'}}">{{specOptions[0].disabled ? '缺货' : '已选'}}</text></view>
+        <view wx:elif="{{specOptions.length}}" class="spec-option-list">
+          <view wx:for="{{specOptions}}" wx:key="id" class="spec-option {{currentSpec && currentSpec.id === item.id ? 'active' : ''}} {{item.disabled ? 'disabled' : ''}}" data-id="{{item.id}}" bindtap="selectSpec"><view>{{item.displayLabel}}</view><text>{{item.statusText}}</text></view>
+        </view>
+        <view wx:else class="chooser-empty">该商品没有可用规格</view>
       </view>
 
-      <view class="total-row sale-total-row">
-        <view><text>本次收款</text><view>{{quantity || 0}} 件 × ¥{{unitPrice || '0.00'}}</view></view>
-        <view>{{totalAmountText}}</view>
+      <view wx:if="{{currentProduct}}" class="form-section entry-section">
+        <view class="entry-block">
+          <view class="entry-label">数量</view>
+          <view class="quantity-stepper">
+            <button bindtap="decreaseQuantity" disabled="{{quantity <= 1}}">−</button>
+            <input type="number" value="{{quantity}}" bindinput="onQuantityInput" />
+            <button bindtap="increaseQuantity" disabled="{{outOfStock || (currentSpec && quantity >= currentSpec.stock)}}">＋</button>
+          </view>
+          <view class="stock-hint {{outOfStock ? 'danger' : ''}}">{{outOfStock ? '当前规格已缺货' : '当前库存 ' + beforeStockText + '件'}}</view>
+        </view>
+        <view class="entry-divider"></view>
+        <view class="entry-block">
+          <view class="entry-label">销售单价</view>
+          <view class="amount-input"><text>¥</text><input type="digit" value="{{unitAmount}}" placeholder="0.00" bindinput="onAmountInput" /></view>
+          <view class="stock-hint">本次按单价 × 数量计算</view>
+        </view>
       </view>
-    </view>
 
-    <view class="payment-card">
-      <view class="payment-label">收款方式</view>
-      <view class="payment-options">
-        <view wx:for="{{paymentMethods}}" wx:key="*this" class="payment-chip {{paymentIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="selectPayment">{{item}}</view>
+      <view wx:if="{{currentProduct}}" class="summary-card">
+        <view class="summary-title">确认摘要</view>
+        <view class="summary-product">{{summaryProductName}}</view>
+        <view class="summary-spec">{{summarySpecText}}</view>
+        <view class="summary-equation">{{unitAmountDisplay}} × {{quantity || 0}}</view>
+        <view class="summary-total"><text>应收</text><view>{{totalAmountText}}</view></view>
+        <view class="summary-stock">库存 {{beforeStockText}} → {{afterStockText}}</view>
       </view>
+
+      <view wx:if="{{currentProduct}}" class="more-toggle" bindtap="toggleMore"><view>收款方式与备注 <text>选填</text></view><text>{{showMore ? '收起' : '填写'}} ›</text></view>
+      <view wx:if="{{currentProduct && showMore}}" class="optional-card">
+        <view class="optional-label">收款方式</view>
+        <view class="payment-options"><view wx:for="{{paymentMethods}}" wx:key="*this" class="payment-chip {{paymentIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="selectPayment">{{item}}</view></view>
+        <view class="optional-label note-label">备注</view>
+        <textarea maxlength="100" placeholder="可填写顾客需求或其他说明" data-field="note" value="{{note}}" bindinput="onOptionalInput" />
+      </view>
+
+      <view wx:if="{{currentProduct && errorText}}" class="inline-error">{{errorText}}</view>
+      <view wx:if="{{submitErrorTitle}}" class="submit-error"><view>{{submitErrorTitle}}</view><text>{{submitErrorText}}</text></view>
+      <button wx:if="{{currentProduct}}" class="submit-transaction" disabled="{{!canSubmit || isSubmitting}}" loading="{{isSubmitting}}" bindtap="submit">{{isSubmitting ? '提交中' : submitLabel + ' · ' + totalAmountText}}</button>
     </view>
 
-    <view class="more-toggle" bindtap="toggleMore">
-      <view><view>备注</view><text>选填</text></view>
-      <text>{{showMore ? '收起' : '填写'}} {{showMore ? '⌃' : '⌄'}}</text>
-    </view>
-    <view class="more-card" wx:if="{{showMore}}">
-      <view class="field last-field"><textarea class="textarea" maxlength="100" placeholder="可填写顾客需求或其他说明" data-field="note" value="{{note}}" bindinput="onInput" /></view>
-    </view>
-
-    <view class="stock-warning" wx:if="{{afterStock < 0}}">库存不足，当前只有 {{currentSpec.stock}} 件</view>
-    <button class="save-purchase save-sale" bindtap="submit">确认卖货 · {{totalAmountText}}</button>
-  </view>
-
-  <view wx:else class="empty-product"><view class="empty-icon">{{emptyIcon}}</view><view>还没有商品档案</view><text>{{emptyHint}}</text><button class="primary-button" bindtap="addProduct">新建第一个商品</button></view>
+    <view wx:else class="transaction-state"><image src="/assets/icons/product-clothing.svg" mode="aspectFit" /><view>还没有可卖商品</view><text>商品可在管理后台创建</text></view>
+  </block>
 </view>

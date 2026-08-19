@@ -1,56 +1,71 @@
-<view class="page inventory-page simple-products-page">
-  <view class="clothing-orb orb-blue"></view>
-  <view class="clothing-orb orb-pink"></view>
-
-  <view class="simple-product-heading">
-    <view><view class="page-title">商品</view><text>服装和化妆品都在这里</text></view>
-    <button bindtap="addProduct">＋ 新建</button>
+<view class="page product-page">
+  <view class="product-heading">
+    <view class="page-title">商品</view>
+    <view class="product-subtitle">找商品、看库存，一眼就清楚</view>
   </view>
 
-  <view class="product-business-switch">
-    <view wx:for="{{businessTabs}}" wx:key="value" class="product-business-item {{activeBusinessType === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="selectBusiness">{{item.label}}</view>
+  <view class="product-search">
+    <view class="search-icon"></view>
+    <input class="search-input" placeholder="搜索商品名称 / 货号" placeholder-class="search-placeholder" value="{{keyword}}" confirm-type="search" bindinput="onSearch" />
+    <button wx:if="{{keyword}}" class="search-clear" bindtap="clearSearch">清除</button>
   </view>
 
-  <view class="simple-stock-card {{activeBusinessType}}">
-    <view class="simple-stock-main"><text>{{businessTitle}}还有</text><view>{{summary.totalStock}}<text> 件</text></view><text>{{summary.productCount}} 款商品</text></view>
-    <view class="simple-stock-side"><image src="{{businessIcon}}" mode="aspectFit" /><text>剩余货值</text><view>{{stockValueText}}</view></view>
+  <view class="type-filter">
+    <view wx:for="{{typeFilters}}" wx:key="value" class="type-filter-item {{activeType === item.value ? 'active' : ''}}" data-type="{{item.value}}" bindtap="selectType">{{item.label}}</view>
   </view>
 
-  <view class="simple-record-actions">
-    <view class="primary" bindtap="addSale"><text>卖货</text><view>记录收款 ›</view></view>
-    <view bindtap="openStockRecords"><text>{{activeBusinessType === 'clothing' ? '拿货记录' : '库存记录'}}</text><view>查看变化 ›</view></view>
-    <view bindtap="openSales"><text>卖货记录</text><view>查看明细 ›</view></view>
+  <view class="product-list-meta" wx:if="{{!isLoading && !loadFailed}}">
+    <text>共 {{filteredProducts.length}} 款商品</text>
+    <text wx:if="{{syncFailed}}" class="sync-note" bindtap="retryLoad">更新失败，点击重试</text>
   </view>
 
-  <view class="simple-stock-alert" wx:if="{{summary.lowSpecs.length}}" bindtap="openLowStock">
-    <view><text>需要留意的库存</text><view>{{summary.lowSpecs.length}} 个规格库存不多或已缺货</view></view><text>查看 ›</text>
+  <view wx:if="{{isLoading}}" class="state-card loading-state">
+    <view class="loading-ring"></view>
+    <view>正在加载商品</view>
   </view>
 
-  <view class="simple-search"><view class="search-lens"></view><input placeholder="搜索商品名称或货号" value="{{keyword}}" bindinput="onSearch" /></view>
+  <view wx:elif="{{loadFailed}}" class="state-card error-state">
+    <view class="state-title">商品加载失败</view>
+    <view class="state-copy">请稍后重试</view>
+    <button class="state-button" loading="{{isRetrying}}" bindtap="retryLoad">重新加载</button>
+  </view>
 
-  <scroll-view class="category-scroll simple-categories" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="category-row">
-      <view wx:for="{{categories}}" wx:key="*this" class="category-chip {{activeCategory === item ? 'selected' : ''}}" data-category="{{item}}" bindtap="selectCategory">{{item}}</view>
-    </view>
-  </scroll-view>
-
-  <view class="simple-list-head"><view>{{businessTitle}}商品</view><text>{{filteredProducts.length}} 款</text></view>
-  <view class="clothing-product-stack" wx:if="{{filteredProducts.length}}">
-    <view class="clothing-product-card simple-product-card" wx:for="{{filteredProducts}}" wx:key="id" data-id="{{item.id}}" bindtap="openProduct">
-      <image wx:if="{{item.image}}" class="clothing-product-image" src="{{item.image}}" mode="aspectFill" />
-      <view wx:else class="clothing-product-placeholder"><image src="{{placeholderIcon}}" mode="aspectFit" /></view>
-      <view class="clothing-product-main">
-        <view class="clothing-product-name">{{item.name}}</view>
-        <view class="clothing-product-meta">{{item.category}} · 编号 {{item.code}}<text wx:if="{{item.itemNumber}}"> · 货号 {{item.itemNumber}}</text></view>
-        <view class="clothing-status {{item.stockStatus === '库存正常' ? 'normal' : 'warning'}}">{{item.stockStatus}}</view>
+  <view wx:elif="{{filteredProducts.length}}" class="product-list">
+    <view class="product-card" wx:for="{{filteredProducts}}" wx:key="id" data-id="{{item.id}}" bindtap="openProduct">
+      <image wx:if="{{item.displayImage}}" class="product-image" src="{{item.displayImage}}" mode="aspectFill" data-id="{{item.id}}" binderror="onProductImageError" />
+      <view wx:else class="product-placeholder"><image src="{{item.placeholderIcon}}" mode="aspectFit" /></view>
+      <view class="product-card-main">
+        <view class="product-name">{{item.name}}</view>
+        <view class="product-identity">
+          <text>{{item.typeLabel}}</text>
+          <text wx:if="{{item.identifier}}">货号 {{item.identifier}}</text>
+          <text wx:else>暂无货号</text>
+        </view>
+        <view class="stock-status {{item.stockStatus.tone}}"><view class="status-dot"></view><text>{{item.stockStatus.label}}</text></view>
       </view>
-      <view class="clothing-product-stock"><view><text>{{item.totalStock}}</text> 件</view><text class="card-arrow">›</text></view>
+      <view class="product-card-side">
+        <view wx:if="{{!item.priceMissing}}" class="product-price">{{item.salePriceText}}</view>
+        <view wx:else class="product-price missing">暂未设置售价</view>
+        <view class="product-stock">库存 {{item.totalStockText}}件</view>
+        <view class="product-arrow">›</view>
+      </view>
     </view>
   </view>
 
-  <view wx:else class="clothing-empty">
-    <view class="empty-hanger"><image src="{{placeholderIcon}}" mode="aspectFit" /></view>
-    <view>{{products.length ? '没有找到这个商品' : '还没有商品'}}</view>
-    <text>{{products.length ? '换个名称或分类试试' : '点击右上角新建商品'}}</text>
+  <view wx:else class="state-card empty-state">
+    <image class="empty-icon" src="{{activeType === 'cosmetics' ? '/assets/icons/product-cosmetics.svg' : '/assets/icons/product-clothing.svg'}}" mode="aspectFit" />
+    <view wx:if="{{emptyKind === 'search'}}">
+      <view class="state-title">没有找到相关商品</view>
+      <view class="state-copy">尝试更换名称或货号</view>
+      <button class="state-button" bindtap="clearSearch">清除搜索</button>
+    </view>
+    <view wx:elif="{{emptyKind === 'category'}}">
+      <view class="state-title">暂无{{activeType === 'cosmetics' ? '化妆品' : '服装'}}商品</view>
+      <view class="state-copy">可以切换到“全部”查看其他商品</view>
+    </view>
+    <view wx:else>
+      <view class="state-title">还没有商品</view>
+      <view class="state-copy">商品可在管理后台创建</view>
+    </view>
   </view>
 </view>

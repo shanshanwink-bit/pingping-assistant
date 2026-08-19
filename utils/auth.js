@@ -3,14 +3,14 @@ const serverSync = require('./server-sync')
 
 function getCurrentUser() {
   const session = wx.getStorageSync(config.sessionKey)
-  if (!session || !session.openid) return null
+  if (!session || !session.openid || !session.token) return null
   return {
     id: session.openid,
     openid: session.openid,
     account: session.openid,
-    name: session.name || '微信店主',
+    name: session.name || '用户',
     avatarUrl: session.avatarUrl || '',
-    role: session.role || 'owner',
+    role: session.role || '',
     storeId: session.storeId || '',
     storeName: session.storeName || '',
     loggedInAt: session.loggedInAt || ''
@@ -24,9 +24,9 @@ async function loginWithWechat(profile) {
     token: identity.token,
     openid: remoteUser.openid,
     unionid: remoteUser.unionid || '',
-    name: remoteUser.name || String(profile && profile.name || '').trim() || '微信店主',
+    name: remoteUser.name || String(profile && profile.name || '').trim() || '用户',
     avatarUrl: remoteUser.avatarUrl || profile && profile.avatarUrl || '',
-    role: remoteUser.role || 'owner',
+    role: remoteUser.role || '',
     storeId: remoteUser.storeId || '',
     storeName: remoteUser.storeName || '',
     loggedInAt: new Date().toISOString()

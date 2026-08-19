@@ -11,6 +11,15 @@ function loadConfig(env) {
   const jwtSecret = required('JWT_SECRET', source.JWT_SECRET)
   if (jwtSecret.length < 32) throw new Error('JWT_SECRET 长度不能少于 32 个字符')
 
+  const primaryStoreId = String(source.PRIMARY_STORE_ID || '').trim()
+  const allowedOpenIds = String(source.WECHAT_ALLOWED_OPENIDS || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean)
+  if (primaryStoreId && !allowedOpenIds.length) {
+    throw new Error('配置 PRIMARY_STORE_ID 时必须同时配置 WECHAT_ALLOWED_OPENIDS')
+  }
+
   return {
     nodeEnv: source.NODE_ENV || 'production',
     host: source.HOST || '127.0.0.1',
@@ -25,7 +34,9 @@ function loadConfig(env) {
     },
     wechat: {
       appId: source.WECHAT_APP_ID || '',
-      appSecret: source.WECHAT_APP_SECRET || ''
+      appSecret: source.WECHAT_APP_SECRET || '',
+      primaryStoreId,
+      allowedOpenIds
     },
     adminOrigins: String(source.ADMIN_ORIGINS || '')
       .split(',')

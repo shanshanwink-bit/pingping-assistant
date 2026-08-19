@@ -1,0 +1,233 @@
+/* 与小程序一致的雾感蓝粉玻璃主题。此文件只负责主题覆盖，不承载页面结构。 */
+:root {
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+html,
+body,
+#app {
+  color: var(--ink);
+  background: var(--canvas-gradient);
+  background-attachment: fixed;
+}
+
+::selection {
+  color: var(--ink-strong);
+  background: rgba(126, 194, 242, .3);
+}
+
+button,
+input,
+select {
+  color: inherit;
+}
+
+button,
+a,
+input,
+select {
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease, transform .18s ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(76, 167, 217, .22);
+  outline-offset: 2px;
+}
+
+/* 应用壳 */
+.app-shell {
+  position: relative;
+  background: transparent;
+}
+
+.sidebar {
+  width: 248px;
+  border-right: 1px solid rgba(255, 255, 255, .78);
+  background: linear-gradient(180deg, rgba(238, 248, 255, .9), rgba(248, 246, 255, .86) 56%, rgba(255, 238, 246, .88));
+  box-shadow: 14px 0 38px rgba(74, 123, 158, .1);
+  backdrop-filter: blur(28px);
+}
+
+.brand {
+  height: 72px;
+  padding: 0 22px;
+  border-bottom-color: rgba(85, 137, 172, .12);
+}
+
+.brand-icon,
+.boot-screen > .brand-icon {
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(255, 255, 255, .9);
+  border-radius: 68% 32% 68% 32%;
+  color: #fff;
+  background: var(--brand-gradient);
+  box-shadow: 0 9px 20px rgba(75, 143, 187, .2);
+  transform: rotate(45deg);
+}
+
+.brand-icon > span,
+.boot-screen > .brand-icon > span {
+  transform: rotate(-45deg);
+}
+
+.brand h1 {
+  color: var(--ink-strong);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.brand p {
+  color: #6d8da2;
+  opacity: 1;
+}
+
+.store-wrap {
+  padding: 14px 14px 8px;
+}
+
+.store-button {
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 255, 255, .92);
+  border-radius: 12px;
+  color: #496b82;
+  background: rgba(255, 255, 255, .62);
+  box-shadow: var(--shadow-soft);
+}
+
+.store-button:hover {
+  background: rgba(255, 255, 255, .86);
+  transform: translateY(-1px);
+}
+
+.store-button .material-symbols-outlined,
+.store-button .chevron {
+  color: var(--blue);
+}
+
+.navigation {
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.navigation a {
+  height: 43px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-left: 1px solid transparent;
+  border-radius: 12px;
+  color: #5d7b90;
+  font-size: 13px;
+}
+
+.navigation a:hover {
+  color: var(--ink-strong);
+  background: rgba(255, 255, 255, .58);
+}
+
+.navigation a.active {
+  border-color: rgba(255, 255, 255, .9);
+  color: var(--ink-strong);
+  background: var(--brand-gradient-soft);
+  box-shadow: 0 10px 24px rgba(75, 132, 172, .11);
+}
+
+.navigation a.active .material-symbols-outlined {
+  color: var(--blue);
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.sidebar-footer {
+  padding: 14px;
+  border-top-color: rgba(85, 137, 172, .12);
+}
+
+.account-button {
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, .48);
+}
+
+.account-button:hover {
+  background: rgba(255, 255, 255, .78);
+}
+
+.account-button small {
+  color: var(--muted);
+}
+
+.avatar-small {
+  color: var(--ink-strong);
+  background: linear-gradient(145deg, #dff3ff, #ffe4ef);
+}
+
+.topbar {
+  left: 248px;
+  width: auto;
+  height: 72px;
+  padding: 0 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, .78);
+  background: rgba(244, 249, 255, .72);
+  box-shadow: 0 8px 30px rgba(74, 123, 158, .06);
+  backdrop-filter: blur(24px);
+}
+
+.topbar-context,
+.server-status {
+  color: #647f91;
+}
+
+.topbar-context .material-symbols-outlined,
+.server-status button:hover {
+  color: var(--blue);
+}
+
+.server-status i {
+  background: rgba(89, 139, 171, .18);
+}
+
+.server-status button:hover {
+  background: rgba(221, 242, 255, .7);
+}
+
+.server-status button b {
+  border-color: #f3f9ff;
+  background: var(--pink);
+}
+
+.workspace {
+  margin-left: 248px;
+  padding: 100px 28px 38px;
+  background: transparent;
+}
+
+.products-workspace {
+  background: transparent;
+}
+
+.products-workspace .products-page {
+  height: calc(100vh - 100px);
+}
+
+@media (max-width: 1180px) {
+  .sidebar { width: 226px; }
+  .topbar { left: 226px; }
+  .workspace { margin-left: 226px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

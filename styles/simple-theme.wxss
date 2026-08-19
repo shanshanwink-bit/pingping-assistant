@@ -1,0 +1,341 @@
+/* 简洁主题：所有页面只使用黑白灰、品牌莓红和必要的状态色。 */
+.login-page,
+.home-page,
+.inventory-page,
+.cosmetics-page,
+.profit-page,
+.profile-page,
+.purchase-page,
+.sale-page,
+.operations-page,
+.detail-page,
+.stock-overview-page,
+.stock-form-page,
+.form-page,
+.quick-page,
+.manual-profit-page,
+.clothing-page,
+.simple-products-page,
+.flow-page {
+  background: var(--color-canvas) !important;
+}
+
+/* 移除雾气、水滴、光晕和波纹等纯装饰。 */
+.mist-orb,
+.form-mist,
+.profit-mist,
+.login-mist,
+.login-rain,
+.rain-scene,
+.clothing-orb,
+.hero-ripple,
+.hero-decoration,
+.hero-water-visual,
+.hero-water-mark,
+.hero-glow,
+.visual-ring,
+.card-shine,
+.quick-drop,
+.action-bubble,
+.brand-drop,
+.clothing-drop,
+.cosmetic-drop,
+.profit-rain {
+  display: none !important;
+}
+
+/* 实体区域统一为白色卡片。 */
+.metric-item,
+.quick-item,
+.business-card,
+.category-card,
+.action-card,
+.metric-card,
+.chart-card,
+.selected-point,
+.ranking-item,
+.stat-grid > view,
+.manage-action,
+.record-links > view,
+.search-box,
+.stock-preview,
+.tip-card,
+.money-input,
+.stock-hero,
+.flow-summary,
+.profit-hero,
+.flow-hero,
+.purchase-hero,
+.sale-hero,
+.clothing-hero,
+.cosmetic-hero,
+.operation-summary,
+.metric-panel,
+.attention-panel,
+.recent-panel,
+.form-card,
+.owner-card,
+.menu-list,
+.product-list,
+.daily-list,
+.manual-list,
+.ranking-list,
+.payment-list,
+.product-card,
+.clothing-product-card,
+.cosmetic-product-card,
+.simple-product-card,
+.simple-stock-card,
+.entry-type-card,
+.notice-card,
+.entry-preview,
+.current-stock,
+.amount-preview,
+.sale-preview,
+.spec-section,
+.info-card,
+.selection-card,
+.core-entry-card,
+.quick-create-card,
+.today-card,
+.more-card,
+.sale-entry-card,
+.code-management-card,
+.empty-start,
+.empty-category,
+.empty-record,
+.empty-block,
+.empty-flow,
+.empty-product,
+.overview-empty {
+  border-color: var(--color-border) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  box-shadow: 0 8rpx 24rpx rgba(34, 34, 34, .04) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.form-banner,
+.operation-banner,
+.operation-banner.outbound,
+.operation-banner.stocktake,
+.money-section,
+.money-section.expense,
+.purchase-banner,
+.sale-banner,
+.safe-card,
+.filter-row,
+.business-filter,
+.trend-tabs,
+.payment-bar {
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+  background: var(--color-surface-muted) !important;
+  box-shadow: none !important;
+}
+
+/* 所有主要操作只使用一个品牌色。 */
+.primary-button,
+.add-button,
+.manual-button,
+.page-heading button,
+.empty-start button,
+.empty-actions button.filled,
+.sale-button,
+.save-button,
+.submit-button,
+.login-button,
+.save-purchase,
+.save-sale,
+.main-action,
+.progressive-action,
+.wechat-button {
+  border-color: var(--color-brand) !important;
+  color: #fff !important;
+  background: var(--color-brand) !important;
+  box-shadow: none !important;
+}
+
+.offline-actions button,
+.other-action,
+.details-action,
+.logout-button {
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* 选中态使用浅莓红底，不再使用多色渐变。 */
+.category-chip,
+.filter-chip,
+.period-item,
+.trend-item,
+.ranking-item,
+.business-filter-item,
+.business-choice-item,
+.note-chip,
+.preset-chip,
+.supplier-chip,
+.size-chip,
+.payment-chip {
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.category-chip.selected,
+.filter-chip.selected,
+.period-item.active,
+.trend-item.active,
+.ranking-item.active,
+.business-filter-item.active,
+.business-choice-item.active,
+.note-chip.active,
+.preset-chip.selected,
+.supplier-chip.selected,
+.size-chip.selected,
+.payment-chip.selected,
+.progressive-option.active,
+.entry-type-option.active {
+  border-color: var(--color-brand) !important;
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+  box-shadow: none !important;
+}
+
+/* 图标与头像只保留品牌浅底。 */
+.action-icon,
+.record-type,
+.record-badge,
+.tip-icon,
+.empty-symbol,
+.empty-icon,
+.form-icon,
+.product-placeholder,
+.detail-placeholder,
+.overview-placeholder,
+.recent-placeholder,
+.attention-icon,
+.owner-avatar,
+.brand-icon,
+.menu-icon,
+.other-icon,
+.type-symbol,
+.note-icon,
+.field-icon,
+.quick-icon,
+.main-action-icon {
+  border-color: transparent !important;
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+  box-shadow: none !important;
+}
+
+.quick-icon {
+  border: 1rpx solid #ead6dd !important;
+  background: var(--color-brand-soft) !important;
+}
+
+.main-action-icon { background: var(--color-brand) !important; }
+
+/* 文字层级统一为三档灰度。 */
+.shop-name,
+.page-heading .page-title,
+.form-heading .page-title,
+.inventory-head .page-title,
+.profit-heading .page-title,
+.hero-value,
+.hero-number,
+.hero-amount view,
+.hero-cost view,
+.stock-hero,
+.profit-hero,
+.flow-hero,
+.recent-name,
+.overview-name,
+.detail-name,
+.record-name,
+.row-label,
+.entry-type-title,
+.clothing-heading,
+.clothing-product-name,
+.cosmetic-product-card,
+.simple-product-heading {
+  color: var(--color-text) !important;
+}
+
+.shop-meta,
+.page-heading text,
+.form-heading > view:last-child > text,
+.inventory-head > view > text,
+.profit-heading > view > text,
+.owner-main text,
+.hero-label,
+.hero-date,
+.hero-comparison,
+.hero-manual,
+.hero-amount text,
+.record-meta,
+.record-time,
+.tip-card text,
+.recent-time,
+.recent-empty,
+.overview-detail,
+.overview-stock,
+.result-summary,
+.quick-sub,
+.banner-sub,
+.hint,
+.local-note {
+  color: var(--color-text-secondary) !important;
+  opacity: 1 !important;
+}
+
+/* 数字、链接和普通业务强调统一使用品牌色。 */
+.stat-value,
+.record-change,
+.record-money view,
+.current-stock-value,
+.preview-arrow,
+.amount-preview view,
+.sale-amount view,
+.overview-stock > text,
+.recent-change,
+.closet-total,
+.style-count,
+.stock-cost,
+.date-value,
+.product-status {
+  color: var(--color-brand) !important;
+}
+
+/* 仅状态继续使用绿、橙、红。 */
+.status.normal,
+.clothing-status.normal,
+.account-status,
+.income,
+.gain { color: var(--color-success) !important; }
+
+.status.warning,
+.stock-warning,
+.warning-text,
+.attention-status,
+.old-warning { color: var(--color-warning) !important; background: #fbf3e8 !important; }
+
+.status.danger,
+.status.out,
+.attention-status.danger,
+.attention-status.expiry,
+.record-change.minus,
+.recent-change.negative,
+.loss,
+.expense,
+.login-error { color: var(--color-danger) !important; }
+
+.inventory-page,
+.cosmetics-page,
+.profit-page,
+.profile-page { padding-bottom: 190rpx; }

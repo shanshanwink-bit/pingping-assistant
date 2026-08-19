@@ -1,0 +1,267 @@
+/* 页面样式在全局样式之后加载，以下规则提高权重以彻底盖住旧主题。 */
+.page.home-page,
+.login-page.manual-profit-page { background: var(--color-canvas) !important; }
+
+.custom-nav {
+  border-bottom: 1rpx solid var(--color-border) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.page.home-page .stock-hero,
+.page.home-page .quick-item,
+.login-page .login-card,
+.cost-summary .stock-cost,
+.total-row,
+.sale-total-row,
+.avatar-picker > view,
+.input-shell,
+.cloud-features > view,
+.login-note,
+.clothing-action,
+.simple-record-actions > view {
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.manual-profit-page .submit-button,
+.manual-profit-page .submit-button.expense,
+.purchase-page .save-purchase,
+.sale-page .save-sale,
+.page-heading .new-record-mini,
+.simple-product-heading button,
+.empty-actions .record-create-button,
+.clothing-action.primary {
+  border-color: var(--color-brand) !important;
+  color: #fff !important;
+  background: var(--color-brand) !important;
+  box-shadow: none !important;
+}
+
+.simple-record-actions > view.primary {
+  border-color: #ead6dd !important;
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+  box-shadow: none !important;
+}
+
+.simple-record-actions > view.primary > text {
+  color: var(--color-brand) !important;
+}
+
+.simple-record-actions > view.primary > view {
+  color: var(--color-text-secondary) !important;
+}
+
+.product-business-item.active,
+.payment-chip.active {
+  border-color: var(--color-brand) !important;
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+  box-shadow: none !important;
+}
+
+.action-symbol,
+.action-symbol.outbound,
+.clothing-product-placeholder,
+.cosmetic-placeholder,
+.empty-hanger {
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+  box-shadow: none !important;
+}
+
+.home-page .metric-value { color: var(--color-text) !important; }
+.home-page .metric-arrow { color: var(--color-text-muted) !important; }
+
+/* 账本汇总卡：彻底移除页面内残留的蓝粉渐变。 */
+.profit-page .summary-card,
+.profit-page .summary-card.loss {
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+  background: #fff !important;
+  box-shadow: 0 8rpx 24rpx rgba(34, 34, 34, .04) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.profit-page .summary-top > view:first-child > text,
+.profit-page .profit-value,
+.profit-page .summary-card.loss .profit-value,
+.profit-page .money-grid view view {
+  color: var(--color-text) !important;
+}
+
+.profit-page .summary-date,
+.profit-page .money-grid text {
+  color: var(--color-text-secondary) !important;
+}
+
+.profit-page .summary-status {
+  color: var(--color-text-secondary) !important;
+  background: var(--color-surface-muted) !important;
+}
+
+.profit-page .summary-divider {
+  background: var(--color-border) !important;
+}
+
+.profit-page .money-grid > view + view {
+  border-color: var(--color-border) !important;
+}
+
+/* 方案图落地：首页采用白色卡片与三种克制的图标强调。 */
+.page.home-page .stock-hero {
+  border: 1rpx solid var(--color-border) !important;
+  border-left: 6rpx solid var(--color-brand) !important;
+  border-radius: 24rpx !important;
+  box-shadow: 0 8rpx 24rpx rgba(37, 37, 37, .045) !important;
+}
+
+.page.home-page .hero-cost view,
+.home-page .operation-summary > view:nth-child(2) > view {
+  color: var(--color-accent) !important;
+}
+
+.page.home-page .quick-grid { gap: 14rpx !important; }
+
+.page.home-page .quick-item {
+  min-height: 176rpx !important;
+  border-radius: 20rpx !important;
+  box-shadow: 0 5rpx 18rpx rgba(37, 37, 37, .035) !important;
+}
+
+.home-page .quick-item.inbound .quick-icon {
+  border-color: #e8d5dc !important;
+  background: var(--color-brand-soft) !important;
+}
+
+.home-page .quick-item.outbound .quick-icon {
+  border-color: #eadcc8 !important;
+  background: var(--color-accent-soft) !important;
+}
+
+.home-page .quick-item.stocktake .quick-icon {
+  border-color: var(--color-border) !important;
+  background: #f0eeeb !important;
+}
+
+.home-page .operation-summary,
+.home-page .attention-panel,
+.home-page .recent-panel {
+  border: 1rpx solid var(--color-border) !important;
+  border-radius: 22rpx !important;
+  box-shadow: 0 6rpx 20rpx rgba(37, 37, 37, .04) !important;
+}
+
+.home-page .attention-panel {
+  border-left: 5rpx solid var(--color-warning) !important;
+}
+
+/* 商品页：切换器、库存概览和业务入口形成清晰层级。 */
+.product-business-switch {
+  padding: 6rpx !important;
+  border: 1rpx solid var(--color-border) !important;
+  border-radius: 18rpx !important;
+  background: #ece9e5 !important;
+  box-shadow: none !important;
+}
+
+.product-business-item {
+  color: var(--color-text-secondary) !important;
+  background: transparent !important;
+}
+
+.product-business-item.active {
+  border-color: transparent !important;
+  color: var(--color-brand) !important;
+  background: #fff !important;
+  box-shadow: 0 3rpx 12rpx rgba(37, 37, 37, .06) !important;
+}
+
+.simple-products-page .simple-stock-card {
+  border: 1rpx solid var(--color-border) !important;
+  border-left: 6rpx solid var(--color-brand) !important;
+  border-radius: 22rpx !important;
+}
+
+.simple-products-page .simple-stock-main > view {
+  color: var(--color-text) !important;
+}
+
+.simple-products-page .simple-stock-side > view {
+  color: var(--color-accent) !important;
+}
+
+.simple-record-actions > view {
+  border-radius: 16rpx !important;
+}
+
+.simple-search {
+  border-color: var(--color-border) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* 账本页：金色只强调盈利，其他信息回归黑白灰。 */
+.profit-page .business-filter {
+  background: #ece9e5 !important;
+}
+
+.profit-page .business-filter-item.active {
+  border-color: transparent !important;
+  color: var(--color-brand) !important;
+  background: #fff !important;
+  box-shadow: 0 3rpx 12rpx rgba(37, 37, 37, .06) !important;
+}
+
+.profit-page .period-filter-item {
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.profit-page .period-filter-item.active {
+  border-color: #e8d5dc !important;
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+}
+
+.profit-page .profit-value,
+.profit-page .summary-card.loss .profit-value {
+  color: var(--color-accent) !important;
+}
+
+.profit-page .metric-strip,
+.profit-page .records-card,
+.profit-page .records-empty {
+  border: 1rpx solid var(--color-border) !important;
+  color: var(--color-text) !important;
+  background: #fff !important;
+  box-shadow: 0 6rpx 20rpx rgba(37, 37, 37, .04) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.profit-page .metric-strip > view > view,
+.profit-page .record-title { color: var(--color-text) !important; }
+.profit-page .metric-strip > view > text,
+.profit-page .record-main > text,
+.profit-page .records-heading text { color: var(--color-text-secondary) !important; }
+.profit-page .record-mark,
+.profit-page .record-mark.sale,
+.profit-page .record-mark.purchase,
+.profit-page .record-mark.income,
+.profit-page .record-mark.expense {
+  color: var(--color-brand) !important;
+  background: var(--color-brand-soft) !important;
+}
+.profit-page .record-amount { color: var(--color-success) !important; }
+.profit-page .record-amount.negative { color: var(--color-danger) !important; }

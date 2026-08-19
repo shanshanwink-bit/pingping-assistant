@@ -1,0 +1,374 @@
+/* 最终主题收口：黑白灰 + 单一莓红，状态色只用于业务反馈。 */
+html,
+body,
+#app {
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+::selection { color: var(--ink); background: var(--blue-soft); }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(142, 54, 85, .18);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  color: var(--ink);
+  background: var(--canvas) !important;
+}
+
+.app-shell::before,
+.app-shell::after,
+.ambient-grid,
+.ambient-orb,
+.card-shine { display: none !important; }
+
+/* 应用壳 */
+.app-shell .sidebar {
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell .brand { border-bottom-color: var(--line); }
+.app-shell .brand-icon,
+.boot-screen > .brand-icon,
+.login-page .brand-mark {
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--blue) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.app-shell .brand-icon > span,
+.boot-screen > .brand-icon > span { transform: none !important; }
+.app-shell .brand h1 { color: var(--ink); text-shadow: none; }
+.app-shell .brand p { color: var(--muted); }
+
+.app-shell .store-button,
+.app-shell .account-button {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff !important;
+  box-shadow: none;
+}
+
+.app-shell .store-button:hover,
+.app-shell .account-button:hover { background: var(--surface-muted) !important; transform: none; }
+.app-shell .store-button .material-symbols-outlined,
+.app-shell .store-button .chevron { color: var(--blue); }
+.app-shell .account-button small { color: var(--muted); }
+.app-shell .avatar-small { color: var(--blue); background: var(--blue-soft) !important; box-shadow: none; }
+
+.app-shell .navigation a {
+  border-color: transparent;
+  color: var(--muted);
+  background: transparent !important;
+}
+
+.app-shell .navigation a:hover { color: var(--ink); background: var(--surface-muted) !important; }
+.app-shell .navigation a.active {
+  border-color: transparent;
+  color: var(--blue);
+  background: var(--blue-soft) !important;
+  box-shadow: none !important;
+}
+.app-shell .navigation a.active .material-symbols-outlined { color: var(--blue); }
+.app-shell .sidebar-footer { border-top-color: var(--line); }
+
+.app-shell .topbar {
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.app-shell .topbar-context,
+.app-shell .server-status { color: var(--muted); }
+.app-shell .topbar-context .material-symbols-outlined,
+.app-shell .server-status button:hover { color: var(--blue); }
+.app-shell .server-status i { background: var(--line); }
+.app-shell .server-status button { color: var(--muted); }
+.app-shell .server-status button:hover { background: var(--blue-soft); }
+.app-shell .server-status button b { border-color: #fff; background: var(--danger); box-shadow: none; }
+
+.app-shell .workspace,
+.app-shell .products-workspace { background: var(--canvas) !important; }
+
+/* 标题与文字 */
+.app-shell .page-heading h2,
+.app-shell .employees-heading h2,
+.app-shell .panel-head h3,
+.app-shell .card-title,
+.app-shell .dialog-head h3,
+.app-shell .dialog-title h3 { color: var(--ink); text-shadow: none; }
+.app-shell .page-heading p,
+.app-shell .page-eyebrow,
+.app-shell .muted { color: var(--muted); }
+.app-shell .page-heading.bordered,
+.app-shell .employees-tabs { border-color: var(--line); }
+
+/* 卡片与表格 */
+.app-shell .panel,
+.app-shell .dashboard-metrics article,
+.app-shell .product-metrics article,
+.app-shell .products-card,
+.app-shell .access-summary article,
+.app-shell .members-card,
+.app-shell .role-card,
+.app-shell .data-card,
+.app-shell .chart-card,
+.app-shell .settings-list,
+.app-shell .trend-panel,
+.app-shell .payment-list {
+  border: 1px solid var(--line) !important;
+  color: var(--ink);
+  background: #fff !important;
+  box-shadow: var(--shadow-soft) !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell .panel-head,
+.app-shell .panel-head.pale,
+.app-shell .filterbar,
+.app-shell .members-toolbar,
+.app-shell .pagination,
+.app-shell .dialog-actions,
+.app-shell .products-table th,
+.app-shell .employee-table th,
+.app-shell .data-table th,
+.app-shell .dashboard-risk th {
+  border-color: var(--line);
+  color: var(--muted);
+  background: var(--surface-muted) !important;
+}
+
+.app-shell .products-table td,
+.app-shell .employee-table td,
+.app-shell .data-table td,
+.app-shell .dashboard-risk td { border-color: var(--line); color: var(--ink); }
+.app-shell .products-table tbody tr:hover,
+.app-shell .employee-table tbody tr:hover,
+.app-shell .data-table tbody tr:hover { background: var(--surface-muted); }
+
+/* 控件与按钮 */
+.app-shell .primary,
+.app-shell .heading-actions .primary,
+.app-shell .action-button,
+.app-shell .login-submit {
+  border-color: var(--blue) !important;
+  color: #fff !important;
+  background: var(--blue) !important;
+  box-shadow: none !important;
+}
+.app-shell .primary:hover,
+.app-shell .heading-actions .primary:hover,
+.app-shell .action-button:hover { background: var(--blue-strong) !important; filter: none; transform: none; }
+.app-shell .secondary,
+.app-shell .heading-actions .secondary {
+  border-color: var(--line-strong) !important;
+  color: var(--ink) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.app-shell .secondary:hover,
+.app-shell .heading-actions .secondary:hover { border-color: var(--blue) !important; color: var(--blue) !important; background: var(--blue-soft) !important; }
+.app-shell .danger-button { border-color: var(--danger); color: #fff; background: var(--danger); box-shadow: none; }
+
+.app-shell .filters input,
+.app-shell .filters select,
+.app-shell .members-toolbar label,
+.app-shell .members-toolbar select,
+.app-shell .form-grid input,
+.app-shell .form-grid select,
+.app-shell .form-stack input,
+.app-shell .form-stack select,
+.app-shell .form-stack textarea,
+.app-shell .analysis-filter input,
+.app-shell .analysis-filter select {
+  border-color: var(--line-strong) !important;
+  color: var(--ink) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.app-shell input:focus,
+.app-shell select:focus,
+.app-shell textarea:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(142, 54, 85, .1) !important; }
+.app-shell input::placeholder,
+.app-shell textarea::placeholder { color: #9a9a9a; }
+.app-shell input[type="checkbox"] { accent-color: var(--blue); }
+
+/* 强调和图表只使用莓红及灰阶。 */
+.app-shell .metric-title i,
+.app-shell .product-metrics i,
+.app-shell .access-summary article > i,
+.app-shell .role-icon,
+.app-shell .member-avatar,
+.app-shell .logout-illustration,
+.app-shell .remove-icon {
+  color: var(--blue) !important;
+  background: var(--blue-soft) !important;
+}
+.app-shell .metric-title,
+.app-shell .product-metrics span { color: var(--muted); }
+.app-shell .dashboard-metrics strong,
+.app-shell .product-metrics strong,
+.app-shell .access-summary article strong { color: var(--ink); }
+.app-shell .panel-head h3 .material-symbols-outlined,
+.app-shell .page-eyebrow,
+.app-shell .row-actions button,
+.app-shell .table-link,
+.app-shell .employees-tabs button.active { color: var(--blue); }
+.app-shell .employees-tabs button.active::after,
+.app-shell .bar,
+.app-shell .progress i,
+.app-shell .legends .income { background: var(--blue) !important; }
+.app-shell .progress.cosmetic i,
+.app-shell .legends .profit { background: #737373 !important; }
+.app-shell .loading-line,
+.boot-progress { background: var(--blue) !important; }
+.app-shell .task-list a:hover,
+.app-shell .row-actions button:hover,
+.app-shell .table-link:hover { background: var(--blue-soft) !important; }
+
+/* 角色属于分类，统一使用中性色；状态才使用语义色。 */
+.app-shell .role-badge,
+.app-shell .role-badge.owner,
+.app-shell .role-badge.admin,
+.app-shell .role-badge.finance,
+.app-shell .role-badge.clerk,
+.app-shell .permission-preview span {
+  border-color: var(--line);
+  color: var(--ink) !important;
+  background: #f1f1ef !important;
+}
+.app-shell .product-status,
+.app-shell .account-status,
+.app-shell .status-pill.success,
+.app-shell .status-pill.normal { color: var(--success) !important; background: #e8f3ee !important; }
+.app-shell .status.warning,
+.app-shell .status-pill.warning { color: var(--warning) !important; background: #fbf3e8 !important; }
+.app-shell .product-status.empty,
+.app-shell .account-status.disabled,
+.app-shell .status.danger,
+.app-shell .status-pill.danger,
+.app-shell .error,
+.app-shell .danger-text { color: var(--danger) !important; background: #f9e9ec !important; }
+
+/* 弹窗 */
+.app-shell .dialog-backdrop { background: rgba(34, 34, 34, .42); backdrop-filter: none; }
+.app-shell .logout-dialog,
+.app-shell .employee-dialog,
+.app-shell .business-dialog,
+.app-shell .remove-member-dialog {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+/* 登录页保持同一套浅色视觉。 */
+.login-page {
+  --login-ink: var(--ink);
+  --login-muted: var(--muted);
+  color: var(--ink) !important;
+  background: var(--canvas) !important;
+}
+.login-story { color: var(--ink); background: var(--blue-soft) !important; }
+.login-brand b,
+.story-copy h1,
+.story-copy h1 em,
+.story-points b { color: var(--ink) !important; -webkit-text-fill-color: currentColor !important; text-shadow: none; }
+.login-brand small,
+.eyebrow,
+.story-copy > p,
+.story-points small,
+.story-footer { color: var(--muted) !important; }
+.eyebrow i,
+.story-footer i { background: var(--blue) !important; box-shadow: none !important; }
+.story-points > article {
+  border-color: rgba(142, 54, 85, .12) !important;
+  background: rgba(255, 255, 255, .58) !important;
+}
+.story-points > article > i { color: var(--blue) !important; }
+.login-panel { border-color: var(--line); background: #fff !important; backdrop-filter: none !important; }
+.login-panel::before { display: none !important; }
+.login-card {
+  border: 1px solid var(--line) !important;
+  color: var(--ink) !important;
+  background: #fff !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: none !important;
+}
+.login-kicker,
+.login-card h2 { color: var(--ink) !important; }
+.login-kicker i { background: var(--blue) !important; box-shadow: none !important; }
+.login-card-head > p,
+.login-options,
+.login-security { color: var(--muted) !important; }
+.input-wrap { border-color: var(--line-strong) !important; background: #fff !important; box-shadow: none !important; }
+.input-wrap:focus-within { border-color: var(--blue) !important; box-shadow: 0 0 0 4px rgba(142, 54, 85, .1) !important; transform: none !important; }
+.input-wrap > .material-symbols-outlined,
+.input-wrap:focus-within > .material-symbols-outlined { color: var(--blue) !important; }
+.login-options input { accent-color: var(--blue) !important; }
+.login-submit { border-color: var(--blue) !important; background: var(--blue) !important; box-shadow: none !important; }
+.login-submit:hover { background: var(--blue-strong) !important; box-shadow: none !important; transform: none !important; }
+.login-security { border-color: var(--line) !important; background: var(--surface-muted) !important; }
+.boot-screen { color: var(--ink); background: var(--canvas) !important; }
+.toast { border: 0; color: #fff; background: var(--ink) !important; box-shadow: var(--shadow); backdrop-filter: none; }
+
+@media (max-width: 900px) {
+  .login-story { background: var(--blue-soft) !important; }
+}
+
+/* 方案图落地：更紧凑的经营工作台，金色只用于盈利与趋势。 */
+.app-shell .sidebar { width: 224px; }
+.app-shell .topbar { left: 224px; width: auto; }
+.app-shell .workspace { margin-left: 224px; padding: 96px 24px 32px; }
+
+.app-shell .dashboard-metrics { gap: 14px; }
+.app-shell .dashboard-metrics article {
+  min-height: 108px;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.app-shell .dashboard-metrics article:nth-child(2) strong { color: var(--accent); }
+.app-shell .dashboard-metrics article:nth-child(2) .metric-title i {
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+}
+
+.app-shell .bar,
+.app-shell .legends .profit,
+.app-shell .progress.cosmetic i { background: var(--accent) !important; }
+
+.app-shell .panel,
+.app-shell .products-card,
+.app-shell .members-card,
+.app-shell .role-card,
+.app-shell .data-card,
+.app-shell .chart-card {
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.app-shell .products-table tbody tr:hover,
+.app-shell .employee-table tbody tr:hover,
+.app-shell .data-table tbody tr:hover { background: #faf6f7 !important; }
+
+@media (max-width: 1180px) {
+  .app-shell .sidebar { width: 208px; }
+  .app-shell .topbar { left: 208px; }
+  .app-shell .workspace { margin-left: 208px; }
+}

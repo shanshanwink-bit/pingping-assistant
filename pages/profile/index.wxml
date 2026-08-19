@@ -1,26 +1,54 @@
 <view class="page profile-page">
   <view class="page-title">我的</view>
-  <view class="owner-card card" wx:if="{{user}}">
-    <view class="owner-avatar">{{avatarText}}</view>
-    <view class="owner-main"><view>{{user.name}}</view><text>{{accountDisplay}} · 微信店主</text></view>
-    <view class="tag">店主</view>
+  <view class="user-card card" wx:if="{{userReady}}">
+    <image wx:if="{{userView.hasAvatar}}" class="user-avatar" src="{{userView.avatarUrl}}" mode="aspectFill" />
+    <view wx:else class="user-avatar avatar-fallback">{{userView.avatarText}}</view>
+    <view class="user-main">
+      <view class="user-name">{{userView.name}}</view>
+      <text class="user-account">{{userView.accountDisplay}}</text>
+    </view>
+    <view wx:if="{{userView.roleLabel}}" class="role-tag">{{userView.roleLabel}}</view>
   </view>
 
-  <view class="stat-grid">
-    <view><text>商品款数</text><text class="stat-value">{{productCount}}</text></view>
-    <view><text>库存总数</text><text class="stat-value">{{totalStock}}</text></view>
+  <view wx:if="{{userView.storeName || userView.roleLabel}}">
+    <view class="section-title profile-section-title">店铺与账号</view>
+    <view class="card info-card">
+      <view wx:if="{{userView.storeName}}" class="info-row"><text>店铺</text><text>{{userView.storeName}}</text></view>
+      <view wx:if="{{userView.roleLabel}}" class="info-row"><text>身份</text><text>{{userView.roleLabel}}</text></view>
+    </view>
   </view>
 
-  <view class="section-head"><view class="section-title">管理设置</view></view>
+  <view class="section-title profile-section-title">数据与管理</view>
   <view class="card menu-list">
-    <view class="menu-row" bindtap="showAccountSecurity"><view class="menu-icon">服</view><text>账号与服务器同步</text><view>›</view></view>
-    <view class="menu-row" data-title="员工与权限" bindtap="showComingSoon"><view class="menu-icon">人</view><text>员工与权限</text><view>›</view></view>
-    <view class="menu-row" data-title="供应商管理" bindtap="showComingSoon"><view class="menu-icon">供</view><text>供应商管理</text><view>›</view></view>
-    <view class="menu-row" data-title="分类与提醒" bindtap="showComingSoon"><view class="menu-icon">类</view><text>分类与低库存设置</text><view>›</view></view>
-    <view class="menu-row" bindtap="exportData"><view class="menu-icon">表</view><text>复制库存表格数据</text><view>›</view></view>
-    <view class="menu-row" bindtap="showAbout"><view class="menu-icon">i</view><text>版本说明</text><view>›</view></view>
+    <view class="menu-row sync-row">
+      <view class="menu-copy"><view>数据同步</view><text>{{syncView.detail}}</text></view>
+      <view class="sync-action">
+        <text class="sync-label {{syncView.state}}">{{syncView.label}}</text>
+        <button wx:if="{{syncView.canRetry}}" loading="{{syncing}}" catchtap="retrySync">重新同步</button>
+      </view>
+    </view>
+    <view class="menu-row" bindtap="openOperations">
+      <view class="menu-copy"><view>操作记录</view><text>查看商品库存变化</text></view><text class="chevron">›</text>
+    </view>
+  </view>
+
+  <view class="section-title profile-section-title">管理</view>
+  <view class="card menu-list">
+    <view class="menu-row" bindtap="showAdminConsole">
+      <view class="menu-copy"><view>管理后台</view><text>用于商品维护和系统管理</text></view><text class="chevron">›</text>
+    </view>
+  </view>
+
+  <view class="section-title profile-section-title">系统</view>
+  <view class="card menu-list">
+    <view class="menu-row" bindtap="showAbout">
+      <view class="menu-copy"><view>关于萍萍小助手</view></view><text class="chevron">›</text>
+    </view>
+    <view class="menu-row">
+      <view class="menu-copy"><view>版本</view></view><text class="row-value">v{{version}}</text>
+    </view>
   </view>
 
   <button class="logout-button" bindtap="logoutAccount">退出登录</button>
-  <view class="local-note">微信账号已登录 · 经营数据自动同步自有服务器</view>
+  <view class="version-note">萍萍小助手 v{{version}}</view>
 </view>

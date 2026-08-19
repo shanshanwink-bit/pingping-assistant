@@ -1,0 +1,131 @@
+/* 方案图一比一复刻：后台经营概览。 */
+.proposal-admin-dashboard { max-width: 1500px; }
+
+.proposal-dashboard-heading {
+  align-items: flex-end;
+  padding-bottom: 18px;
+}
+.proposal-dashboard-heading h2 { font-size: 24px; letter-spacing: -.02em; }
+.proposal-dashboard-heading p { margin-top: 5px; font-size: 12px; }
+
+.proposal-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.proposal-kpi-grid article {
+  display: flex;
+  min-width: 0;
+  min-height: 112px;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+.proposal-kpi-grid span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .03em;
+}
+.proposal-kpi-grid strong {
+  margin-top: 12px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -.025em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.proposal-kpi-grid strong.accent { color: var(--accent); }
+.proposal-kpi-grid small { margin-top: auto; padding-top: 12px; color: var(--muted); font-size: 10px; }
+
+.proposal-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(280px, .75fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+.proposal-admin-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+.proposal-admin-card > header {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.proposal-admin-card > header h3 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 650; }
+.proposal-admin-card > header span { color: var(--muted); font-size: 11px; }
+.proposal-admin-card > header button {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+}
+.proposal-admin-card > header button:hover { color: var(--blue); }
+
+.proposal-trend-card .chart { height: 270px; padding: 24px 18px 16px; }
+.proposal-trend-card .chart-area,
+.proposal-trend-card .y-axis { height: 220px; }
+.proposal-trend-card .bar { width: 28px; border-radius: 3px 3px 0 0; background: var(--accent) !important; }
+.proposal-trend-card .bar-wrap span.today { color: var(--blue); }
+
+.proposal-warning-list { padding: 4px 14px; }
+.proposal-warning-list > div {
+  display: flex;
+  min-height: 78px;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid var(--line);
+}
+.proposal-warning-list > div:last-child { border-bottom: 0; }
+.proposal-admin-product-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 19px;
+}
+.proposal-warning-list p { display: flex; min-width: 0; flex: 1; flex-direction: column; margin: 0; }
+.proposal-warning-list b { overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.proposal-warning-list small { margin-top: 4px; color: var(--muted); font-size: 9px; }
+.proposal-warning-list em { flex: 0 0 auto; color: var(--danger); font-size: 10px; font-style: normal; font-weight: 650; }
+
+.proposal-product-overview { margin-top: 14px; }
+.proposal-product-overview table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; }
+.proposal-product-overview th {
+  padding: 10px 16px;
+  color: var(--muted);
+  background: var(--surface-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.proposal-product-overview td { padding: 9px 16px; border-top: 1px solid var(--line); color: var(--ink); }
+.proposal-product-overview tbody tr:hover { background: #faf6f7; }
+.proposal-product-name { display: flex; align-items: center; gap: 10px; }
+.proposal-product-name .proposal-admin-product-icon { width: 30px; height: 30px; border-radius: 6px; font-size: 16px; }
+.proposal-product-name b { max-width: 260px; overflow: hidden; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+.proposal-product-overview .table-link { border: 0; color: var(--blue); background: transparent; font-size: 11px; font-weight: 600; }
+
+@media (max-width: 1180px) {
+  .proposal-kpi-grid { gap: 10px; }
+  .proposal-kpi-grid strong { font-size: 23px; }
+  .proposal-dashboard-grid { grid-template-columns: minmax(0, 1.7fr) minmax(250px, .8fr); gap: 10px; }
+}

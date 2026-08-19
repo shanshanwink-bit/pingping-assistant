@@ -1,0 +1,117 @@
+/* 经营看板紧凑排版。所有规则限定在首页，避免影响其他业务页面。 */
+.dashboard-page {
+  max-width: 1440px;
+}
+
+.dashboard-page .page-heading.bordered {
+  padding-bottom: 14px;
+}
+
+.dashboard-page .dashboard-metrics {
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.dashboard-page .dashboard-metrics article {
+  height: 104px;
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.dashboard-page .metric-title,
+.dashboard-page .dashboard-metrics small {
+  font-size: 12px;
+}
+
+.dashboard-page .metric-title i {
+  width: 28px;
+  height: 28px;
+}
+
+.dashboard-page .metric-title i .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.dashboard-page .dashboard-metrics strong {
+  font-size: 26px;
+  line-height: 32px;
+  white-space: nowrap;
+}
+
+.dashboard-page .dashboard-grid {
+  grid-template-columns: minmax(0, 2.15fr) minmax(280px, .85fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.dashboard-page .panel-head {
+  min-height: 50px;
+  padding: 12px 16px;
+}
+
+.dashboard-page .panel-head h3 {
+  font-size: 16px;
+}
+
+.dashboard-page .trend-panel,
+.dashboard-page .task-panel {
+  min-height: 318px;
+}
+
+.dashboard-page .trend-panel .chart {
+  height: 268px;
+  padding: 20px 16px 14px;
+}
+
+.dashboard-page .trend-panel .y-axis,
+.dashboard-page .trend-panel .chart-area {
+  height: 214px;
+}
+
+.dashboard-page .trend-panel .bar {
+  width: 26px;
+}
+
+.dashboard-page .trend-panel .bar-wrap span,
+.dashboard-page .trend-panel .y-axis {
+  font-size: 11px;
+}
+
+.dashboard-page .task-list {
+  padding: 6px 8px;
+}
+
+.dashboard-page .task-list a {
+  height: 42px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.dashboard-page .task-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.dashboard-page .dashboard-risk {
+  margin-top: 16px;
+}
+
+.dashboard-page .dashboard-risk table {
+  font-size: 12px;
+}
+
+.dashboard-page .dashboard-risk th {
+  padding: 8px 16px;
+}
+
+.dashboard-page .dashboard-risk td {
+  padding: 10px 16px;
+}
+
+@media (max-width: 1360px) {
+  .dashboard-page .dashboard-metrics { gap: 12px; }
+  .dashboard-page .dashboard-metrics article { height: 96px; padding: 12px 14px; }
+  .dashboard-page .dashboard-metrics strong { font-size: 24px; line-height: 29px; }
+  .dashboard-page .dashboard-grid { gap: 12px; }
+}

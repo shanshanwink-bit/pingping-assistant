@@ -1,0 +1,216 @@
+/* 登录后的极光玻璃应用壳。仅覆盖视觉，不改变业务布局。 */
+.app-shell {
+  --shell-text: #f3f7fb;
+  --shell-muted: rgba(215, 229, 239, .64);
+  --shell-line: rgba(255, 255, 255, .11);
+  --shell-glass: rgba(248, 251, 253, .8);
+  --shell-glass-strong: rgba(250, 252, 254, .9);
+  min-height: 100vh;
+  color: var(--shell-text);
+  background: #07111c;
+  isolation: isolate;
+}
+
+.app-shell::before,
+.app-shell::after {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  content: "";
+}
+
+.app-shell::before {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(41, 163, 220, .34) 0, rgba(30, 124, 177, .12) 270px, transparent 560px),
+    radial-gradient(circle at 88% 24%, rgba(189, 103, 204, .24) 0, rgba(135, 83, 190, .08) 320px, transparent 660px),
+    radial-gradient(circle at 62% 94%, rgba(88, 99, 218, .25) 0, rgba(71, 80, 184, .08) 300px, transparent 640px),
+    linear-gradient(145deg, #07111c 0%, #0a1724 48%, #121426 100%);
+}
+
+.app-shell::after {
+  z-index: -1;
+  opacity: .12;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .07) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(105deg, rgba(0, 0, 0, .8), transparent 86%);
+}
+
+.app-shell .sidebar {
+  width: 248px;
+  border-right: 1px solid rgba(255, 255, 255, .1);
+  color: var(--shell-text);
+  background: linear-gradient(180deg, rgba(14, 31, 46, .8), rgba(15, 25, 43, .72));
+  box-shadow: 20px 0 60px rgba(0, 0, 0, .2), inset -1px 0 rgba(255, 255, 255, .035);
+  backdrop-filter: blur(30px) saturate(1.2);
+}
+
+.app-shell .brand {
+  height: 72px;
+  border-bottom-color: var(--shell-line);
+}
+
+.app-shell .brand-icon {
+  border-color: rgba(255, 255, 255, .34);
+  box-shadow: 0 12px 28px rgba(72, 164, 218, .24), 0 0 34px rgba(163, 118, 220, .16);
+}
+
+.app-shell .brand h1 { color: #fff; }
+.app-shell .brand p { color: rgba(183, 211, 229, .64); }
+
+.app-shell .store-button {
+  border-color: rgba(255, 255, 255, .12);
+  color: rgba(239, 247, 252, .9);
+  background: rgba(255, 255, 255, .055);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .06), 0 12px 28px rgba(0, 0, 0, .08);
+}
+
+.app-shell .store-button:hover { background: rgba(255, 255, 255, .1); }
+.app-shell .store-button .material-symbols-outlined,
+.app-shell .store-button .chevron { color: #8edbff; }
+
+.app-shell .navigation a {
+  color: rgba(215, 229, 239, .7);
+}
+
+.app-shell .navigation a:hover {
+  border-color: rgba(255, 255, 255, .07);
+  color: #fff;
+  background: rgba(255, 255, 255, .06);
+}
+
+.app-shell .navigation a.active {
+  border-color: rgba(143, 215, 250, .2);
+  color: #fff;
+  background: linear-gradient(110deg, rgba(83, 180, 230, .26), rgba(142, 105, 211, .22) 62%, rgba(220, 111, 161, .17));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .16), inset 0 1px rgba(255, 255, 255, .09);
+}
+
+.app-shell .navigation a.active .material-symbols-outlined { color: #9cddfb; }
+.app-shell .sidebar-footer { border-top-color: var(--shell-line); }
+.app-shell .account-button {
+  border-color: rgba(255, 255, 255, .1);
+  color: var(--shell-text);
+  background: rgba(255, 255, 255, .05);
+}
+.app-shell .account-button:hover { background: rgba(255, 255, 255, .1); }
+.app-shell .account-button small { color: rgba(190, 211, 224, .58); }
+.app-shell .avatar-small { color: #18374b; box-shadow: 0 8px 20px rgba(0, 0, 0, .14); }
+
+.app-shell .topbar {
+  left: 248px;
+  height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  color: var(--shell-text);
+  background: rgba(11, 25, 39, .62);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .12), inset 0 -1px rgba(255, 255, 255, .025);
+  backdrop-filter: blur(28px) saturate(1.25);
+}
+
+.app-shell .topbar-context,
+.app-shell .server-status { color: rgba(220, 234, 242, .72); }
+.app-shell .topbar-context .material-symbols-outlined { color: #8edbff; }
+.app-shell .server-status i { background: rgba(255, 255, 255, .13); }
+.app-shell .server-status button { color: rgba(228, 239, 246, .78); }
+.app-shell .server-status button:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+.app-shell .server-status button b { border-color: #112334; box-shadow: 0 0 12px rgba(231, 123, 162, .55); }
+
+.app-shell .workspace {
+  margin-left: 248px;
+  padding: 100px 28px 40px;
+  background: transparent;
+}
+
+.app-shell .page-heading.bordered,
+.app-shell .employees-tabs { border-color: rgba(255, 255, 255, .11); }
+.app-shell .page-heading h2,
+.app-shell .employees-heading h2 { color: #f7fbff; text-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
+.app-shell .page-heading p,
+.app-shell .products-page .page-heading p,
+.app-shell .page-eyebrow { color: var(--shell-muted); }
+.app-shell .employees-tabs button { color: rgba(215, 229, 239, .6); }
+.app-shell .employees-tabs button.active { color: #fff; }
+
+.app-shell .dashboard-metrics article,
+.app-shell .product-metrics article,
+.app-shell .panel,
+.app-shell .products-card,
+.app-shell .access-summary article,
+.app-shell .members-card,
+.app-shell .role-card {
+  border: 1px solid rgba(255, 255, 255, .64);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .87), rgba(236, 244, 250, .72));
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .17), inset 0 1px rgba(255, 255, 255, .86);
+  backdrop-filter: blur(26px) saturate(1.12);
+}
+
+.app-shell .dashboard-metrics article:hover,
+.app-shell .product-metrics article:hover,
+.app-shell .access-summary article:hover,
+.app-shell .role-card:hover {
+  border-color: rgba(255, 255, 255, .9);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, .22), 0 0 36px rgba(89, 181, 230, .08);
+}
+
+.app-shell .panel-head,
+.app-shell .panel-head.pale,
+.app-shell .filterbar,
+.app-shell .members-toolbar,
+.app-shell .pagination {
+  border-color: rgba(74, 115, 143, .12);
+  background: rgba(245, 250, 253, .5);
+  backdrop-filter: blur(18px);
+}
+
+.app-shell .secondary,
+.app-shell .heading-actions .secondary {
+  border-color: rgba(255, 255, 255, .24);
+  color: #edf7fd;
+  background: rgba(255, 255, 255, .09);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .08);
+  backdrop-filter: blur(14px);
+}
+.app-shell .secondary:hover,
+.app-shell .heading-actions .secondary:hover { border-color: rgba(255, 255, 255, .42); color: #fff; background: rgba(255, 255, 255, .15); }
+.app-shell .primary,
+.app-shell .heading-actions .primary,
+.app-shell .action-button {
+  color: #fff;
+  background: linear-gradient(120deg, #3f9dce, #7d6bc5 58%, #cf6f9b);
+  box-shadow: 0 12px 28px rgba(48, 117, 161, .24), inset 0 1px rgba(255, 255, 255, .18);
+}
+
+.app-shell .loading-line {
+  top: 70px;
+  width: calc(100% - 248px);
+  background: linear-gradient(90deg, transparent, #7ed7ff, #c39cff, #f09abd, transparent);
+  filter: drop-shadow(0 0 7px rgba(126, 215, 255, .65));
+}
+
+.app-shell .toast {
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(13, 31, 45, .82);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(24px);
+}
+
+@media (max-width: 1180px) {
+  .app-shell .sidebar { width: 226px; }
+  .app-shell .topbar { left: 226px; }
+  .app-shell .workspace { margin-left: 226px; }
+  .app-shell .loading-line { width: calc(100% - 226px); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell .sidebar,
+  .app-shell .topbar { background: #102233; }
+  .app-shell .dashboard-metrics article,
+  .app-shell .product-metrics article,
+  .app-shell .panel,
+  .app-shell .products-card,
+  .app-shell .access-summary article,
+  .app-shell .members-card,
+  .app-shell .role-card { background: #f4f8fb; }
+}

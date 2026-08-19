@@ -16,6 +16,7 @@ const config = loadConfig({
 assert.strictEqual(config.port, 3000)
 assert.strictEqual(config.mysql.database, 'pingping_test')
 assert.deepStrictEqual(config.adminOrigins, ['https://admin.example.com', 'https://ops.example.com'])
+assert.deepStrictEqual(config.wechat.allowedOpenIds, [])
 
 const token = signToken({ userId: 'u1', storeId: 's1', role: 'owner' }, secret, 60)
 const payload = verifyToken(token, secret)
@@ -31,5 +32,10 @@ assert.strictEqual(validState({ products: [] }), false)
 assert.throws(() => loadConfig({
   MYSQL_DATABASE: 'x', MYSQL_USER: 'x', MYSQL_PASSWORD: 'x', JWT_SECRET: 'short'
 }), /JWT_SECRET/)
+
+assert.throws(() => loadConfig({
+  MYSQL_DATABASE: 'x', MYSQL_USER: 'x', MYSQL_PASSWORD: 'x', JWT_SECRET: secret,
+  PRIMARY_STORE_ID: 'store-1'
+}), /WECHAT_ALLOWED_OPENIDS/)
 
 console.log('self-hosted API core: PASS')

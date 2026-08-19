@@ -1,104 +1,105 @@
 const store = require('../../utils/store')
+const catalogSync = require('../../utils/catalog-sync')
+const { buildProductDetail } = require('../../utils/product-display')
 
-function money(value) {
-  return `¥${Number(value || 0).toFixed(2)}`
+function decoded(value) {
+  try {
+    return decodeURIComponent(String(value || ''))
+  } catch (error) {
+    return String(value || '')
+  }
 }
 
 Page({
-  data: { productId: '', product: null, specs: [], averageCostText: '¥0.00', stockCostText: '¥0.00' },
+  data: {
+    productId: '',
+    product: null,
+    imageFailed: false,
+    isLoading: true,
+    isRefreshing: false,
+    loadError: false,
+    isNavigating: false
+  },
 
   onLoad(options) {
-    this.setData({ productId: options.id || '' })
+    this.setData({ productId: decoded(options.id) })
   },
 
   onShow() {
-    this.loadProduct()
+    this.setData({ isNavigating: false })
+    const hasProduct = this.loadCachedProduct()
+    this.refreshProduct(!hasProduct)
   },
 
-  loadProduct() {
-    const product = store.getProduct(this.data.productId)
-    if (!product) {
-      wx.showToast({ title: '商品不存在', icon: 'none' })
-      return setTimeout(() => wx.navigateBack(), 600)
+  loadCachedProduct() {
+    if (!this.data.productId) {
+      this.setData({ isLoading: false, loadError: true, product: null })
+      return false
     }
-    const specs = product.specs.map(item => ({
-      ...item,
-      statusText: item.stock === 0 ? '缺货' : item.stock <= product.lowStockThreshold ? '偏低' : '正常'
-    }))
-    this.setData({
-      product,
-      specs,
-      averageCostText: money(product.costPrice),
-      stockCostText: money(Number(product.totalStock || 0) * Number(product.costPrice || 0))
-    })
-  },
-
-  updateSpecStock(event) {
-    const specId = event.currentTarget.dataset.id
-    const spec = this.data.specs.find(item => item.id === specId)
-    if (!spec) return
-    const value = event.detail.value === undefined || event.detail.value === null
-      ? ''
-      : String(event.detail.value).trim()
-    const quantity = Number(value)
-    if (!value || !Number.isInteger(quantity) || quantity < 0) {
-      wx.showToast({ title: '请输入不小于 0 的整数', icon: 'none' })
-      return this.loadProduct()
-    }
-    if (quantity === Number(spec.stock)) return
     try {
-      store.updateStock({
-        type: 'stocktake',
-        productId: this.data.productId,
-        specId,
-        quantity,
-        reason: '修正规格库存'
+      const rawProduct = store.getProduct(this.data.productId)
+      if (!rawProduct) return false
+      this.setData({
+        product: buildProductDetail(rawProduct, { imageFailed: this.data.imageFailed, now: new Date() }),
+        isLoading: false,
+        loadError: false
       })
-      this.loadProduct()
+      return true
     } catch (error) {
-      wx.showToast({ title: error.message, icon: 'none' })
-      this.loadProduct()
+      console.error('商品详情读取失败：', error)
+      this.setData({ isLoading: false, loadError: true, product: null })
+      return false
     }
   },
 
-  goStockForm(event) {
-    const type = event.currentTarget.dataset.type
-    const businessType = this.data.product.businessType || 'clothing'
-    const mode = businessType === 'cosmetics' ? '&mode=save' : ''
-    wx.navigateTo({ url: `/pages/stock-form/index?type=${type}&productId=${this.data.productId}&businessType=${businessType}${mode}` })
+  refreshProduct(showLoading) {
+    if (this.data.isRefreshing || !this.data.productId) return
+    this.setData({ isRefreshing: true, isLoading: Boolean(showLoading), loadError: false })
+    catalogSync.refreshProducts()
+      .then(() => {
+        if (!this.loadCachedProduct()) this.setData({ isLoading: false, loadError: true, product: null })
+      })
+      .catch(error => {
+        console.warn('商品详情刷新失败：', error.message || error)
+        if (!this.data.product) this.setData({ isLoading: false, loadError: true })
+      })
+      .finally(() => this.setData({ isRefreshing: false, isLoading: false }))
   },
 
-  goPurchase() {
-    const businessType = this.data.product.businessType || 'clothing'
-    wx.navigateTo({ url: `/pages/purchase-form/index?productId=${this.data.productId}&type=${businessType}` })
+  retryLoad() {
+    if (this.data.isRefreshing) return
+    this.setData({ isLoading: true, loadError: false })
+    const hasProduct = this.loadCachedProduct()
+    this.refreshProduct(!hasProduct)
   },
 
-  goSale() {
-    const businessType = this.data.product.businessType || 'clothing'
-    wx.navigateTo({ url: `/pages/sale-form/index?productId=${this.data.productId}&type=${businessType}` })
+  onImageError() {
+    if (this.data.imageFailed) return
+    this.setData({ imageFailed: true }, () => this.loadCachedProduct())
   },
 
-  editProduct() {
-    wx.navigateTo({ url: `/pages/product-form/index?id=${this.data.productId}` })
+  openSale() {
+    this.openOperation('/pages/sale-form/index')
   },
 
-  deleteProduct() {
-    const product = this.data.product
-    if (!product) return
-    wx.showModal({
-      title: '删除商品',
-      content: `确定删除“${product.name}”吗？历史记录会保留。`,
-      confirmText: '删除',
-      confirmColor: '#d76f8f',
-      success: result => {
-        if (!result.confirm) return
-        try {
-          store.removeProduct(product.id)
-          wx.showToast({ title: '商品已删除', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 500)
-        } catch (error) {
-          wx.showToast({ title: error.message, icon: 'none' })
-        }
+  openPurchase() {
+    this.openOperation('/pages/purchase-form/index')
+  },
+
+  openOperation(path) {
+    if (!this.data.product || this.data.isNavigating) return
+    this.setData({ isNavigating: true })
+    const specs = Array.isArray(this.data.product.specs) ? this.data.product.specs : []
+    const params = [
+      `type=${encodeURIComponent(this.data.product.businessType)}`,
+      `productId=${encodeURIComponent(this.data.product.id)}`
+    ]
+    if (specs.length === 1 && specs[0].id) params.push(`specId=${encodeURIComponent(specs[0].id)}`)
+    wx.navigateTo({
+      url: `${path}?${params.join('&')}`,
+      fail: () => {
+        this.setData({ isNavigating: false })
+        wx.showToast({ title: '页面暂时无法打开', icon: 'none' })
       }
     })
   }

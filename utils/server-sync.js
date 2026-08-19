@@ -4,6 +4,9 @@ let currentRevision = 0
 let pendingState = null
 let syncTimer = null
 let pushInFlight = false
+let lastSyncAt = ''
+let lastSyncError = null
+const syncListeners = []
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -22,6 +25,45 @@ function initServer() {
 
 function session() {
   return wx.getStorageSync(config.sessionKey) || null
+}
+
+function getSyncStatus() {
+  let state = 'connected'
+  if (lastSyncError) state = 'failed'
+  else if (pendingState || pushInFlight) state = 'pending'
+  else if (lastSyncAt) state = 'synced'
+  return {
+    state,
+    lastSyncAt,
+    errorMessage: lastSyncError ? lastSyncError.message || String(lastSyncError) : '',
+    hasPending: Boolean(pendingState || pushInFlight)
+  }
+}
+
+function notifySyncStatus() {
+  const status = getSyncStatus()
+  syncListeners.slice().forEach(listener => listener(status))
+}
+
+function subscribeSyncStatus(listener) {
+  if (typeof listener !== 'function') return () => {}
+  syncListeners.push(listener)
+  listener(getSyncStatus())
+  return () => {
+    const index = syncListeners.indexOf(listener)
+    if (index >= 0) syncListeners.splice(index, 1)
+  }
+}
+
+function markSyncSuccess() {
+  lastSyncAt = new Date().toISOString()
+  lastSyncError = null
+  notifySyncStatus()
+}
+
+function markSyncFailure(error) {
+  lastSyncError = error || new Error('数据同步失败')
+  notifySyncStatus()
 }
 
 function request(options) {
@@ -82,24 +124,64 @@ async function wechatLogin(profile) {
 }
 
 async function pullState() {
-  const result = await request({ path: '/store/state' })
-  currentRevision = Number(result.revision || 0)
-  return {
-    exists: Boolean(result.exists),
-    state: result.state || null,
-    revision: currentRevision,
-    updatedAt: result.updatedAt || ''
+  try {
+    const result = await request({ path: '/store/state' })
+    currentRevision = Number(result.revision || 0)
+    markSyncSuccess()
+    return {
+      exists: Boolean(result.exists),
+      state: result.state || null,
+      revision: currentRevision,
+      updatedAt: result.updatedAt || ''
+    }
+  } catch (error) {
+    markSyncFailure(error)
+    throw error
   }
 }
 
+async function pullProducts() {
+  const result = await request({ path: '/catalog/products' })
+  return { items: Array.isArray(result.items) ? result.items : [] }
+}
+
 async function pushState(state) {
-  const result = await request({
-    path: '/store/state',
-    method: 'PUT',
-    data: { state: clone(state), revision: currentRevision }
-  })
-  currentRevision = Number(result.revision || currentRevision + 1)
+  try {
+    const result = await request({
+      path: '/store/state',
+      method: 'PUT',
+      data: { state: clone(state), revision: currentRevision }
+    })
+    currentRevision = Number(result.revision || currentRevision + 1)
+    markSyncSuccess()
+    return result
+  } catch (error) {
+    markSyncFailure(error)
+    throw error
+  }
+}
+
+async function commitSale(payload) {
+  const result = await request({ path: '/store/sales', method: 'POST', data: clone(payload) })
+  currentRevision = Number(result.revision || currentRevision)
+  clearPendingPush()
+  markSyncSuccess()
   return result
+}
+
+async function commitPurchase(payload) {
+  const result = await request({ path: '/store/purchases', method: 'POST', data: clone(payload) })
+  currentRevision = Number(result.revision || currentRevision)
+  clearPendingPush()
+  markSyncSuccess()
+  return result
+}
+
+function clearPendingPush() {
+  pendingState = null
+  if (syncTimer) clearTimeout(syncTimer)
+  syncTimer = null
+  notifySyncStatus()
 }
 
 function hasServerSession() {
@@ -114,15 +196,19 @@ function scheduleFlush(delay) {
 
 function flushQueue() {
   syncTimer = null
-  if (pushInFlight || !pendingState || !hasServerSession()) return
+  if (pushInFlight || !pendingState || !hasServerSession()) return Promise.resolve(false)
   const target = pendingState
   pendingState = null
   pushInFlight = true
-  pushState(target).catch(error => {
+  notifySyncStatus()
+  return pushState(target).then(() => true).catch(error => {
     pendingState = target
     console.warn('萍萍小助手服务器同步失败：', error.message || error)
+    notifySyncStatus()
+    return false
   }).finally(() => {
     pushInFlight = false
+    notifySyncStatus()
     if (pendingState) scheduleFlush(1000)
   })
 }
@@ -130,23 +216,41 @@ function flushQueue() {
 function queuePush(state) {
   if (!hasServerSession()) return
   pendingState = clone(state)
+  lastSyncError = null
+  notifySyncStatus()
   scheduleFlush(500)
+}
+
+function retryPendingPush() {
+  if (!pendingState || !hasServerSession()) return Promise.resolve(false)
+  lastSyncError = null
+  if (syncTimer) clearTimeout(syncTimer)
+  syncTimer = null
+  notifySyncStatus()
+  return flushQueue()
 }
 
 function resetSyncState() {
   currentRevision = 0
-  pendingState = null
+  clearPendingPush()
   pushInFlight = false
-  if (syncTimer) clearTimeout(syncTimer)
-  syncTimer = null
+  lastSyncAt = ''
+  lastSyncError = null
+  notifySyncStatus()
 }
 
 module.exports = {
   initServer,
   wechatLogin,
   pullState,
+  pullProducts,
   pushState,
+  commitSale,
+  commitPurchase,
   queuePush,
+  retryPendingPush,
+  getSyncStatus,
+  subscribeSyncStatus,
   resetSyncState,
   apiBaseUrl
 }

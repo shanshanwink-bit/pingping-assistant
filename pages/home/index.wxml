@@ -1,93 +1,100 @@
 <view class="page home-page">
-  <view class="mist-orb mist-orb-blue"></view>
-  <view class="mist-orb mist-orb-pink"></view>
-  <view class="rain-scene" aria-hidden="true">
-    <view class="rain-drop rain-drop-one"></view>
-    <view class="rain-drop rain-drop-two"></view>
-    <view class="rain-drop rain-drop-three"></view>
-    <view class="rain-drop rain-drop-four"></view>
+  <view class="home-nav" style="padding-top: {{statusBarHeight}}px; height: {{navBarHeight}}px;">
+    <view class="home-nav-content">萍萍小助手</view>
+  </view>
+  <view style="height: {{navSpacerHeight}}px;"></view>
+
+  <view class="home-greeting">
+    <view class="home-greeting-line">{{greetingLine}}</view>
+    <view class="home-question">今天生意怎么样？</view>
   </view>
 
-  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px; height: {{navBarHeight}}px;">
-    <view class="custom-nav-content">
-      <view class="brand-mark"><view class="brand-drop"><image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" /></view><text>萍萍小助手</text></view>
+  <view wx:if="{{isLoading}}" class="home-state-card">
+    <view class="home-loading-dot"></view>
+    <view>正在加载经营数据</view>
+  </view>
+
+  <view wx:elif="{{loadFailed}}" class="home-state-card home-error-state">
+    <view class="home-state-title">加载失败，请稍后重试</view>
+    <view class="home-state-detail">经营数据暂时无法读取</view>
+    <button class="home-retry-button" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{syncError}}" class="home-sync-notice" bindtap="retrySync">
+      <view class="home-sync-title">加载失败，请稍后重试</view>
+      <text class="home-sync-detail">当前显示已保存数据 · 点击重试</text>
     </view>
-  </view>
-  <view class="nav-spacer" style="height: {{navSpacerHeight}}px;"></view>
 
-  <view class="welcome-block">
-    <view class="shop-name">{{greeting}}，店主</view>
-    <view class="shop-meta">{{dateText}} · 单店库存管理</view>
-  </view>
-
-  <view class="stock-hero">
-    <view class="hero-ripple hero-ripple-one"></view>
-    <view class="hero-ripple hero-ripple-two"></view>
-    <view class="hero-content">
-      <view class="hero-main">
-        <view class="hero-label">店里还有</view>
-        <view class="hero-value">{{summary.totalStock}}<text>件</text></view>
-        <view class="hero-cost"><text>剩余货值</text><view>{{stockValueText}}</view></view>
-      </view>
-      <view class="hero-water-visual" aria-hidden="true">
-        <view class="water-ripple ripple-outer"></view>
-        <view class="water-ripple ripple-inner"></view>
-        <view class="hero-drop combined-brand-drop"><image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" /></view>
-      </view>
-    </view>
-  </view>
-
-  <view class="section-head quick-head"><view><view class="section-title">今天要做什么？</view><view class="section-subtitle">选择一件事就可以</view></view></view>
-  <view class="quick-grid">
-    <button class="quick-item inbound" bindtap="goPurchase">
-      <view class="quick-drop"></view>
-      <view class="quick-icon"><image src="/assets/icons/box-white.svg" mode="aspectFit" /></view>
-      <view class="quick-copy"><text>拿货</text><text class="quick-sub">增加库存</text></view>
-    </button>
-    <button class="quick-item outbound" bindtap="goSale">
-      <view class="quick-drop"></view>
-      <view class="quick-icon"><image src="/assets/icons/bag-white.svg" mode="aspectFit" /></view>
-      <view class="quick-copy"><text>卖货</text><text class="quick-sub">记录收款</text></view>
-    </button>
-    <button class="quick-item stocktake" bindtap="goInventory">
-      <view class="quick-drop"></view>
-      <view class="quick-icon"><image src="/assets/icons/hanger-white.svg" mode="aspectFit" /></view>
-      <view class="quick-copy"><text>查库存</text><text class="quick-sub">找商品</text></view>
-    </button>
-  </view>
-
-  <view class="section-head operation-head"><view><view class="section-title">今天的情况</view><view class="section-subtitle">一眼看看卖了多少、赚了多少</view></view></view>
-  <view class="operation-summary">
-    <view><text>卖了多少钱</text><view>{{todaySaleAmountText}}</view></view>
-    <view><text>赚了多少</text><view>{{todayProfitText}}</view></view>
-    <view><text>卖出</text><view>{{summary.todaySaleQuantity}}<text> 件</text></view></view>
-  </view>
-
-  <view class="attention-panel" wx:if="{{attentionItems.length}}">
-    <view class="attention-head"><view><view>需要关注</view><text>临期与库存提醒</text></view><view class="attention-count">{{attentionItems.length}}</view></view>
-    <view class="attention-row" wx:for="{{attentionItems}}" wx:key="id" data-id="{{item.productId}}" bindtap="openAttention">
-      <image wx:if="{{item.image}}" class="attention-image" src="{{item.image}}" mode="aspectFill" />
-      <view wx:else class="attention-icon"><image src="{{item.icon}}" mode="aspectFit" /></view>
-      <view class="attention-main"><view>{{item.title}}</view><text>{{item.detail}}</text></view>
-      <view class="attention-status {{item.tone}}">{{item.statusText}}</view>
-    </view>
-  </view>
-
-  <view class="recent-panel">
-    <view class="recent-head"><view>最近变动</view><view bindtap="goOperations">查看更多 <text>›</text></view></view>
-    <view class="recent-list" wx:if="{{recentOperations.length}}">
-      <view class="recent-card" wx:for="{{recentOperations}}" wx:key="id" data-id="{{item.productId}}" bindtap="openRecent">
-        <view class="recent-image-wrap">
-          <image wx:if="{{item.image}}" class="recent-image" src="{{item.image}}" mode="aspectFill" />
-          <view wx:else class="recent-placeholder"><image src="{{item.placeholderIcon}}" mode="aspectFit" /></view>
+    <view class="home-business-card">
+      <view class="home-card-eyebrow"><text class="home-eyebrow-label">今日经营</text><view wx:if="{{isSyncing}}" class="home-syncing-pill">更新中</view></view>
+      <view class="home-sales-label">今日销售额</view>
+      <view class="home-sales-value {{salesAmountClass}}">{{todaySaleAmountText}}</view>
+      <view class="home-business-metrics">
+        <view class="home-metric">
+          <text class="home-metric-label">今日盈利</text>
+          <view class="home-metric-value">{{todayProfitText}}</view>
         </view>
-        <view class="recent-main">
-          <view class="recent-name">{{item.productName}} · {{item.specText}}</view>
-          <view class="recent-change {{item.quantity < 0 ? 'negative' : ''}}"><text>{{item.businessText}}</text>{{item.typeText}} {{item.quantityText}} 件</view>
+        <view class="home-metric">
+          <text class="home-metric-label">售出件数</text>
+          <view class="home-metric-value">{{todaySaleQuantityText}}<text class="home-metric-unit">件</text></view>
         </view>
-        <view class="recent-time">{{item.timeText}}</view>
+      </view>
+      <view wx:if="{{!hasTodaySales}}" class="home-no-sales">今日还没有销售记录</view>
+    </view>
+
+    <view class="home-section">
+      <view class="home-section-heading"><view class="home-section-title">快捷操作</view></view>
+      <view class="home-quick-actions">
+        <button class="home-quick-button" bindtap="goSale"><view class="home-action-icon"><image class="home-action-image" src="/assets/icons/bag-brand.svg" mode="aspectFit" /></view><text class="home-action-label">卖货</text></button>
+        <button class="home-quick-button" bindtap="goPurchase"><view class="home-action-icon"><image class="home-action-image" src="/assets/icons/box-brand.svg" mode="aspectFit" /></view><text class="home-action-label">拿货</text></button>
+        <button class="home-quick-button" bindtap="goLedgerEntry"><view class="home-action-icon"><image class="home-action-image" src="/assets/icons/clipboard-brand.svg" mode="aspectFit" /></view><text class="home-action-label">记一笔</text></button>
       </view>
     </view>
-    <view wx:else class="recent-empty">还没有库存变动记录</view>
-  </view>
+
+    <view class="home-section">
+      <view class="home-section-heading home-section-link" bindtap="goAttentionAll">
+        <view class="home-section-title">需要处理</view><text class="home-section-more">全部 ›</text>
+      </view>
+      <view wx:if="{{attentionItems.length}}" class="home-list-card">
+        <view class="home-alert-row" wx:for="{{attentionItems}}" wx:key="id" data-id="{{item.productId}}" bindtap="openAttention">
+          <view class="home-alert-marker {{item.tone}}">{{item.marker}}</view>
+          <view class="home-row-main"><view class="home-row-title">{{item.title}}<text wx:if="{{item.specLabel}}" class="home-row-spec"> · {{item.specLabel}}</text></view><text class="home-row-detail">{{item.detail}}</text></view>
+          <view class="home-alert-type {{item.tone}}">{{item.typeLabel}}</view>
+        </view>
+      </view>
+      <view wx:else class="home-empty-card">
+        <view class="home-empty-title">库存状态很好</view>
+        <text class="home-empty-detail">暂时没有需要处理的商品</text>
+      </view>
+    </view>
+
+    <view class="home-section">
+      <view class="home-section-heading home-section-link" bindtap="goStockOverview">
+        <view class="home-section-title">库存概览</view><text class="home-section-more">查看 ›</text>
+      </view>
+      <view class="home-stock-card" bindtap="goStockOverview">
+        <view class="home-stock-item"><text class="home-stock-label">商品款数</text><view class="home-stock-value">{{productCountText}}<text class="home-stock-unit">款</text></view></view>
+        <view class="home-stock-item"><text class="home-stock-label">库存件数</text><view class="home-stock-value">{{totalStockText}}<text class="home-stock-unit">件</text></view></view>
+        <view class="home-stock-item"><text class="home-stock-label">库存货值</text><view class="home-stock-value">{{stockValueText}}</view></view>
+      </view>
+    </view>
+
+    <view class="home-section">
+      <view class="home-section-heading home-section-link" bindtap="goRecentAll">
+        <view class="home-section-title">最近记录</view><text class="home-section-more">全部 ›</text>
+      </view>
+      <view wx:if="{{recentRecords.length}}" class="home-list-card">
+        <view class="home-record-row" wx:for="{{recentRecords}}" wx:key="key">
+          <view class="home-record-icon {{item.tone}}">{{item.shortLabel}}</view>
+          <view class="home-row-main"><view class="home-row-title">{{item.typeText}}</view><text class="home-row-detail">{{item.titleText}}</text></view>
+          <view class="home-record-side {{item.tone}}"><view class="home-record-value">{{item.valueText}}</view><text class="home-record-time">{{item.timeText}}</text></view>
+        </view>
+      </view>
+      <view wx:else class="home-empty-card home-record-empty">
+        <view class="home-empty-title">还没有经营记录</view>
+        <text class="home-empty-detail">卖货、拿货和收支记录会显示在这里</text>
+      </view>
+    </view>
+  </block>
 </view>

@@ -1,0 +1,22 @@
+[Unit]
+Description=PingPing Assistant Go Admin API
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/pingping-admin-api
+EnvironmentFile=/etc/pingping-assistant-api.env
+ExecStart=/opt/pingping-admin-api/pingping-admin-api
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+StateDirectory=pingping-admin-api
+
+[Install]
+WantedBy=multi-user.target

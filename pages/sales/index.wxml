@@ -1,5 +1,5 @@
 <view class="page flow-page">
-  <view class="page-heading"><view><view class="page-title">卖货记录</view><text>每次卖了什么、收了多少，都在这里</text></view><button class="new-record-mini" bindtap="addSale"><text>＋</text><view>{{actionText}}</view></button></view>
+  <view class="page-heading"><view><view class="page-title">卖货记录</view><text>只读查看销售数量与收款</text></view><view class="tag">仅供查看</view></view>
 
   <view class="flow-hero sale-hero">
     <view class="hero-decoration"></view>
@@ -18,5 +18,5 @@
       <view class="record-money"><view>{{item.totalAmountText}}</view><text>{{item.unitPriceText}}/件</text></view>
     </view>
   </view>
-  <view wx:else class="empty-flow"><view class="empty-symbol">卖</view><view>还没有卖货记录</view><text>有商品库存后，就可以记录卖货。</text><view class="empty-actions"><button bindtap="addProduct">新建商品</button><button class="record-create-button" bindtap="addSale">＋ {{actionText}}</button></view></view>
+  <view wx:else class="empty-flow"><view class="empty-symbol">卖</view><view>还没有卖货记录</view><text>记录可在网页管理后台维护。</text></view>
 </view>

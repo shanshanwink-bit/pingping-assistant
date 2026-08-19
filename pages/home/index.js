@@ -1,3 +1,6 @@
+const auth = require('../../utils/auth')
+const catalogSync = require('../../utils/catalog-sync')
+const homeDashboard = require('../../utils/home-dashboard')
 const store = require('../../utils/store')
 
 Page({
@@ -5,26 +8,36 @@ Page({
     statusBarHeight: 20,
     navBarHeight: 44,
     navSpacerHeight: 64,
-    dateText: '',
-    greeting: '',
-    stockValueText: '¥0',
+    isLoading: true,
+    isSyncing: false,
+    loadFailed: false,
+    syncError: false,
+    greetingLine: homeDashboard.greetingForHour(new Date().getHours()),
     todaySaleAmountText: '¥0.00',
     todayProfitText: '¥0.00',
-    businessCards: [],
+    todaySaleQuantityText: '0',
+    hasTodaySales: false,
+    salesAmountClass: '',
+    productCountText: '0',
+    totalStockText: '0',
+    stockValueText: '¥0.00',
     attentionItems: [],
-    categoryStats: [],
-    summary: {
-      totalStock: 0,
-      productCount: 0,
-      lowSpecs: [],
-      outOfStockCount: 0,
-      recentOperations: []
-    },
-    lowPreview: [],
-    recentOperations: []
+    recentRecords: [],
+    hasStockAlerts: false,
+    hasExpiryAlerts: false
   },
 
   onLoad() {
+    this.setupNavigationBar()
+  },
+
+  onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar) tabBar.setData({ selected: 0 })
+    this.loadDashboard(true)
+  },
+
+  setupNavigationBar() {
     try {
       const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
       const menuRect = wx.getMenuButtonBoundingClientRect()
@@ -38,176 +51,138 @@ Page({
         navSpacerHeight: statusBarHeight + navBarHeight
       })
     } catch (error) {
-      this.setData({ statusBarHeight: 20, navBarHeight: 44, navSpacerHeight: 64 })
+      console.warn('读取导航栏尺寸失败：', error.message || error)
     }
   },
 
-  onShow() {
-    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
-    if (tabBar) tabBar.setData({ selected: 0 })
-    const date = new Date()
-    const summary = store.getSummary()
-    const clothingSummary = store.getSummary('clothing')
-    const cosmeticSummary = store.getSummary('cosmetics')
-    const clothingProfit = store.getProfitAnalysis({ businessType: 'clothing', period: 'today' }).summary.profit
-    const cosmeticProfit = store.getProfitAnalysis({ businessType: 'cosmetics', period: 'today' }).summary.profit
-    const recentOperations = summary.recentOperations.slice(0, 3).map(item => this.formatOperation(item))
-    const businessCards = [
-      {
-        type: 'clothing',
-        title: '服装',
-        icon: '/assets/icons/brand-water-hanger.svg',
-        stock: clothingSummary.totalStock,
-        costText: `¥${this.formatMoney(clothingSummary.stockValue)}`,
-        productCount: clothingSummary.productCount,
-        todaySale: clothingSummary.todaySaleQuantity
+  loadDashboard(refreshCatalog) {
+    try {
+      const state = store.getState()
+      const summary = store.getSummary()
+      const todayProfit = ['clothing', 'cosmetics'].reduce((total, businessType) => (
+        total + Number(store.getProfitAnalysis({ businessType, period: 'today' }).summary.profit || 0)
+      ), 0)
+      const user = auth.getCurrentUser() || state.currentUser || null
+      const dashboard = homeDashboard.buildHomeDashboard({ state, summary, todayProfit, user })
+      this.setData({ ...dashboard, isLoading: false, loadFailed: false })
+    } catch (error) {
+      console.error('首页经营数据加载失败：', error)
+      this.setData({ isLoading: false, loadFailed: true })
+      return
+    }
+
+    if (refreshCatalog) this.refreshCatalog()
+  },
+
+  refreshCatalog() {
+    if (this._refreshing) return
+    this._refreshing = true
+    this.setData({ isSyncing: true, syncError: false })
+    catalogSync.refreshProducts()
+      .then(updated => {
+        if (updated) this.loadDashboard(false)
+      })
+      .catch(error => {
+        console.warn('首页商品数据更新失败：', error.message || error)
+        this.setData({ syncError: true })
+      })
+      .finally(() => {
+        this._refreshing = false
+        this.setData({ isSyncing: false })
+      })
+  },
+
+  retryLoad() {
+    if (this.data.isLoading) return
+    this.setData({ isLoading: true, loadFailed: false, syncError: false })
+    this.loadDashboard(true)
+  },
+
+  retrySync() {
+    this.refreshCatalog()
+  },
+
+  navigateOnce(method, url) {
+    if (this._navigationPending) return
+    this._navigationPending = true
+    wx[method]({
+      url,
+      fail: error => {
+        console.warn(`页面跳转失败：${url}`, error)
+        wx.showToast({ title: '页面暂时无法打开', icon: 'none' })
       },
-      {
-        type: 'cosmetics',
-        title: '化妆品',
-        icon: '/assets/icons/tab-cosmetics-active.svg',
-        stock: cosmeticSummary.totalStock,
-        costText: `¥${this.formatMoney(cosmeticSummary.stockValue)}`,
-        productCount: cosmeticSummary.productCount,
-        todaySale: cosmeticSummary.todaySaleQuantity
+      complete: () => {
+        setTimeout(() => { this._navigationPending = false }, 400)
       }
-    ]
-    const attentionItems = this.buildAttentionItems(summary)
-    const hour = date.getHours()
-    const greeting = hour < 11 ? '早上好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好'
-    const categoryStats = summary.categoryStats.map((item, index) => ({ ...item, tone: index % 4 }))
-    this.setData({
-      dateText: `${date.getMonth() + 1}月${date.getDate()}日`,
-      greeting,
-      stockValueText: `¥${this.formatMoney(summary.stockValue)}`,
-      todaySaleAmountText: `¥${Number(summary.todaySaleAmount || 0).toFixed(2)}`,
-      todayProfitText: `¥${Number(clothingProfit + cosmeticProfit).toFixed(2)}`,
-      businessCards,
-      attentionItems,
-      categoryStats,
-      summary,
-      lowPreview: summary.lowSpecs.slice(0, 3),
-      recentOperations
     })
   },
 
-  formatOperation(item) {
-    const typeMap = { inbound: '入库', outbound: '出库', stocktake: '盘点' }
-    const badgeMap = { inbound: '入', outbound: '出', stocktake: '盘' }
-    const product = store.getProduct(item.productId)
-    return {
-      ...item,
-      image: product ? product.image : '',
-      businessType: product ? product.businessType || 'clothing' : 'clothing',
-      businessText: product && product.businessType === 'cosmetics' ? '化妆品' : '服装',
-      placeholderIcon: product && product.businessType === 'cosmetics' ? '/assets/icons/tab-cosmetics-active.svg' : '/assets/icons/shirt-blue.svg',
-      typeText: typeMap[item.type] || '调整',
-      badgeText: badgeMap[item.type] || '调',
-      quantityText: item.quantity > 0 ? `+${item.quantity}` : String(item.quantity),
-      timeText: item.createdAt.slice(5)
-    }
-  },
-
-  buildAttentionItems(summary) {
-    const items = []
-    const seen = {}
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-    store.getProducts('cosmetics').forEach(product => {
-      if (!product.expiryDate) return
-      const expiry = new Date(`${product.expiryDate}T00:00:00`).getTime()
-      if (!Number.isFinite(expiry)) return
-      const days = Math.ceil((expiry - today) / 86400000)
-      if (days > 30) return
-      items.push({
-        id: `expiry-${product.id}`,
-        productId: product.id,
-        image: product.image,
-        icon: '/assets/icons/tab-cosmetics-active.svg',
-        title: product.name,
-        detail: product.expiryDate,
-        statusText: days < 0 ? `已过期 ${Math.abs(days)} 天` : days === 0 ? '今天到期' : `${days} 天后到期`,
-        tone: days <= 0 ? 'danger' : 'expiry',
-        priority: days
-      })
-      seen[product.id] = true
-    })
-    items.sort((a, b) => a.priority - b.priority)
-    summary.lowSpecs.forEach(spec => {
-      if (items.length >= 3 || seen[spec.productId]) return
-      const product = store.getProduct(spec.productId)
-      if (!product) return
-      items.push({
-        id: `stock-${spec.specId}`,
-        productId: spec.productId,
-        image: product.image,
-        icon: product.businessType === 'cosmetics' ? '/assets/icons/tab-cosmetics-active.svg' : '/assets/icons/shirt-blue.svg',
-        title: spec.productName,
-        detail: spec.specText,
-        statusText: spec.stock === 0 ? '已缺货' : `仅剩 ${spec.stock} 件`,
-        tone: spec.stock === 0 ? 'danger' : 'stock',
-        priority: 100 + spec.stock
-      })
-      seen[spec.productId] = true
-    })
-    return items.slice(0, 3)
-  },
-
-  formatNumber(value) {
-    const rounded = Math.round(Number(value || 0))
-    return String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  },
-
-  formatMoney(value) {
-    const parts = Number(value || 0).toFixed(2).split('.')
-    return `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${parts[1]}`
-  },
-
-  goInventory() {
-    wx.switchTab({ url: '/pages/inventory/index' })
-  },
-
-  goBusiness(event) {
-    const type = event.currentTarget.dataset.type
-    wx.setStorageSync('product_business_filter', type)
-    wx.switchTab({ url: '/pages/inventory/index' })
-  },
-
-  openAttention(event) {
-    wx.navigateTo({ url: `/pages/product-detail/index?id=${event.currentTarget.dataset.id}` })
-  },
-
-  openRecent(event) {
-    wx.navigateTo({ url: `/pages/product-detail/index?id=${event.currentTarget.dataset.id}` })
-  },
-
-  goStockOverview(event) {
-    wx.navigateTo({ url: `/pages/stock-overview/index?mode=${event.currentTarget.dataset.mode}` })
-  },
-
-  goOperations() {
-    wx.navigateTo({ url: '/pages/operations/index' })
-  },
-
-  goPurchase() {
+  chooseBusiness(itemList, urls) {
+    if (this._navigationPending) return
+    this._navigationPending = true
     wx.showActionSheet({
-      itemList: ['服装 · 登记拿货', '化妆品 · 增加库存'],
-      success: result => {
-        const url = result.tapIndex === 0
-          ? '/pages/purchase-form/index?type=clothing'
-          : '/pages/stock-form/index?type=stocktake&businessType=cosmetics&mode=save'
-        wx.navigateTo({ url })
+      itemList,
+      success: result => this.navigateOnceAfterChoice(urls[result.tapIndex]),
+      complete: result => {
+        if (!result || !Number.isInteger(result.tapIndex)) this._navigationPending = false
+      }
+    })
+  },
+
+  navigateOnceAfterChoice(url) {
+    wx.navigateTo({
+      url,
+      fail: error => {
+        console.warn(`页面跳转失败：${url}`, error)
+        wx.showToast({ title: '页面暂时无法打开', icon: 'none' })
+      },
+      complete: () => {
+        setTimeout(() => { this._navigationPending = false }, 400)
       }
     })
   },
 
   goSale() {
-    wx.showActionSheet({
-      itemList: ['卖出服装', '卖出化妆品'],
-      success: result => {
-        const businessType = result.tapIndex === 0 ? 'clothing' : 'cosmetics'
-        wx.navigateTo({ url: `/pages/sale-form/index?type=${businessType}` })
-      }
-    })
+    this.chooseBusiness(['卖出服装', '卖出化妆品'], [
+      '/pages/sale-form/index?type=clothing',
+      '/pages/sale-form/index?type=cosmetics'
+    ])
+  },
+
+  goPurchase() {
+    this.chooseBusiness(['服装 · 登记拿货', '化妆品 · 登记拿货'], [
+      '/pages/purchase-form/index?type=clothing',
+      '/pages/purchase-form/index?type=cosmetics'
+    ])
+  },
+
+  goLedgerEntry() {
+    this.navigateOnce('navigateTo', '/pages/profit-form/index?type=clothing')
+  },
+
+  openAttention(event) {
+    this.navigateOnce('navigateTo', `/pages/product-detail/index?id=${event.currentTarget.dataset.id}`)
+  },
+
+  goAttentionAll() {
+    if (this.data.hasStockAlerts && this.data.hasExpiryAlerts) {
+      this.chooseBusiness(['查看库存预警', '查看化妆品提醒'], [
+        '/pages/stock-overview/index?mode=low',
+        '/pages/cosmetics/index'
+      ])
+      return
+    }
+    const url = this.data.hasExpiryAlerts
+      ? '/pages/cosmetics/index'
+      : '/pages/stock-overview/index?mode=low'
+    this.navigateOnce('navigateTo', url)
+  },
+
+  goStockOverview() {
+    this.navigateOnce('navigateTo', '/pages/stock-overview/index?mode=all')
+  },
+
+  goRecentAll() {
+    this.navigateOnce('switchTab', '/pages/profit/index')
   }
 })

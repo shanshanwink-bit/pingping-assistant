@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'clothing_inventory_state_v2'
 const LEGACY_STORAGE_KEYS = ['clothing_inventory_state_v1']
 const serverSync = require('./server-sync')
+const { mergeCatalogProducts } = require('./catalog-products')
+const { summarizeProfitRecords } = require('./ledger')
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -181,6 +183,14 @@ function replaceStateFromServer(serverState, user) {
   }
   wx.setStorageSync(STORAGE_KEY, state)
   return clone(state)
+}
+
+function replaceProductsFromCatalog(items) {
+  const state = ensureState()
+  state.products = mergeCatalogProducts(state.products, items)
+  state.nextProductNumber = nextNumberFromProducts(state.products)
+  wx.setStorageSync(STORAGE_KEY, state)
+  return clone(state.products)
 }
 
 function saveState(state) {
@@ -717,26 +727,7 @@ function monthKey(date) {
 }
 
 function analyzeProfitRecords(records, manualRecords) {
-  const manualItems = manualRecords || []
-  const pricedRecords = records.filter(item => item.grossProfit !== undefined && item.grossProfit !== null)
-  const revenue = roundMoney(records.reduce((sum, item) => sum + Number(item.totalAmount || 0), 0))
-  const pricedRevenue = roundMoney(pricedRecords.reduce((sum, item) => sum + Number(item.totalAmount || 0), 0))
-  const cost = roundMoney(pricedRecords.reduce((sum, item) => sum + Number(item.totalCost || 0), 0))
-  const salesProfit = roundMoney(pricedRecords.reduce((sum, item) => sum + Number(item.grossProfit || 0), 0))
-  const manualProfit = roundMoney(manualItems.reduce((sum, item) => sum + Number(item.amount || 0), 0))
-  const profit = roundMoney(salesProfit + manualProfit)
-  return {
-    revenue,
-    cost,
-    profit,
-    salesProfit,
-    manualProfit,
-    margin: pricedRevenue ? roundMoney(salesProfit / pricedRevenue * 100) : 0,
-    quantity: records.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
-    count: records.length,
-    manualCount: manualItems.length,
-    unpricedCount: records.length - pricedRecords.length
-  }
+  return summarizeProfitRecords(records, manualRecords)
 }
 
 function periodDates(period, customDate) {
@@ -938,6 +929,7 @@ module.exports = {
   getState,
   setCurrentUser,
   replaceStateFromServer,
+  replaceProductsFromCatalog,
   getProducts,
   getProduct,
   getSuppliers,

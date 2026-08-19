@@ -1,35 +1,83 @@
-.product-head { display: flex; gap: 24rpx; align-items: center; padding: 20rpx 0 30rpx; }
+.product-detail-page { min-height: 100vh; padding: 20rpx 32rpx calc(174rpx + env(safe-area-inset-bottom)); }
+.detail-head-card { display: flex; align-items: center; gap: 24rpx; padding: 24rpx; border: 1rpx solid var(--color-border); border-radius: 32rpx; background: var(--color-surface); }
 .detail-image,
-.detail-placeholder { width: 150rpx; height: 150rpx; border-radius: 30rpx; }
-.detail-placeholder { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; background: #fde5ee; color: #b54c75; font-size: 42rpx; }
-.head-main { flex: 1; min-width: 0; }
-.detail-name { font-size: 36rpx; font-weight: 600; }
-.detail-code { margin: 10rpx 0 16rpx; color: #8f7983; font-size: 24rpx; }
-.cost-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12rpx; margin-bottom: 18rpx; }
-.cost-summary > view { min-width: 0; padding: 20rpx 21rpx; border: 2rpx solid rgba(255,255,255,.9); border-radius: 23rpx; background: rgba(255,255,255,.64); box-shadow: 0 12rpx 29rpx rgba(75,132,172,.08); }
-.cost-summary > view > text { color: #7d94a4; font-size: 19rpx; }
-.cost-summary > view > view { margin-top: 7rpx; overflow: hidden; color: #315f7d; font-size: 27rpx; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-.cost-summary > view > view text { font-size: 18rpx; font-weight: 400; }
-.cost-summary .stock-cost { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(220,242,255,.78), rgba(255,229,240,.76)); }
-.cost-summary .stock-cost > view { margin-top: 0; color: #c65380; font-size: 31rpx; }
-.info-card { padding: 10rpx 24rpx; }
-.info-card > view { display: flex; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid #f3e7ec; }
-.info-card > view:last-child { border-bottom: 0; }
-.info-card text:first-child { color: #8f7983; }
-.spec-count { color: #7c8780; font-size: 24rpx; }
-.spec-row { display: flex; align-items: center; justify-content: space-between; padding: 24rpx; border-bottom: 1rpx solid #f3e7ec; }
-.spec-row:last-child { border-bottom: 0; }
-.spec-row > view:first-child { flex: 1; min-width: 0; }
-.spec-name { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.spec-status { margin-top: 6rpx; color: #bd577d; font-size: 22rpx; }
-.warning-text { color: #a26705; }
-.spec-stock-editor { display: flex; flex: 0 0 auto; width: 126rpx; height: 58rpx; box-sizing: border-box; align-items: center; padding: 0 13rpx; border: 1rpx solid rgba(255,255,255,.92); border-radius: 16rpx; background: rgba(255,255,255,.7); box-shadow: 0 7rpx 18rpx rgba(75,132,172,.08); }
-.spec-stock-editor input { flex: 1; min-width: 0; height: 58rpx; color: #29485f; text-align: right; font-size: 29rpx; font-weight: 600; }
-.spec-stock-editor text { margin-left: 7rpx; color: #7890a0; font-size: 21rpx; }
-.detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; margin-top: 34rpx; }
-.detail-actions .full { grid-column: 1 / -1; }
-.product-maintenance { display: flex; justify-content: center; gap: 18rpx; margin-top: 28rpx; }
-.edit-product-button,
-.delete-product-button { width: 176rpx; height: 58rpx; margin: 0; padding: 0; border-radius: 999rpx; background: rgba(255,255,255,.48); font-size: 23rpx; line-height: 58rpx; box-shadow: none; }
-.edit-product-button { border: 1rpx solid rgba(78,157,205,.34); color: #4e91bb; }
-.delete-product-button { border: 1rpx solid rgba(215,111,143,.35); color: #c26a85; }
+.detail-placeholder { width: 176rpx; height: 176rpx; flex: 0 0 auto; border-radius: 26rpx; }
+.detail-image { display: block; background: var(--color-surface-muted); }
+.detail-placeholder { display: flex; align-items: center; justify-content: center; background: var(--color-brand-soft); }
+.detail-placeholder image { width: 84rpx; height: 84rpx; opacity: .82; }
+.detail-head-main { flex: 1; min-width: 0; }
+.detail-name { overflow: hidden; color: var(--color-text); font-size: 36rpx; font-weight: 650; line-height: 1.35; text-overflow: ellipsis; }
+.detail-tags { display: flex; gap: 10rpx; margin-top: 12rpx; }
+.detail-tags text { padding: 5rpx 12rpx; border-radius: 999rpx; color: var(--color-text-secondary); background: var(--color-surface-muted); font-size: 20rpx; }
+.detail-identifier { margin-top: 12rpx; color: var(--color-text-secondary); font-size: 22rpx; }
+.detail-stock-status { display: inline-flex; align-items: center; gap: 8rpx; margin-top: 12rpx; font-size: 22rpx; }
+.detail-stock-status view { width: 12rpx; height: 12rpx; border-radius: 50%; background: currentColor; }
+.detail-stock-status.success,
+.expiry-status.success { color: var(--color-success); }
+.detail-stock-status.warning,
+.expiry-status.warning,
+.spec-main .warning { color: var(--color-warning); }
+.detail-stock-status.danger,
+.expiry-status.danger,
+.spec-main .danger { color: var(--color-danger); }
+
+.detail-section-title { margin: 40rpx 4rpx 16rpx; color: var(--color-text); font-size: 30rpx; font-weight: 600; }
+.detail-section-head { display: flex; align-items: center; justify-content: space-between; margin-top: 40rpx; }
+.detail-section-head .detail-section-title { margin: 0 4rpx 16rpx; }
+.detail-section-head > text { margin-bottom: 16rpx; color: var(--color-text-secondary); font-size: 22rpx; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 1rpx solid var(--color-border); border-radius: 28rpx; background: var(--color-surface); }
+.metric-item { min-width: 0; padding: 24rpx; border-bottom: 1rpx solid var(--color-border); }
+.metric-item:nth-child(odd) { border-right: 1rpx solid var(--color-border); }
+.metric-item:nth-child(n+3) { border-bottom: 0; }
+.metric-item > text { color: var(--color-text-secondary); font-size: 22rpx; }
+.metric-item > view { margin-top: 10rpx; overflow: hidden; color: var(--color-text); font-size: 30rpx; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.metric-item > view.missing { color: var(--color-text-muted); font-size: 22rpx; font-weight: 400; }
+.metric-item.total-stock > view { color: var(--color-brand); }
+.metric-item.total-stock > view text { margin-left: 5rpx; font-size: 21rpx; font-weight: 400; }
+
+.matrix-scroll { width: 100%; overflow: hidden; border: 1rpx solid var(--color-border); border-radius: 28rpx; background: var(--color-surface); }
+.stock-matrix { overflow: hidden; }
+.matrix-row { display: flex; min-height: 82rpx; border-bottom: 1rpx solid var(--color-border); }
+.matrix-row:last-child { border-bottom: 0; }
+.matrix-header { color: var(--color-text-secondary); background: var(--color-surface-muted); }
+.matrix-label { display: flex; width: 200rpx; flex: 0 0 auto; box-sizing: border-box; align-items: center; padding: 0 22rpx; border-right: 1rpx solid var(--color-border); font-size: 23rpx; font-weight: 500; }
+.matrix-cell { display: flex; width: 116rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-right: 1rpx solid var(--color-border); color: var(--color-text); font-size: 25rpx; }
+.matrix-cell:last-child { border-right: 0; }
+.matrix-cell.danger { color: var(--color-danger); background: #fbf0f1; }
+.matrix-cell.warning { color: var(--color-warning); background: #fcf6ed; }
+.matrix-cell.empty { color: var(--color-text-muted); }
+
+.spec-card,
+.cosmetics-card { overflow: hidden; border: 1rpx solid var(--color-border); border-radius: 28rpx; background: var(--color-surface); }
+.spec-row,
+.cosmetics-row,
+.expiry-row { display: flex; min-height: 88rpx; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 20rpx; padding: 18rpx 24rpx; border-bottom: 1rpx solid var(--color-border); }
+.spec-row:last-child,
+.cosmetics-row:last-child,
+.expiry-row:last-child { border-bottom: 0; }
+.spec-main { flex: 1; min-width: 0; }
+.spec-main > view { overflow: hidden; color: var(--color-text); font-size: 26rpx; text-overflow: ellipsis; white-space: nowrap; }
+.spec-main > text { display: block; margin-top: 6rpx; color: var(--color-text-secondary); font-size: 20rpx; }
+.spec-stock { flex: 0 0 auto; color: var(--color-text); font-size: 30rpx; font-weight: 600; }
+.spec-stock text { margin-left: 5rpx; color: var(--color-text-secondary); font-size: 20rpx; font-weight: 400; }
+.cosmetics-row > text,
+.expiry-row > text { flex: 0 0 auto; color: var(--color-text-secondary); font-size: 23rpx; }
+.cosmetics-row > view { min-width: 0; overflow: hidden; color: var(--color-text); text-align: right; font-size: 24rpx; text-overflow: ellipsis; }
+.expiry-status { text-align: right; font-size: 23rpx; font-weight: 500; }
+.section-empty { padding: 52rpx 24rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; color: var(--color-text-secondary); background: var(--color-surface); text-align: center; font-size: 24rpx; }
+.detail-readonly-note { margin: 34rpx 10rpx 0; color: var(--color-text-muted); text-align: center; font-size: 21rpx; line-height: 1.6; }
+
+.detail-action-bar { display: grid; position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; grid-template-columns: 1fr 1.35fr; gap: 18rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--color-border); background: rgba(255, 255, 255, .97); }
+.purchase-button,
+.sale-button { display: flex; height: 88rpx; align-items: center; justify-content: center; margin: 0; border-radius: 20rpx; font-size: 28rpx; font-weight: 600; line-height: 88rpx; }
+.purchase-button { border: 1rpx solid var(--color-brand); color: var(--color-brand); background: var(--color-surface); }
+.sale-button { color: #fff; background: var(--color-brand); }
+.purchase-button[disabled],
+.sale-button[disabled] { opacity: .55; }
+
+.detail-state-card { margin-top: 60rpx; padding: 90rpx 30rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; color: var(--color-text-secondary); background: var(--color-surface); text-align: center; }
+.detail-loading-ring { width: 38rpx; height: 38rpx; margin: 0 auto 20rpx; border: 4rpx solid var(--color-brand-soft); border-top-color: var(--color-brand); border-radius: 50%; animation: detail-loading .8s linear infinite; }
+.detail-state-title { color: var(--color-text); font-size: 29rpx; font-weight: 600; }
+.detail-state-copy { margin-top: 10rpx; font-size: 24rpx; }
+.detail-retry { display: inline-flex; height: 64rpx; align-items: center; justify-content: center; margin: 28rpx auto 0; padding: 0 30rpx; border: 1rpx solid var(--color-brand); border-radius: 18rpx; color: var(--color-brand); background: var(--color-surface); font-size: 24rpx; line-height: 64rpx; }
+@keyframes detail-loading { to { transform: rotate(360deg); } }

@@ -5,7 +5,7 @@
         <view class="active-ripple" wx:if="{{selected === index}}"></view>
         <image class="tab-icon" src="{{selected === index ? item.activeIcon : item.icon}}" mode="aspectFit" />
       </view>
-      <text>{{item.text}}</text>
+      <text class="tab-label">{{item.text}}</text>
     </view>
   </view>
 </view>

@@ -3,7 +3,6 @@
     "pages/login/index",
     "pages/home/index",
     "pages/inventory/index",
-    "pages/quick-action/index",
     "pages/cosmetics/index",
     "pages/profit/index",
     "pages/profile/index",
@@ -20,21 +19,20 @@
   ],
   "window": {
     "navigationBarTitleText": "萍萍小助手",
-    "navigationBarBackgroundColor": "#edf7ff",
+    "navigationBarBackgroundColor": "#f7f5f2",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f4f7ff",
+    "backgroundColor": "#f7f5f2",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "custom": true,
-    "color": "#8da2b2",
-    "selectedColor": "#ec7fa8",
-    "backgroundColor": "#fffafd",
+    "color": "#737373",
+    "selectedColor": "#8e3655",
+    "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/home/index", "text": "首页" },
       { "pagePath": "pages/inventory/index", "text": "商品" },
-      { "pagePath": "pages/quick-action/index", "text": "记一笔" },
       { "pagePath": "pages/profit/index", "text": "账本" },
       { "pagePath": "pages/profile/index", "text": "我的" }
     ]

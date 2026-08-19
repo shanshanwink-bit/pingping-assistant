@@ -18,12 +18,14 @@ Page({
 
   onLoad(options) {
     const recordMode = options.mode === 'stock-records'
+    const profileMode = options.source === 'profile'
+    const pageTitle = recordMode ? '库存记录' : profileMode ? '操作记录' : '出入库'
     this.setData({
       businessType: options.type || '',
       recordMode,
-      pageTitle: recordMode ? '库存记录' : '出入库'
+      pageTitle
     })
-    if (recordMode) wx.setNavigationBarTitle({ title: '库存记录' })
+    if (recordMode || profileMode) wx.setNavigationBarTitle({ title: pageTitle })
   },
 
   onShow() {
@@ -66,11 +68,6 @@ Page({
       }
     })
     this.setData({ operations }, () => this.applyFilter())
-  },
-
-  goStockForm(event) {
-    const businessType = this.data.businessType ? `&businessType=${this.data.businessType}` : ''
-    wx.navigateTo({ url: `/pages/stock-form/index?type=${event.currentTarget.dataset.type}${businessType}` })
   },
 
   selectFilter(event) {

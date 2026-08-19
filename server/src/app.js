@@ -1,5 +1,6 @@
 const crypto = require('node:crypto')
 const { signToken, verifyToken } = require('./token')
+const { applyPurchase, applySale, stockOf } = require('./business-transactions')
 
 class HttpError extends Error {
   constructor(statusCode, message, details) {
@@ -68,7 +69,11 @@ async function requestWechatIdentity(code, config) {
   return result
 }
 
-async function findOrCreateMembership(pool, identity, profile) {
+async function findOrCreateMembership(pool, identity, profile, config) {
+  const allowedOpenIds = config.wechat.allowedOpenIds || []
+  if (allowedOpenIds.length && !allowedOpenIds.includes(identity.openid)) {
+    throw new HttpError(403, '当前微信账号未获准访问此店铺')
+  }
   const connection = await pool.getConnection()
   try {
     await connection.beginTransaction()
@@ -90,14 +95,32 @@ async function findOrCreateMembership(pool, identity, profile) {
       [identity.openid]
     )
     const user = userRows[0]
-    const [memberRows] = await connection.execute(
-      `SELECT sm.store_id, sm.role, s.name AS store_name
-       FROM store_members sm
-       INNER JOIN stores s ON s.id = sm.store_id
-       WHERE sm.user_id = ? AND sm.status = 'active'
-       ORDER BY sm.created_at ASC LIMIT 1`,
-      [user.id]
-    )
+    const primaryStoreId = config.wechat.primaryStoreId
+    let memberRows
+    if (primaryStoreId) {
+      const [storeRows] = await connection.execute(
+        'SELECT id, name FROM stores WHERE id = ? AND status = ? LIMIT 1',
+        [primaryStoreId, 'active']
+      )
+      if (!storeRows[0]) throw new HttpError(503, '小程序绑定的店铺不存在或已停用')
+      await connection.execute(
+        `INSERT INTO store_members (store_id, user_id, role, status)
+         VALUES (?, ?, 'owner', 'active')
+         ON DUPLICATE KEY UPDATE status = 'active'`,
+        [primaryStoreId, user.id]
+      )
+      memberRows = [{ store_id: primaryStoreId, role: 'owner', store_name: storeRows[0].name }]
+    } else {
+      const memberResult = await connection.execute(
+        `SELECT sm.store_id, sm.role, s.name AS store_name
+         FROM store_members sm
+         INNER JOIN stores s ON s.id = sm.store_id
+         WHERE sm.user_id = ? AND sm.status = 'active'
+         ORDER BY sm.created_at ASC LIMIT 1`,
+        [user.id]
+      )
+      memberRows = memberResult[0]
+    }
 
     let membership = memberRows[0]
     if (!membership) {
@@ -139,16 +162,34 @@ async function requireMembership(request, pool, config) {
   } catch (error) {
     throw new HttpError(401, error.message)
   }
+  const storeId = config.wechat.primaryStoreId || payload.storeId
   const [rows] = await pool.execute(
     `SELECT sm.role, s.name AS store_name
      FROM store_members sm
      INNER JOIN stores s ON s.id = sm.store_id
      WHERE sm.user_id = ? AND sm.store_id = ? AND sm.status = 'active' AND s.status = 'active'
      LIMIT 1`,
-    [payload.userId, payload.storeId]
+    [payload.userId, storeId]
   )
   if (!rows[0]) throw new HttpError(403, '当前账号已无权访问该店铺')
-  return { ...payload, role: rows[0].role, storeName: rows[0].store_name }
+  return { ...payload, storeId, role: rows[0].role, storeName: rows[0].store_name }
+}
+
+function catalogProduct(row) {
+  return {
+    id: Number(row.id),
+    name: row.name,
+    code: row.code,
+    businessType: row.business_type,
+    category: row.category,
+    specCount: Number(row.spec_count || 0),
+    stock: Number(row.stock || 0),
+    costPrice: Number(row.cost_price || 0),
+    lowStockThreshold: Number(row.low_stock_threshold || 0),
+    price: Number(row.price || 0),
+    image: row.image_url || '',
+    updatedAt: row.updated_at
+  }
 }
 
 function corsHeaders(request, config) {
@@ -159,6 +200,100 @@ function corsHeaders(request, config) {
     'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Request-Id',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Vary': 'Origin'
+  }
+}
+
+async function commitStoreTransaction(pool, membership, kind, body, requestId) {
+  const connection = await pool.getConnection()
+  try {
+    await connection.beginTransaction()
+    const [rows] = await connection.execute(
+      'SELECT state, revision FROM store_states WHERE store_id = ? FOR UPDATE',
+      [membership.storeId]
+    )
+    if (!rows[0]) throw new HttpError(409, '服务器经营数据尚未初始化，请重新登录同步')
+    const state = typeof rows[0].state === 'string' ? JSON.parse(rows[0].state) : rows[0].state
+    if (!validState(state)) throw new HttpError(409, '服务器经营数据格式不正确，请重新同步')
+
+    const result = kind === 'sale'
+      ? applySale(state, body, new Date())
+      : applyPurchase(state, body, new Date())
+    let revision = Number(rows[0].revision || 0)
+
+    if (!result.duplicate) {
+      revision += 1
+      await connection.execute(
+        `UPDATE store_states
+         SET state = ?, revision = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE store_id = ?`,
+        [JSON.stringify(result.state), revision, membership.userId, membership.storeId]
+      )
+
+      const adminProductId = Number(result.product && result.product.adminProductId || 0)
+      if (adminProductId > 0) {
+        const [productUpdate] = await connection.execute(
+          `UPDATE admin_products
+           SET stock = ?, cost_price = ?, price = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ? AND store_id = ?`,
+          [
+            stockOf(result.product),
+            Number(result.product.costPrice || 0),
+            Number(result.product.salePrice || 0),
+            adminProductId,
+            membership.storeId
+          ]
+        )
+        if (Number(productUpdate.affectedRows || 0) !== 1) {
+          throw new HttpError(409, '后台商品已发生变化，请返回商品页刷新')
+        }
+      }
+
+      await connection.execute(
+        `INSERT INTO audit_logs
+           (store_id, user_id, action, target_type, target_id, request_id, details)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          membership.storeId,
+          membership.userId,
+          kind === 'sale' ? 'miniapp.sale.create' : 'miniapp.purchase.create',
+          kind,
+          result.record.id,
+          requestId,
+          JSON.stringify({
+            productId: result.record.productId,
+            specId: result.record.specId,
+            quantity: result.record.quantity,
+            beforeStock: result.beforeStock,
+            afterStock: result.afterStock
+          })
+        ]
+      )
+    }
+
+    await connection.commit()
+    return {
+      state: result.state,
+      revision,
+      duplicate: result.duplicate,
+      transaction: {
+        recordId: result.record.id,
+        productId: result.record.productId,
+        specId: result.record.specId,
+        productName: result.record.productName,
+        specText: result.record.specText,
+        quantity: result.record.quantity,
+        beforeStock: result.beforeStock,
+        afterStock: result.afterStock,
+        unitAmount: kind === 'sale' ? result.record.unitPrice : result.record.unitCost,
+        totalAmount: kind === 'sale' ? result.record.totalAmount : result.record.totalCost,
+        grossProfit: kind === 'sale' ? result.record.grossProfit : null
+      }
+    }
+  } catch (error) {
+    await connection.rollback()
+    throw error
+  } finally {
+    connection.release()
   }
 }
 
@@ -192,7 +327,7 @@ function createRequestHandler(pool, config) {
       if (request.method === 'POST' && url.pathname === '/api/v1/auth/wechat/login') {
         const body = await readJson(request, config.bodyLimitBytes)
         const identity = await requestWechatIdentity(body.code, config.wechat)
-        const user = await findOrCreateMembership(pool, identity, body.profile || {})
+        const user = await findOrCreateMembership(pool, identity, body.profile || {}, config)
         const token = signToken(
           { userId: user.id, storeId: user.storeId, role: user.role },
           config.jwtSecret,
@@ -226,6 +361,29 @@ function createRequestHandler(pool, config) {
           revision: Number(rows[0].revision),
           updatedAt: rows[0].updated_at
         }, headers)
+        return
+      }
+
+      if (request.method === 'GET' && url.pathname === '/api/v1/catalog/products') {
+        const membership = await requireMembership(request, pool, config)
+        const [rows] = await pool.execute(
+          `SELECT id, name, code, business_type, category, spec_count, stock, cost_price,
+                  low_stock_threshold, price, image_url, updated_at
+           FROM admin_products
+           WHERE store_id = ? AND status = '销售中'
+           ORDER BY sort_order, id`,
+          [membership.storeId]
+        )
+        sendJson(response, 200, { ok: true, items: rows.map(catalogProduct) }, headers)
+        return
+      }
+
+      if (request.method === 'POST' && (url.pathname === '/api/v1/store/sales' || url.pathname === '/api/v1/store/purchases')) {
+        const membership = await requireMembership(request, pool, config)
+        const body = await readJson(request, config.bodyLimitBytes)
+        const kind = url.pathname.endsWith('/sales') ? 'sale' : 'purchase'
+        const result = await commitStoreTransaction(pool, membership, kind, body, requestId)
+        sendJson(response, 200, { ok: true, ...result }, headers)
         return
       }
 
@@ -284,4 +442,4 @@ function createRequestHandler(pool, config) {
   }
 }
 
-module.exports = { createRequestHandler, validState, HttpError }
+module.exports = { createRequestHandler, validState, HttpError, catalogProduct, commitStoreTransaction }

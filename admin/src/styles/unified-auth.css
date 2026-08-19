@@ -1,0 +1,19 @@
+/* 登录之外的鉴权反馈与弹窗主题。 */
+.boot-screen { color: var(--ink); background: var(--canvas-gradient); }
+.boot-progress {
+  background: linear-gradient(90deg,rgba(111,193,237,.16) 0 25%,var(--pink) 45% 60%,rgba(111,193,237,.16) 75%);
+  background-size: 220% 100%;
+}
+.toast { border: 1px solid rgba(255,255,255,.72); border-radius: 13px; background: rgba(41,72,95,.9); box-shadow: var(--shadow); backdrop-filter: blur(18px); }
+.toast .material-symbols-outlined { color: #bfead9; }
+.dialog-backdrop { background: rgba(39,70,91,.28); backdrop-filter: blur(8px); }
+.login-page .login-submit {
+  border-color: rgba(255,255,255,.12);
+  background: linear-gradient(120deg,#122d40 0%,#214e69 58%,#3e6680 100%);
+  box-shadow: 0 12px 28px rgba(23,58,80,.23),inset 0 1px rgba(255,255,255,.13);
+}
+.login-page .login-submit:hover:not(:disabled) {
+  filter: none;
+  box-shadow: 0 16px 34px rgba(23,58,80,.3),inset 0 1px rgba(255,255,255,.17);
+  transform: translateY(-2px);
+}

@@ -39,6 +39,6 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local previews and exports
-outputs/*.png
-outputs/*.json
+# Local previews, screenshots, release bundles and exports
+# Existing tracked prototype references stay tracked; new outputs remain local.
+outputs/

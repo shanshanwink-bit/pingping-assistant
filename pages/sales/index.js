@@ -35,13 +35,5 @@ Page({
       todayAmountText: money(summary.todaySaleAmount),
       records
     })
-  },
-
-  addSale() {
-    wx.navigateTo({ url: `/pages/sale-form/index?type=${this.data.businessType || 'clothing'}` })
-  },
-
-  addProduct() {
-    wx.navigateTo({ url: `/pages/product-form/index?type=${this.data.businessType || 'clothing'}` })
   }
 })

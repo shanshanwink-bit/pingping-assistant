@@ -22,7 +22,7 @@ Page({
     const summary = store.getSummary('cosmetics')
     const products = store.getProducts('cosmetics').map(item => ({
       ...item,
-      specCount: item.specs.length,
+      specCount: item.specCount || item.specs.length,
       stockStatus: item.specs.some(spec => spec.stock <= item.lowStockThreshold) ? '含低库存规格' : '库存正常'
     }))
     const cosmeticIds = products.map(item => item.id)

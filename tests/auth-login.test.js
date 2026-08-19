@@ -68,6 +68,10 @@ async function run() {
   assert.strictEqual(connection.baseUrl, 'http://106.13.176.125/api/v1')
   assert.strictEqual(auth.getCurrentUser(), null)
 
+  storage.shuishui_wechat_session_v1 = { openid: 'legacy-cloud-openid' }
+  assert.strictEqual(auth.getCurrentUser(), null)
+  delete storage.shuishui_wechat_session_v1
+
   store.ensureState()
   const product = store.addProduct({
     businessType: 'clothing',
@@ -90,6 +94,8 @@ async function run() {
 
   auth.logout()
   assert.strictEqual(auth.getCurrentUser(), null)
+  assert.strictEqual(storage.shuishui_wechat_session_v1, undefined)
+  assert.ok(storage.clothing_inventory_state_v2)
   assert.strictEqual(store.getProduct(product.id).totalStock, 3)
 
   const loggedInAgain = await auth.loginWithWechat({ name: '水水店主' })

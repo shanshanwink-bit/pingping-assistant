@@ -1,5 +1,5 @@
 <view class="page flow-page">
-  <view class="page-heading"><view><view class="page-title">拿货记录</view><text>每次拿货花了多少钱，都在这里</text></view><button class="new-record-mini" bindtap="addPurchase"><text>＋</text><view>登记拿货</view></button></view>
+  <view class="page-heading"><view><view class="page-title">拿货记录</view><text>只读查看拿货数量与支出</text></view><view class="tag">仅供查看</view></view>
 
   <view class="flow-hero purchase-hero">
     <view class="hero-decoration"></view>
@@ -23,5 +23,5 @@
       <view class="record-money"><text>拿货总额</text><view>{{item.totalCostText}}</view><text>单价 {{item.unitCostText}}</text></view>
     </view>
   </view>
-  <view wx:else class="empty-flow"><view class="empty-symbol">进</view><view>还没有拿货记录</view><text>先新建商品，再登记第一批拿货。</text><view class="empty-actions"><button bindtap="addProduct">新建商品</button><button class="record-create-button" bindtap="addPurchase">＋ 登记拿货</button></view></view>
+  <view wx:else class="empty-flow"><view class="empty-symbol">进</view><view>还没有拿货记录</view><text>记录可在网页管理后台维护。</text></view>
 </view>

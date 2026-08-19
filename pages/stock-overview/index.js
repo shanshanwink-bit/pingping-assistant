@@ -1,4 +1,5 @@
 const store = require('../../utils/store')
+const catalogSync = require('../../utils/catalog-sync')
 
 const MODE_META = {
   products: { title: '全部商品', subtitle: '查看当前所有商品', unit: '款商品' },
@@ -30,6 +31,9 @@ Page({
 
   onShow() {
     this.loadRows()
+    catalogSync.refreshProducts()
+      .then(updated => { if (updated) this.loadRows() })
+      .catch(error => console.warn('商品刷新失败：', error.message || error))
   },
 
   selectBusiness(event) {
@@ -50,7 +54,7 @@ Page({
         image: product.image,
         businessType: product.businessType || 'clothing',
         businessText: product.businessType === 'cosmetics' ? '化妆品' : '服装',
-        detailText: `${product.category} · ${product.specs.length} 个规格`,
+        detailText: `${product.category} · ${product.specCount || product.specs.length} 个规格`,
         stockText: `${product.totalStock} 件`,
         statusText: product.totalStock === 0 ? '已缺货' : '库存中'
       }))

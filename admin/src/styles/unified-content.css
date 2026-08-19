@@ -1,0 +1,84 @@
+/* 内容区主题：标题、数据卡、表格、表单与业务状态。 */
+.page-heading.bordered { padding: 0 2px 18px; border-bottom-color: rgba(94, 142, 173, .16); }
+.page-heading h2,.employees-heading h2 { color: var(--ink-strong); font-size: 25px; font-weight: 700; }
+.page-heading p,.products-page .page-heading p,.muted { color: var(--muted); }
+.page-eyebrow { color: var(--blue); }
+
+.primary,.heading-actions .primary,.login-submit {
+  border-color: transparent; color: #fff; background: var(--brand-gradient);
+  box-shadow: 0 10px 24px rgba(91, 159, 203, .2);
+}
+.primary:hover,.heading-actions .primary:hover,.login-submit:hover:not(:disabled) {
+  filter: saturate(1.05) brightness(1.02); transform: translateY(-1px);
+}
+.secondary,.heading-actions .secondary {
+  border-color: rgba(98, 151, 184, .28); color: #4b7189; background: rgba(255, 255, 255, .62);
+}
+.secondary:hover,.heading-actions .secondary:hover {
+  border-color: rgba(76, 167, 217, .42); background: rgba(255, 255, 255, .88);
+}
+
+.dashboard-metrics article,.product-metrics article,.panel,.products-card,
+.access-summary article,.members-card,.role-card,.employee-dialog,.logout-dialog {
+  border-color: var(--line); border-radius: var(--radius-card); background: var(--surface);
+  box-shadow: var(--shadow); backdrop-filter: blur(22px);
+}
+.dashboard-metrics article:hover,.product-metrics article:hover,.access-summary article:hover,.role-card:hover {
+  border-color: rgba(255, 255, 255, .98); box-shadow: 0 20px 46px rgba(74, 123, 158, .15);
+  transform: translateY(-2px);
+}
+.metric-title,.product-metrics span { color: #607f93; }
+.dashboard-metrics strong,.product-metrics strong,.access-summary article strong { color: var(--ink-strong); }
+.metric-title i,.metric-title i.blue,.product-metrics i,.product-metrics i.blue,.product-metrics i.cyan {
+  color: var(--blue); background: linear-gradient(145deg, #e2f4ff, #f2ebff);
+}
+.metric-title i.cyan { color: var(--purple); background: var(--purple-soft); }
+.product-metrics i.pink { color: var(--pink); background: var(--pink-soft); }
+
+.panel-head,.panel-head.pale,.filterbar,.members-toolbar,.dialog-actions,.pagination {
+  border-color: rgba(91, 143, 175, .12); background: rgba(244, 250, 255, .54);
+}
+.panel-head h3 { color: var(--ink); }
+.panel-head h3 .material-symbols-outlined { color: var(--pink); }
+.legends .income,.bar,.progress i { background: linear-gradient(180deg, #64b9e8, #4ca7d9); }
+.legends .profit,.progress.cosmetic i { background: linear-gradient(180deg, #f0a5c1, #e77ba2); }
+.chart-area .grid-lines i,.y-axis { border-color: rgba(91, 143, 175, .14); }
+.task-list a,.panel-link { color: var(--ink); background: transparent; }
+.task-list a:hover,.products-table tbody tr:hover,.employee-table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(222, 243, 255, .52), rgba(255, 230, 240, .38));
+}
+.task-count.primary,.row-actions button,.panel-link { color: var(--blue-strong); }
+.dashboard-risk th,.risk-panel th,.products-table thead,.employee-table th {
+  color: #60788a; background: rgba(241, 248, 253, .7);
+}
+.dashboard-risk th,.dashboard-risk td,.risk-panel td,.products-table td,.employee-table td {
+  border-color: rgba(95, 145, 176, .12);
+}
+
+.filters input,.filters select,.members-toolbar label,.members-toolbar select,
+.form-grid input,.form-grid select,.input-wrap {
+  border-color: rgba(102, 151, 181, .25); border-radius: var(--radius-control);
+  color: var(--ink); background: rgba(255, 255, 255, .68);
+}
+.filters input:focus,.filters select:focus,.form-grid input:focus,.form-grid select:focus,.input-wrap:focus-within {
+  border-color: rgba(76, 167, 217, .58); background: #fff;
+  box-shadow: 0 0 0 3px rgba(76, 167, 217, .12);
+}
+.product-cell img {
+  border-color: rgba(103, 154, 185, .18); border-radius: 10px; background: var(--brand-gradient-soft);
+}
+.product-status,.account-status { color: var(--success); }
+.product-status { border-color: rgba(59, 148, 118, .18); background: rgba(59, 148, 118, .1); }
+.product-status i,.account-status i { background: var(--success); }
+.product-status.empty,.error,.account-status.disabled { color: var(--danger) !important; }
+.product-status.empty { border-color: rgba(212, 95, 120, .2); background: rgba(212, 95, 120, .1); }
+.product-status.empty i,.account-status.disabled i { background: var(--danger); }
+
+.role-badge.owner,.access-summary i.amber { color: #a06b2b; background: #fff2df; }
+.role-badge.admin,.access-summary i.blue,.role-icon { color: var(--blue-strong); background: var(--blue-soft); }
+.role-badge.finance,.role-icon.finance { color: var(--purple); background: var(--purple-soft); }
+.role-badge.clerk,.role-icon.clerk,.access-summary i.green { color: var(--success); background: #e8f6f0; }
+.members-toolbar,.permission-editor section { background: rgba(248, 252, 255, .6); }
+.employees-tabs { border-bottom-color: rgba(91, 143, 175, .16); }
+.employees-tabs button.active { color: var(--blue-strong); }
+.employees-tabs button.active::after { height: 3px; background: var(--brand-gradient); }

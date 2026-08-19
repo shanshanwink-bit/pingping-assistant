@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth')
 const serverSync = require('../../utils/server-sync')
 const store = require('../../utils/store')
+const catalogSync = require('../../utils/catalog-sync')
 
 Page({
   data: {
@@ -52,6 +53,7 @@ Page({
       store.setCurrentUser(user)
       await serverSync.pushState(store.getState())
     }
+    await catalogSync.refreshProducts()
     this.setData({ submitting: false, restoring: false, offlineAvailable: false })
     wx.switchTab({ url: '/pages/home/index' })
   },

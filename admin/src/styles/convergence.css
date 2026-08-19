@@ -1,0 +1,27 @@
+.inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid rgba(142, 54, 85, .18);
+  border-radius: 10px;
+  color: #6f3048;
+  background: rgba(247, 245, 242, .88);
+  font-size: 13px;
+}
+
+.notice-mark {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font: 700 12px/1 Georgia, serif;
+}
+.topbar-context { min-width: max-content; flex-shrink: 0; white-space: nowrap; }
+.topbar-section-mark { color: #8e3655; font-size: 12px; }
+.account-chevron { margin-left: auto; color: rgba(255, 255, 255, .72); font-size: 16px; }
+.trend-bars .negative,
+.proposal-trend-card .bar.negative { background: #b45a6f; }

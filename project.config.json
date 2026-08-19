@@ -1,7 +1,14 @@
 {
   "description": "萍萍小助手 - 服装与化妆品库存管理小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "admin" },
+      { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": "outputs" },
+      { "type": "folder", "value": "server" },
+      { "type": "folder", "value": "server-go" },
+      { "type": "folder", "value": "tests" }
+    ],
     "include": []
   },
   "setting": {
@@ -31,9 +38,9 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "trial",
+  "libVersion": "3.17.0",
   "appid": "touristappid",
-  "projectname": "萍萍小助手",
+  "projectname": "萍萍的小助手",
   "miniprogramRoot": "./",
   "simulatorPluginLibVersion": {},
   "editorSetting": {}

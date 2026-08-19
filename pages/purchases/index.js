@@ -41,13 +41,5 @@ Page({
       monthAmountText: money(monthRecords.reduce((sum, item) => sum + Number(item.totalCost || 0), 0)),
       records
     })
-  },
-
-  addPurchase() {
-    wx.navigateTo({ url: `/pages/purchase-form/index?type=${this.data.businessType || 'clothing'}` })
-  },
-
-  addProduct() {
-    wx.navigateTo({ url: `/pages/product-form/index?type=${this.data.businessType || 'clothing'}` })
   }
 })
