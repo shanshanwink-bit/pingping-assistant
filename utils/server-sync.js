@@ -145,6 +145,41 @@ async function pullProducts() {
   return { items: Array.isArray(result.items) ? result.items : [] }
 }
 
+async function pullFeatures() {
+  const result = await request({ path: '/features' })
+  return { aiImageRecognition: result.aiImageRecognition === true }
+}
+
+function recognizeProductImage(filePath) {
+  const activeSession = session()
+  if (!activeSession || !activeSession.token) return Promise.reject(new Error('请先登录'))
+  return initServer().then(({ baseUrl }) => new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${baseUrl}/ai/image-recognition`,
+      filePath,
+      name: 'image',
+      header: { Authorization: `Bearer ${activeSession.token}` },
+      timeout: config.aiRequestTimeout,
+      success(response) {
+        let result = {}
+        try { result = typeof response.data === 'string' ? JSON.parse(response.data) : response.data || {} } catch (error) {}
+        if (response.statusCode >= 200 && response.statusCode < 300 && result.ok !== false) {
+          resolve(result)
+          return
+        }
+        const requestError = new Error(result.message || `图片识别失败（${response.statusCode}）`)
+        requestError.statusCode = response.statusCode
+        requestError.details = result.details
+        requestError.requestId = result.requestId
+        reject(requestError)
+      },
+      fail(error) {
+        reject(new Error(error.errMsg || '图片上传失败，请检查网络后重试'))
+      }
+    })
+  }))
+}
+
 async function pushState(state) {
   try {
     const result = await request({
@@ -244,6 +279,8 @@ module.exports = {
   wechatLogin,
   pullState,
   pullProducts,
+  pullFeatures,
+  recognizeProductImage,
   pushState,
   commitSale,
   commitPurchase,

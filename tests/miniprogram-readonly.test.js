@@ -15,6 +15,7 @@ const expectedTabs = [
 const requiredActionPages = [
   'pages/cosmetics/index',
   'pages/product-form/index',
+  'pages/ai-recognition/index',
   'pages/stock-form/index',
   'pages/purchase-form/index',
   'pages/sale-form/index',
@@ -42,6 +43,8 @@ assert.strictEqual(
 )
 
 const homeSource = fs.readFileSync(path.join(root, 'pages/home/index.js'), 'utf8')
+const inventoryTemplate = fs.readFileSync(path.join(root, 'pages/inventory/index.wxml'), 'utf8')
+const aiPageSource = fs.readFileSync(path.join(root, 'pages/ai-recognition/index.js'), 'utf8')
 const businessMutationPattern = /store\.(?:addProduct|updateProduct|removeProduct|updateStock|addPurchase|addSale|addManualProfit|removeManualProfit)\s*\(/
 
 assert.strictEqual(
@@ -49,5 +52,9 @@ assert.strictEqual(
   false,
   '首页只负责展示和导航，不应直接修改经营数据'
 )
+
+assert.match(inventoryTemplate, /wx:if="\{\{aiImageRecognition\}\}"/, 'AI 入口必须由公开 Feature API 状态控制')
+assert.match(aiPageSource, /serverSync\.recognizeProductImage/, 'AI 页面必须通过 Node 接口识别，不得在小程序中调用模型')
+assert.match(aiPageSource, /所选图片将用于商品识别，并通过第三方 AI 服务进行分析/, '首次使用必须说明第三方 AI 图片处理')
 
 console.log('miniprogram home routes: PASS')

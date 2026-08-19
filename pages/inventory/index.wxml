@@ -4,6 +4,12 @@
     <view class="product-subtitle">找商品、看库存，一眼就清楚</view>
   </view>
 
+  <view wx:if="{{aiImageRecognition}}" class="ai-entry" bindtap="openAiRecognition">
+    <view class="ai-entry-mark"><view></view></view>
+    <view class="ai-entry-main"><view>拍照识货</view><text>拍下商品，查询真实售价与库存</text></view>
+    <view class="ai-entry-arrow">›</view>
+  </view>
+
   <view class="product-search">
     <view class="search-icon"></view>
     <input class="search-input" placeholder="搜索商品名称 / 货号" placeholder-class="search-placeholder" value="{{keyword}}" confirm-type="search" bindinput="onSearch" />

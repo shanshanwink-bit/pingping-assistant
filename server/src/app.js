@@ -1,6 +1,7 @@
 const crypto = require('node:crypto')
 const { signToken, verifyToken } = require('./token')
 const { applyPurchase, applySale, stockOf } = require('./business-transactions')
+const { createAiRecognitionService } = require('./ai-recognition')
 
 class HttpError extends Error {
   constructor(statusCode, message, details) {
@@ -297,8 +298,11 @@ async function commitStoreTransaction(pool, membership, kind, body, requestId) {
   }
 }
 
-function createRequestHandler(pool, config) {
+function createRequestHandler(pool, config, dependencies) {
   const authConfigured = Boolean(config.wechat.appId && config.wechat.appSecret)
+  const aiService = dependencies && dependencies.aiService
+    ? dependencies.aiService
+    : createAiRecognitionService(pool, config, dependencies)
 
   return async function handleRequest(request, response) {
     const requestId = String(request.headers['x-request-id'] || crypto.randomUUID()).slice(0, 100)
@@ -340,6 +344,20 @@ function createRequestHandler(pool, config) {
       if (request.method === 'GET' && url.pathname === '/api/v1/session') {
         const membership = await requireMembership(request, pool, config)
         sendJson(response, 200, { ok: true, membership }, headers)
+        return
+      }
+
+      if (request.method === 'GET' && url.pathname === '/api/v1/features') {
+        const membership = await requireMembership(request, pool, config)
+        const features = await aiService.features(membership.storeId)
+        sendJson(response, 200, features, headers)
+        return
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/v1/ai/image-recognition') {
+        const membership = await requireMembership(request, pool, config)
+        const result = await aiService.recognize(request, membership)
+        sendJson(response, 200, { ok: true, ...result }, headers)
         return
       }
 

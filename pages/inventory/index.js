@@ -1,5 +1,6 @@
 const store = require('../../utils/store')
 const catalogSync = require('../../utils/catalog-sync')
+const serverSync = require('../../utils/server-sync')
 const {
   buildListProduct,
   filterProducts,
@@ -22,6 +23,7 @@ Page({
     isRetrying: false,
     loadFailed: false,
     syncFailed: false,
+    aiImageRecognition: false,
     emptyKind: 'none'
   },
 
@@ -35,6 +37,13 @@ Page({
     }
     const hasCachedProducts = this.loadCachedProducts(true)
     this.refreshProducts(!hasCachedProducts)
+    this.refreshFeatures()
+  },
+
+  refreshFeatures() {
+    serverSync.pullFeatures()
+      .then(features => this.setData({ aiImageRecognition: features.aiImageRecognition === true }))
+      .catch(() => this.setData({ aiImageRecognition: false }))
   },
 
   loadCachedProducts(keepLoadingWhenEmpty) {
@@ -117,5 +126,10 @@ Page({
 
   openProduct(event) {
     wx.navigateTo({ url: productDetailUrl(event.currentTarget.dataset.id) })
+  },
+
+  openAiRecognition() {
+    if (!this.data.aiImageRecognition) return
+    wx.navigateTo({ url: '/pages/ai-recognition/index' })
   }
 })

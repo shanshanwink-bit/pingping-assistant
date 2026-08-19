@@ -2,6 +2,14 @@
 .product-heading { margin-bottom: 26rpx; }
 .product-heading .page-title { margin: 0; font-size: 48rpx; line-height: 1.2; }
 .product-subtitle { margin-top: 8rpx; color: var(--color-text-secondary); font-size: 24rpx; }
+.ai-entry { display: flex; min-height: 104rpx; align-items: center; gap: 18rpx; margin-bottom: 20rpx; padding: 16rpx 20rpx; border: 1rpx solid #e3d5da; border-radius: 24rpx; background: var(--color-brand-soft); }
+.ai-entry:active { background: #eddae1; }
+.ai-entry-mark { display: flex; width: 66rpx; height: 58rpx; flex: 0 0 auto; align-items: center; justify-content: center; border: 4rpx solid var(--color-brand); border-radius: 16rpx; }
+.ai-entry-mark view { width: 19rpx; height: 19rpx; border: 4rpx solid var(--color-brand); border-radius: 50%; }
+.ai-entry-main { flex: 1; min-width: 0; }
+.ai-entry-main view { color: var(--color-text); font-size: 27rpx; font-weight: 600; }
+.ai-entry-main text { display: block; margin-top: 5rpx; color: var(--color-text-secondary); font-size: 21rpx; }
+.ai-entry-arrow { color: var(--color-brand); font-size: 38rpx; }
 
 .product-search { display: flex; height: 88rpx; box-sizing: border-box; align-items: center; gap: 18rpx; padding: 0 24rpx; border: 1rpx solid var(--color-border); border-radius: 24rpx; background: var(--color-surface); }
 .search-icon { position: relative; width: 25rpx; height: 25rpx; flex: 0 0 auto; border: 3rpx solid var(--color-text-secondary); border-radius: 50%; }

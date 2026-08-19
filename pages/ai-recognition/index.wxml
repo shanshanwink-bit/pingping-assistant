@@ -1,0 +1,65 @@
+<view class="page ai-page">
+  <view class="ai-heading">
+    <view class="page-title">AI 拍照识货</view>
+    <view class="ai-subtitle">拍下商品或包装，帮你在真实商品库中查找</view>
+  </view>
+
+  <view wx:if="{{featureChecking}}" class="ai-state-card">
+    <view class="ai-loading"></view>
+    <view>正在确认功能状态</view>
+  </view>
+
+  <view wx:elif="{{featureError}}" class="ai-state-card error-card">
+    <view class="state-title">暂时无法使用</view>
+    <view class="state-copy">{{featureError}}</view>
+    <button class="outline-button" bindtap="checkFeature">重新检查</button>
+  </view>
+
+  <block wx:elif="{{featureEnabled}}">
+    <view class="privacy-note">仅上传你主动选择的图片；AI 只识别商品特征，售价、库存和进货信息均来自萍萍小助手真实数据。</view>
+
+    <view class="image-card {{selectedImage ? 'has-image' : ''}}" bindtap="chooseImage">
+      <image wx:if="{{selectedImage}}" class="image-preview" src="{{selectedImage}}" mode="aspectFit" />
+      <view wx:else class="image-empty">
+        <view class="camera-mark"></view>
+        <view class="image-title">拍照或从相册选择</view>
+        <view class="image-copy">每次 1 张，支持 JPG、PNG、WebP</view>
+      </view>
+      <view wx:if="{{selectedImage}}" class="image-meta">点击更换图片 · {{selectedImageSize}}</view>
+    </view>
+
+    <button class="recognize-button" disabled="{{recognizing}}" loading="{{recognizing}}" bindtap="startRecognition">
+      {{recognizing ? '正在识别并匹配商品…' : '开始识别'}}
+    </button>
+
+    <view wx:if="{{errorMessage}}" class="message-card error-message">{{errorMessage}}</view>
+
+    <view wx:if="{{matchType}}" class="result-section">
+      <view class="result-head">
+        <view><view class="result-title">识别结果</view><view class="result-vision">{{visionSummary}}</view></view>
+        <text wx:if="{{matchType === 'unique'}}">已匹配</text>
+        <text wx:elif="{{matchType === 'candidates'}}">请选择</text>
+      </view>
+
+      <view wx:if="{{matchType === 'none'}}" class="message-card no-match">
+        <view class="state-title">库存中没有找到匹配商品</view>
+        <view class="state-copy">已识别到商品信息，可以更换角度或拍清包装文字后重试。</view>
+      </view>
+
+      <view wx:else class="candidate-list">
+        <view class="candidate-card" wx:for="{{candidates}}" wx:key="id">
+          <view class="candidate-top"><view><view class="candidate-name">{{item.name}}</view><view class="candidate-tags"><text>{{item.typeLabel}}</text><text>{{item.category}}</text></view></view><view class="candidate-price">{{item.salePriceText}}</view></view>
+          <view class="candidate-spec">{{item.specText}}</view>
+          <view class="candidate-metrics">
+            <view><text>当前库存</text><view>{{item.stockText}} 件</view></view>
+            <view><text>最近进货</text><view>{{item.recentPurchaseText}}</view></view>
+            <view><text>最近进价</text><view>{{item.recentCostText}}</view></view>
+          </view>
+          <view wx:if="{{item.firstPurchaseText}}" class="first-purchase">首次进货 {{item.firstPurchaseText}}</view>
+          <view wx:if="{{item.matchReasonText}}" class="match-reason">匹配依据：{{item.matchReasonText}}</view>
+          <button class="detail-button" data-index="{{index}}" bindtap="openProduct">查看商品详情</button>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

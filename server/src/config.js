@@ -3,6 +3,12 @@ function required(name, value) {
   return value
 }
 
+function positiveInteger(name, value) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`${name} 必须是正整数`)
+  return parsed
+}
+
 function loadConfig(env) {
   const source = env || process.env
   const port = Number(source.PORT || 3000)
@@ -37,6 +43,15 @@ function loadConfig(env) {
       appSecret: source.WECHAT_APP_SECRET || '',
       primaryStoreId,
       allowedOpenIds
+    },
+    ai: {
+      apiKey: String(source.DASHSCOPE_API_KEY || '').trim(),
+      baseUrl: String(source.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1').replace(/\/$/, ''),
+      model: String(source.QWEN_VISION_MODEL || 'qwen3-vl-plus').trim(),
+      timeoutMs: positiveInteger('AI_REQUEST_TIMEOUT_MS', source.AI_REQUEST_TIMEOUT_MS || 15000),
+      maxImageBytes: positiveInteger('AI_MAX_IMAGE_BYTES', source.AI_MAX_IMAGE_BYTES || 4 * 1024 * 1024),
+      rateLimitWindowMs: positiveInteger('AI_RATE_LIMIT_WINDOW_MS', source.AI_RATE_LIMIT_WINDOW_MS || 60000),
+      rateLimitMax: positiveInteger('AI_RATE_LIMIT_MAX', source.AI_RATE_LIMIT_MAX || 6)
     },
     adminOrigins: String(source.ADMIN_ORIGINS || '')
       .split(',')

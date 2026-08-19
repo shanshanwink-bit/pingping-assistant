@@ -3,5 +3,6 @@ module.exports = {
   apiBaseUrl: 'http://106.13.176.125/api/v1',
   apiOverrideStorageKey: 'pingping_api_base_url_v1',
   sessionKey: 'shuishui_wechat_session_v1',
-  requestTimeout: 12000
+  requestTimeout: 12000,
+  aiRequestTimeout: 25000
 }
