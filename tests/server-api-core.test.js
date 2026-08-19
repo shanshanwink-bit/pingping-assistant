@@ -19,6 +19,17 @@ assert.deepStrictEqual(config.adminOrigins, ['https://admin.example.com', 'https
 assert.deepStrictEqual(config.wechat.allowedOpenIds, [])
 assert.strictEqual(config.ai.model, 'qwen3.7-plus')
 
+const extendedVisionTimeoutConfig = loadConfig({
+  PORT: '3000',
+  MYSQL_DATABASE: 'pingping_test',
+  MYSQL_USER: 'pingping_test',
+  MYSQL_PASSWORD: 'password',
+  JWT_SECRET: secret,
+  AI_REQUEST_TIMEOUT_MS: '60000'
+})
+
+assert.strictEqual(extendedVisionTimeoutConfig.ai.timeoutMs, 60000)
+
 const token = signToken({ userId: 'u1', storeId: 's1', role: 'owner' }, secret, 60)
 const payload = verifyToken(token, secret)
 assert.strictEqual(payload.userId, 'u1')
