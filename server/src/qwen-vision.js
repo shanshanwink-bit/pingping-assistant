@@ -72,7 +72,55 @@ function completionContent(payload) {
   return parseJsonContent(content)
 }
 
-function createQwenVisionClient(config, fetchImpl) {
+function safeLogIdentifier(value, maximum) {
+  if (typeof value !== 'string' && typeof value !== 'number') return null
+  const result = String(value).trim().replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, maximum)
+  return result || null
+}
+
+function safeLogMessage(value, apiKey) {
+  if (typeof value !== 'string') return null
+  let result = value
+  if (apiKey) result = result.split(apiKey).join('[REDACTED]')
+  result = result
+    .replace(/data:image\/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/=_-]+/gi, '[REDACTED_IMAGE]')
+    .replace(/\bBearer\s+[^\s,;}"']+/gi, 'Bearer [REDACTED]')
+    .replace(/\b(?:sk|dashscope)[-_][A-Za-z0-9_-]{8,}\b/gi, '[REDACTED]')
+    .replace(/((?:api[_-]?key|token|secret)\s*[:=]\s*)[^\s,;}"']+/gi, '$1[REDACTED]')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 240)
+  return result || null
+}
+
+async function dashScopeHttpError(response, apiKey) {
+  const payload = response && typeof response.json === 'function'
+    ? await response.json().catch(() => null)
+    : null
+  const root = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {}
+  const nested = root.error && typeof root.error === 'object' && !Array.isArray(root.error) ? root.error : {}
+  const headerRequestId = response && response.headers && typeof response.headers.get === 'function'
+    ? response.headers.get('x-request-id') || response.headers.get('request-id')
+    : null
+  return {
+    status: Number.isInteger(response && response.status) ? response.status : null,
+    requestId: safeLogIdentifier(headerRequestId || root.request_id || root.requestId || nested.request_id, 128),
+    code: safeLogIdentifier(root.code || nested.code || nested.type, 80),
+    message: safeLogMessage(root.message || nested.message, apiKey)
+  }
+}
+
+function logDashScopeFailure(logger, details) {
+  try {
+    const target = logger && typeof logger.error === 'function' ? logger : console
+    target.error('dashscope request failed', details)
+  } catch (error) {
+    // 日志组件异常不能改变原有 AI 错误处理行为。
+  }
+}
+
+function createQwenVisionClient(config, fetchImpl, logger) {
   const requestFetch = fetchImpl || global.fetch
   return {
     async recognize(image) {
@@ -102,14 +150,29 @@ function createQwenVisionClient(config, fetchImpl) {
           }),
           signal: controller.signal
         })
-        if (!response.ok) throw new VisionModelError(502, 'AI 识别服务暂时不可用')
+        if (!response.ok) {
+          logDashScopeFailure(logger, await dashScopeHttpError(response, config.apiKey))
+          throw new VisionModelError(502, 'AI 识别服务暂时不可用')
+        }
         const payload = await response.json().catch(() => null)
         return validateVisionResult(completionContent(payload))
       } catch (error) {
         if (error && (error.name === 'AbortError' || controller.signal.aborted)) {
+          logDashScopeFailure(logger, {
+            status: null,
+            requestId: null,
+            code: safeLogIdentifier(error.name, 80),
+            message: safeLogMessage(error.message, config.apiKey)
+          })
           throw new VisionModelError(504, 'AI 识别超时，请重试')
         }
         if (error instanceof VisionModelError) throw error
+        logDashScopeFailure(logger, {
+          status: null,
+          requestId: null,
+          code: safeLogIdentifier(error && error.name, 80),
+          message: safeLogMessage(error && error.message, config.apiKey)
+        })
         throw new VisionModelError(502, 'AI 识别服务暂时不可用')
       } finally {
         clearTimeout(timer)

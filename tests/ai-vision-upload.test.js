@@ -125,21 +125,68 @@ test('AI 即使返回价格和库存也会被白名单丢弃', () => {
 })
 
 test('千问请求超时会返回明确错误', async () => {
+  const logger = { error() {} }
   const client = createQwenVisionClient(clientConfig({ timeoutMs: 5 }), async (url, options) => new Promise((resolve, reject) => {
     options.signal.addEventListener('abort', () => {
       const error = new Error('aborted')
       error.name = 'AbortError'
       reject(error)
     })
-  }))
+  }), logger)
   await assert.rejects(() => client.recognize({ mime: 'image/jpeg', buffer: jpegBuffer(20) }), error => error.statusCode === 504)
 })
 
 test('千问 HTTP 失败不会把上游响应透传给小程序', async () => {
-  const client = createQwenVisionClient(clientConfig(), async () => ({ ok: false, status: 500 }))
+  const logs = []
+  const logger = { error: (...args) => logs.push(args) }
+  const client = createQwenVisionClient(clientConfig(), async () => ({ ok: false, status: 500 }), logger)
   await assert.rejects(() => client.recognize({ mime: 'image/jpeg', buffer: jpegBuffer(20) }), error => {
     assert.equal(error.statusCode, 502)
     assert.equal(error.message, 'AI 识别服务暂时不可用')
     return true
   })
+  assert.deepEqual(logs, [[
+    'dashscope request failed',
+    { status: 500, requestId: null, code: null, message: null }
+  ]])
+})
+
+test('千问 HTTP 失败日志记录受控上游字段并脱敏', async () => {
+  const apiKey = 'sk-sensitive-api-key-value'
+  const logs = []
+  const logger = { error: (...args) => logs.push(args) }
+  const client = createQwenVisionClient(clientConfig({ apiKey }), async () => ({
+    ok: false,
+    status: 401,
+    headers: {
+      get(name) { return name === 'x-request-id' ? 'req-safe-123' : null }
+    },
+    async json() {
+      return {
+        request_id: 'body-request-id',
+        error: {
+          code: 'InvalidApiKey',
+          message: `Authorization: Bearer ${apiKey}\nimage=data:image/png;base64,AAAA1111`
+        }
+      }
+    }
+  }), logger)
+
+  await assert.rejects(
+    () => client.recognize({ mime: 'image/jpeg', buffer: jpegBuffer(20) }),
+    error => error.statusCode === 502 && error.message === 'AI 识别服务暂时不可用'
+  )
+
+  assert.deepEqual(logs, [[
+    'dashscope request failed',
+    {
+      status: 401,
+      requestId: 'req-safe-123',
+      code: 'InvalidApiKey',
+      message: 'Authorization: Bearer [REDACTED] image=[REDACTED_IMAGE]'
+    }
+  ]])
+  const serialized = JSON.stringify(logs)
+  assert.doesNotMatch(serialized, /sk-sensitive-api-key-value/)
+  assert.doesNotMatch(serialized, /AAAA1111/)
 })
