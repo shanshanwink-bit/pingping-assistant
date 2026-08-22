@@ -2,6 +2,8 @@ const crypto = require('node:crypto')
 const { signToken, verifyToken } = require('./token')
 const { applyPurchase, applySale, stockOf } = require('./business-transactions')
 const { createAiRecognitionService } = require('./ai-recognition')
+const { createPurchaseOrderRecognitionService } = require('./purchase-order-recognition')
+const { commitPurchaseBatch } = require('./batch-purchases')
 
 class HttpError extends Error {
   constructor(statusCode, message, details) {
@@ -303,6 +305,9 @@ function createRequestHandler(pool, config, dependencies) {
   const aiService = dependencies && dependencies.aiService
     ? dependencies.aiService
     : createAiRecognitionService(pool, config, dependencies)
+  const purchaseOrderService = dependencies && dependencies.purchaseOrderService
+    ? dependencies.purchaseOrderService
+    : createPurchaseOrderRecognitionService(pool, config, dependencies)
 
   return async function handleRequest(request, response) {
     const requestId = String(request.headers['x-request-id'] || crypto.randomUUID()).slice(0, 100)
@@ -361,6 +366,13 @@ function createRequestHandler(pool, config, dependencies) {
         return
       }
 
+      if (request.method === 'POST' && url.pathname === '/api/v1/ai/purchase-order-recognition') {
+        const membership = await requireMembership(request, pool, config)
+        const result = await purchaseOrderService.recognize(request, membership)
+        sendJson(response, 200, { ok: true, ...result }, headers)
+        return
+      }
+
       if (request.method === 'GET' && url.pathname === '/api/v1/store/state') {
         const membership = await requireMembership(request, pool, config)
         const [rows] = await pool.execute(
@@ -401,6 +413,14 @@ function createRequestHandler(pool, config, dependencies) {
         const body = await readJson(request, config.bodyLimitBytes)
         const kind = url.pathname.endsWith('/sales') ? 'sale' : 'purchase'
         const result = await commitStoreTransaction(pool, membership, kind, body, requestId)
+        sendJson(response, 200, { ok: true, ...result }, headers)
+        return
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/v1/store/purchases/batch') {
+        const membership = await requireMembership(request, pool, config)
+        const body = await readJson(request, config.bodyLimitBytes)
+        const result = await commitPurchaseBatch(pool, membership, body, requestId)
         sendJson(response, 200, { ok: true, ...result }, headers)
         return
       }
@@ -460,4 +480,4 @@ function createRequestHandler(pool, config, dependencies) {
   }
 }
 
-module.exports = { createRequestHandler, validState, HttpError, catalogProduct, commitStoreTransaction }
+module.exports = { createRequestHandler, validState, HttpError, catalogProduct, commitStoreTransaction, commitPurchaseBatch }
