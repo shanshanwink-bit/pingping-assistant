@@ -1,5 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import BrandLogo from './components/common/BrandLogo.vue'
 import AdminSidebar from './components/layout/AdminSidebar.vue'
 import AdminTopbar from './components/layout/AdminTopbar.vue'
 import ProfileDialog from './components/account/ProfileDialog.vue'
@@ -61,7 +62,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="!ready" class="boot-screen"><span class="brand-icon"><span class="material-symbols-outlined">storefront</span></span><b>正在验证登录状态…</b><span class="boot-progress"></span></div>
+  <div v-if="!ready" class="boot-screen"><BrandLogo size="boot" /><b>正在验证登录状态…</b><span class="boot-progress"></span></div>
   <LoginView v-else-if="!user" :on-login="login" />
   <div v-else class="app-shell">
     <AdminSidebar :active-page="activePage" :user="user" @navigate="navigate" @profile="showProfile=true" @logout="showLogout=true" />

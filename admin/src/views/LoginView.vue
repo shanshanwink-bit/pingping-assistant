@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import BrandLogo from '../components/common/BrandLogo.vue'
 
 const props = defineProps({ onLogin: { type: Function, required: true } })
 const username = ref(localStorage.getItem('pingping_admin_username') || '')
@@ -33,7 +34,7 @@ async function submit() {
 
     <section class="login-story" aria-label="产品介绍">
       <div class="login-brand">
-        <span class="brand-mark"><span class="material-symbols-outlined" aria-hidden="true">storefront</span></span>
+        <BrandLogo size="login" />
         <div><b>萍萍小助手</b><small>PINGPING ASSISTANT</small></div>
       </div>
 
@@ -57,7 +58,7 @@ async function submit() {
     <section class="login-panel">
       <form class="login-card" @submit.prevent="submit">
         <div class="card-shine" aria-hidden="true"></div>
-        <div class="mobile-brand"><span class="material-symbols-outlined" aria-hidden="true">storefront</span><div><b>萍萍小助手</b><small>管理后台</small></div></div>
+        <div class="mobile-brand"><BrandLogo size="mobile" /><div><b>萍萍小助手</b><small>管理后台</small></div></div>
         <div class="login-card-head">
           <span class="login-kicker">WELCOME BACK <i></i></span>
           <h2>欢迎回来</h2>

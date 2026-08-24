@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import BrandLogo from '../common/BrandLogo.vue'
 import { visibleNavItems } from '../../utils/access'
 
 const props = defineProps({ activePage: String, user: Object })
@@ -24,7 +25,7 @@ const navItems = computed(() => visibleNavItems(props.user))
 <template>
   <aside class="sidebar" aria-label="主导航">
     <div class="brand">
-      <div class="brand-icon"><span class="material-symbols-outlined">storefront</span></div>
+      <BrandLogo size="sidebar" />
       <div><h1>萍萍小助手</h1><p>管理后台</p></div>
     </div>
     <nav class="navigation">
