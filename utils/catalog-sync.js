@@ -4,10 +4,24 @@ const store = require('./store')
 
 let inFlight = null
 
-function absoluteImageUrl(value) {
+const LEGACY_PRODUCT_IMAGE_PREFIX = '/admin-api/v1/product-images/'
+const PRODUCT_IMAGE_PREFIX = '/pingping-admin-api/v1/product-images/'
+
+function formalProductImagePath(value) {
   const image = String(value || '')
+  if (image.startsWith(LEGACY_PRODUCT_IMAGE_PREFIX)) {
+    return `${PRODUCT_IMAGE_PREFIX}${image.slice(LEGACY_PRODUCT_IMAGE_PREFIX.length)}`
+  }
+  return image
+}
+
+function absoluteImageUrl(value, apiBaseUrl) {
+  let image = formalProductImagePath(value)
+  const baseUrl = apiBaseUrl || serverSync.apiBaseUrl()
+  const origin = String(baseUrl).match(/^https?:\/\/[^/]+/)
+  const hostedProductImage = image.match(/^https?:\/\/[^/]+\/(?:pingping-admin-api|admin-api)\/v1\/product-images\/(.+)$/)
+  if (origin && hostedProductImage) return `${origin[0]}${PRODUCT_IMAGE_PREFIX}${hostedProductImage[1]}`
   if (!image || /^https?:\/\//.test(image)) return image
-  const origin = serverSync.apiBaseUrl().match(/^https?:\/\/[^/]+/)
   return origin ? `${origin[0]}${image.startsWith('/') ? '' : '/'}${image}` : image
 }
 
@@ -31,4 +45,4 @@ function refreshProducts() {
   return inFlight
 }
 
-module.exports = { refreshProducts }
+module.exports = { refreshProducts, absoluteImageUrl }

@@ -1,5 +1,28 @@
-const API_BASE = import.meta.env.VITE_API_BASE || '/admin-api/v1'
+const API_BASE = import.meta.env.VITE_API_BASE || '/pingping-admin-api/v1'
 const TOKEN_KEY = 'pingping_admin_token'
+const LEGACY_PRODUCT_IMAGE_PREFIX = '/admin-api/v1/product-images/'
+const PRODUCT_IMAGE_PREFIX = '/pingping-admin-api/v1/product-images/'
+
+function formalProductImageUrl(value) {
+  const url = String(value || '')
+  return url.startsWith(LEGACY_PRODUCT_IMAGE_PREFIX)
+    ? `${PRODUCT_IMAGE_PREFIX}${url.slice(LEGACY_PRODUCT_IMAGE_PREFIX.length)}`
+    : url
+}
+
+function formalProduct(item) {
+  if (!item || typeof item !== 'object') return item
+  return { ...item, image: formalProductImageUrl(item.image) }
+}
+
+function formalProductList(result) {
+  const items = Array.isArray(result.items) ? result.items.map(formalProduct) : []
+  return { ...result, items }
+}
+
+function formalProductResult(result) {
+  return { ...result, item: formalProduct(result.item) }
+}
 
 export const session = {
   get token() { return localStorage.getItem(TOKEN_KEY) || '' },
@@ -36,14 +59,15 @@ export const api = {
   logout: token => request('/auth/logout', { method: 'POST', authToken: token, skipUnauthorized: true, keepalive: true }),
   updateProfile: input => request('/auth/profile', { method: 'PATCH', body: JSON.stringify(input) }),
   dashboard: () => request('/dashboard'),
-  products: () => request('/products'),
-  uploadProductImage(file) {
+  products: () => request('/products').then(formalProductList),
+  async uploadProductImage(file) {
     const body = new FormData()
     body.append('image', file)
-    return request('/product-images', { method: 'POST', body })
+    const result = await request('/product-images', { method: 'POST', body })
+    return { ...result, url: formalProductImageUrl(result.url) }
   },
-  createProduct: input => request('/products', { method: 'POST', body: JSON.stringify(input) }),
-  updateProduct: (id, input) => request(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  createProduct: input => request('/products', { method: 'POST', body: JSON.stringify(input) }).then(formalProductResult),
+  updateProduct: (id, input) => request(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(input) }).then(formalProductResult),
   inventory: () => request('/inventory'),
   salesFinance: () => request('/sales-finance'),
   analysis: filters => request(`/analysis?${new URLSearchParams(filters).toString()}`),

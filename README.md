@@ -64,9 +64,14 @@ go build ./...
 
 `002_admin_mvp.sql` 含早期后台原型数据，`003_admin_auth_permissions.sql` 含初始化后台账号。全新正式环境迁移完成后，必须在开放访问前核对并清理原型行、重置初始化账号密码；不得把历史示例数据当作真实经营数据。
 
-## 当前部署前提
+## 正式部署入口
 
-当前小程序 API 与后台地址仍使用备案前的 HTTP 裸 IP 联调配置。正式发布前必须完成域名备案、HTTPS、微信 request 合法域名、正式后台地址、服务器端 Go 构建验证、数据库备份和首次管理员密码重置。部署步骤见[自有云服务器部署说明](docs/guides/自有云服务器部署说明.md)。
+- 个人主页：`https://shanshanwink.online/`
+- 小程序 API：`https://shanshanwink.online/pingping-api/v1`
+- Web 管理后台：`https://shanshanwink.online/pingping/`
+- 管理后台 API：`https://shanshanwink.online/pingping-admin-api/v1`
+
+迁移期继续保留 `/api/v1/`、`/admin/` 和 `/admin-api/v1/` 旧入口；新旧入口由 Nginx 指向同一 Node、Web 和 Go 服务，应用内部路由仍保持 `/api/v1` 与 `/admin-api/v1`。微信公众平台的 request、uploadFile 和 downloadFile 合法域名都只填写 `https://shanshanwink.online`，不填写路径。部署和回滚步骤见[自有云服务器部署说明](docs/guides/自有云服务器部署说明.md)。
 
 真实 AppSecret、数据库密码、JWT 密钥、私钥和生产环境文件不得写入仓库。`.env`、微信开发者工具私有配置、构建产物和新生成的 `outputs` 已由 `.gitignore` 排除。
 

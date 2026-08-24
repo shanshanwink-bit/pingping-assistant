@@ -16,7 +16,7 @@
     "es6": true,
     "postcss": true,
     "minified": true,
-    "urlCheck": false,
+    "urlCheck": true,
     "checkSiteMap": true,
     "compileWorklet": false,
     "uglifyFileName": false,

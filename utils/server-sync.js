@@ -12,8 +12,27 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value))
 }
 
+function isDevelopmentEnvironment() {
+  try {
+    return typeof wx.getAccountInfoSync === 'function' &&
+      wx.getAccountInfoSync().miniProgram.envVersion === 'develop'
+  } catch (error) {
+    return false
+  }
+}
+
+function safeDevelopmentOverride(value) {
+  const url = String(value || '').trim().replace(/\/$/, '')
+  if (!url || !isDevelopmentEnvironment()) return ''
+  if (/^https:\/\/[^/]+(?:\/.*)?$/.test(url)) return url
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(?::\d+)?(?:\/.*)?$/.test(url)) return url
+  return ''
+}
+
 function apiBaseUrl() {
-  const override = wx.getStorageSync(config.apiOverrideStorageKey)
+  const storedOverride = wx.getStorageSync(config.apiOverrideStorageKey)
+  const override = safeDevelopmentOverride(storedOverride)
+  if (storedOverride && !override) wx.removeStorageSync(config.apiOverrideStorageKey)
   return String(override || config.apiBaseUrl || '').replace(/\/$/, '')
 }
 

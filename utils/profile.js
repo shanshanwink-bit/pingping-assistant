@@ -1,5 +1,5 @@
 const APP_VERSION = '1.0.0'
-const ADMIN_CONSOLE_URL = 'http://106.13.176.125/admin/'
+const ADMIN_CONSOLE_URL = 'https://shanshanwink.online/pingping/'
 
 const ROLE_LABELS = {
   owner: '店主',

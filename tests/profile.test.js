@@ -116,17 +116,17 @@ test('管理后台入口不在小程序内强行打开外部网页', () => {
   resetCalls()
   createPage().showAdminConsole()
   assert.equal(calls.navigations.length, 0)
-  assert.match(calls.modals[0].content, /备案完成后更新/)
+  assert.match(calls.modals[0].content, /正式管理后台地址/)
   calls.modals[0].success({ cancel: true })
   assert.equal(calls.clipboards.length, 0)
 })
 
-test('确认后仅复制当前部署联调地址', () => {
+test('确认后仅复制正式管理后台地址', () => {
   resetCalls()
   createPage().showAdminConsole()
   calls.modals[0].success({ confirm: true })
   assert.deepEqual(calls.clipboards[0], { data: profile.ADMIN_CONSOLE_URL })
-  assert.match(profile.ADMIN_CONSOLE_URL, /^http:\/\/\d+\.\d+\.\d+\.\d+\/admin\/$/)
+  assert.equal(profile.ADMIN_CONSOLE_URL, 'https://shanshanwink.online/pingping/')
 })
 
 test('页面版本来自明确的 1.0.0 应用常量', () => {

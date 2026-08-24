@@ -3,11 +3,13 @@ const assert = require('assert')
 const storage = {}
 let serverState = null
 let serverRevision = 0
+let environmentVersion = 'release'
 
 global.wx = {
   getStorageSync(key) { return storage[key] },
   setStorageSync(key, value) { storage[key] = JSON.parse(JSON.stringify(value)) },
   removeStorageSync(key) { delete storage[key] },
+  getAccountInfoSync() { return { miniProgram: { envVersion: environmentVersion } } },
   login(options) {
     options.success({ code: 'wechat_code_test' })
   },
@@ -64,8 +66,16 @@ const serverSync = require('../utils/server-sync')
 const store = require('../utils/store')
 
 async function run() {
+  storage.pingping_api_base_url_v1 = 'http://106.13.176.125/api/v1'
   const connection = await serverSync.initServer()
-  assert.strictEqual(connection.baseUrl, 'http://106.13.176.125/api/v1')
+  assert.strictEqual(connection.baseUrl, 'https://shanshanwink.online/pingping-api/v1')
+  assert.strictEqual(storage.pingping_api_base_url_v1, undefined, '正式版应清理旧 HTTP IP 覆盖')
+
+  environmentVersion = 'develop'
+  storage.pingping_api_base_url_v1 = 'http://127.0.0.1:3300/api/v1'
+  assert.strictEqual(serverSync.apiBaseUrl(), 'http://127.0.0.1:3300/api/v1')
+  delete storage.pingping_api_base_url_v1
+  environmentVersion = 'release'
   assert.strictEqual(auth.getCurrentUser(), null)
 
   storage.shuishui_wechat_session_v1 = { openid: 'legacy-cloud-openid' }

@@ -1,5 +1,6 @@
 const assert = require('assert')
 const { mergeCatalogProducts } = require('../utils/catalog-products')
+const { absoluteImageUrl } = require('../utils/catalog-sync')
 const { catalogProduct } = require('../server/src/app')
 
 const apiProduct = catalogProduct({
@@ -49,5 +50,15 @@ const created = mergeCatalogProducts([], [{ ...apiProduct, id: 7, code: '0003', 
 assert.strictEqual(created.id, 'admin-product-7')
 assert.strictEqual(created.specs[0].stock, 4)
 assert.strictEqual(created.totalStock, undefined)
+
+const formalOrigin = 'https://shanshanwink.online/pingping-api/v1'
+assert.strictEqual(
+  absoluteImageUrl('/admin-api/v1/product-images/example.jpg', formalOrigin),
+  'https://shanshanwink.online/pingping-admin-api/v1/product-images/example.jpg'
+)
+assert.strictEqual(
+  absoluteImageUrl('http://106.13.176.125/admin-api/v1/product-images/example.jpg', formalOrigin),
+  'https://shanshanwink.online/pingping-admin-api/v1/product-images/example.jpg'
+)
 
 console.log('admin catalog product sync: PASS')
