@@ -119,6 +119,7 @@
 .ledger-state-text { display: block; margin-top: 8rpx; color: var(--color-text-secondary); font-size: 21rpx; }
 .ledger-empty-action,
 .ledger-retry-button { width: 188rpx; height: 70rpx; margin: 24rpx auto 0; border-radius: 17rpx; color: #fff; background: var(--color-brand); font-size: 23rpx; line-height: 70rpx; }
+button.ledger-empty-action { display: flex; width: auto; height: 80rpx; box-sizing: border-box; align-items: center; justify-content: center; margin: 28rpx 0 0; padding: 0 24rpx; border-radius: 20rpx; line-height: 1; }
 .ledger-loading-ring { width: 38rpx; height: 38rpx; margin: 0 auto 20rpx; border: 4rpx solid var(--color-brand-soft); border-top-color: var(--color-brand); border-radius: 50%; animation: ledger-loading .8s linear infinite; }
 
 @keyframes ledger-loading { to { transform: rotate(360deg); } }

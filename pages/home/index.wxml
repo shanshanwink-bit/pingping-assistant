@@ -5,8 +5,9 @@
   <view style="height: {{navSpacerHeight}}px;"></view>
 
   <view class="home-greeting">
-    <view class="home-greeting-line">{{greetingLine}}</view>
-    <view class="home-question">今天生意怎么样？</view>
+    <view class="home-greeting-line">{{greetingLine}} 👋</view>
+    <view class="home-question">{{businessGreetingTitle}}</view>
+    <view wx:if="{{businessGreetingDetail}}" class="home-greeting-detail">{{businessGreetingDetail}}</view>
   </view>
 
   <view wx:if="{{isLoading}}" class="home-state-card">
@@ -40,7 +41,7 @@
           <view class="home-metric-value">{{todaySaleQuantityText}}<text class="home-metric-unit">件</text></view>
         </view>
       </view>
-      <view wx:if="{{!hasTodaySales}}" class="home-no-sales">今日还没有销售记录</view>
+      <view wx:if="{{!hasTodaySales}}" class="home-no-sales">今天还没有销售记录，开始记录第一笔经营吧</view>
     </view>
 
     <view class="home-section">
@@ -54,13 +55,17 @@
 
     <view class="home-section">
       <view class="home-section-heading home-section-link" bindtap="goAttentionAll">
-        <view class="home-section-title">需要处理</view><text class="home-section-more">全部 ›</text>
+        <view class="home-section-title-group">
+          <view class="home-section-title">需要处理</view>
+          <text wx:if="{{hasStockAlerts}}" class="home-section-summary">有 {{stockAlertProductCountText}} 个商品库存不足</text>
+        </view>
+        <text class="home-section-more">全部 ›</text>
       </view>
       <view wx:if="{{attentionItems.length}}" class="home-list-card">
         <view class="home-alert-row" wx:for="{{attentionItems}}" wx:key="id" data-id="{{item.productId}}" bindtap="openAttention">
           <view class="home-alert-marker {{item.tone}}">{{item.marker}}</view>
-          <view class="home-row-main"><view class="home-row-title">{{item.title}}<text wx:if="{{item.specLabel}}" class="home-row-spec"> · {{item.specLabel}}</text></view><text class="home-row-detail">{{item.detail}}</text></view>
-          <view class="home-alert-type {{item.tone}}">{{item.typeLabel}}</view>
+          <view class="home-row-main"><view class="home-row-title">{{item.title}}<text wx:if="{{item.specLabel}}" class="home-row-spec"> · {{item.specLabel}}</text></view><text class="home-row-detail">{{item.marker === '缺' || item.marker === '低' ? '建议及时补货' : item.detail}}</text></view>
+          <view class="home-alert-type {{item.tone}}">{{item.marker === '缺' || item.marker === '低' ? '库存不足' : item.typeLabel}}</view>
         </view>
       </view>
       <view wx:else class="home-empty-card">
@@ -92,8 +97,7 @@
         </view>
       </view>
       <view wx:else class="home-empty-card home-record-empty">
-        <view class="home-empty-title">还没有经营记录</view>
-        <text class="home-empty-detail">卖货、拿货和收支记录会显示在这里</text>
+        <view class="home-record-empty-text">今天还没有记录哦，记下一笔，让经营更清晰</view>
       </view>
     </view>
   </block>

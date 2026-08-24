@@ -25,6 +25,49 @@ function displayName(user) {
   return name && !GENERIC_USER_NAMES.includes(name) ? name : ''
 }
 
+function dateKey(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function happenedOn(record, targetDate) {
+  return String(record && (record.date || record.createdAt) || '').slice(0, 10) === targetDate
+}
+
+function buildBusinessGreeting(state, now, hasStockAlerts) {
+  const targetDate = dateKey(now)
+  const saleRecordCount = (state.sales || []).filter(record => happenedOn(record, targetDate)).length
+  const hasInventoryActivity = (state.purchases || []).some(record => happenedOn(record, targetDate)) ||
+    (state.operations || []).some(record => (
+      happenedOn(record, targetDate) && record.type !== 'outbound' && record.reason !== '商品卖出'
+    ))
+
+  if (saleRecordCount && hasStockAlerts) {
+    return {
+      businessGreetingTitle: '今天销售不错',
+      businessGreetingDetail: '有商品需要补货哦'
+    }
+  }
+  if (saleRecordCount) {
+    return {
+      businessGreetingTitle: `今天已经完成 ${formatInteger(saleRecordCount)} 笔经营啦`,
+      businessGreetingDetail: '继续保持哦'
+    }
+  }
+  if (hasInventoryActivity) {
+    return {
+      businessGreetingTitle: '今天完成了商品补充',
+      businessGreetingDetail: '记得关注库存变化哦'
+    }
+  }
+  return {
+    businessGreetingTitle: '今天还没有经营记录哦',
+    businessGreetingDetail: '记下一笔，让每一次经营都有迹可循'
+  }
+}
+
 function formatSpec(value) {
   return String(value || '').replace(/\s*\/\s*/g, ' · ')
 }
@@ -139,13 +182,20 @@ function buildHomeDashboard(options) {
   const state = settings.state || {}
   const summary = settings.summary || {}
   const now = settings.now || new Date()
-  const name = displayName(settings.user)
+  const name = displayName(settings.user) || '萍萍'
   const todaySaleAmountText = formatMoney(summary.todaySaleAmount)
   const hasTodaySales = Number(summary.todaySaleQuantity || 0) > 0
   const allAttentionItems = buildAllAttentionItems(summary, state.products || [], now)
   const attentionItems = allAttentionItems.slice(0, 3)
+  const hasStockAlerts = allAttentionItems.some(item => item.id.startsWith('stock-'))
+  const stockAlertProductCount = new Set(
+    allAttentionItems
+      .filter(item => item.id.startsWith('stock-'))
+      .map(item => item.productId || item.id)
+  ).size
   return {
-    greetingLine: name ? `${greetingForHour(now.getHours())}，${name}` : greetingForHour(now.getHours()),
+    greetingLine: `${greetingForHour(now.getHours())}，${name}`,
+    ...buildBusinessGreeting(state, now, hasStockAlerts),
     todaySaleAmountText,
     todayProfitText: formatMoney(settings.todayProfit),
     todaySaleQuantityText: formatInteger(summary.todaySaleQuantity),
@@ -156,13 +206,15 @@ function buildHomeDashboard(options) {
     stockValueText: formatMoney(summary.stockValue),
     attentionItems,
     recentRecords: buildRecentRecords(state),
-    hasStockAlerts: allAttentionItems.some(item => item.id.startsWith('stock-')),
+    hasStockAlerts,
+    stockAlertProductCountText: formatInteger(stockAlertProductCount),
     hasExpiryAlerts: allAttentionItems.some(item => item.id.startsWith('expiry-'))
   }
 }
 
 module.exports = {
   buildAttentionItems,
+  buildBusinessGreeting,
   buildHomeDashboard,
   buildRecentRecords,
   formatInteger,

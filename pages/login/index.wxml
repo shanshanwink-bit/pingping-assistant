@@ -1,38 +1,39 @@
 <view class="login-page">
+  <view class="page-glow page-glow-top"></view>
+  <view class="page-glow page-glow-bottom"></view>
   <view class="login-safe" style="height: {{statusBarHeight}}px;"></view>
 
-  <view class="login-hero">
-    <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar">
-      <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill" />
-      <view wx:else class="avatar-fallback">
-        <image src="/assets/icons/brand-water-fashion-beauty.svg" mode="aspectFit" />
+  <view class="login-content">
+    <view class="login-hero">
+      <view class="brand-mark">
+        <image class="brand-logo" src="/assets/icons/login-store-management.png" mode="aspectFit" />
       </view>
-    </button>
-    <text class="hero-eyebrow">PINGPING ASSISTANT</text>
-    <view class="hero-title">{{restoring ? '正在同步店铺' : '微信账号登录'}}</view>
-    <text class="hero-subtitle">{{restoring ? '正在读取服务器上的经营数据' : '让库存、销售与盈利数据安心跟随账号'}}</text>
-  </view>
+      <view class="hero-title">萍萍小助手</view>
+      <text class="hero-subtitle">让门店经营更简单</text>
 
-  <view class="login-card">
-    <view class="card-title">开启账号同步</view>
-    <text class="card-description">首次登录将创建店铺账号。换手机后，经营数据仍能继续同步。</text>
-
-    <view class="nickname-field">
-      <text>称呼</text>
-      <input type="nickname" value="{{ownerName}}" maxlength="12" placeholder="例如：微信店主" bindinput="inputName" />
+      <text class="feature-summary">商品管理 · 库存管理 · 销售记录 · 经营分析</text>
     </view>
 
-    <button class="login-button" loading="{{submitting || restoring}}" disabled="{{submitting || restoring}}" bindtap="submitWechatLogin">
-      <text class="wechat-mark">微</text>
-      <text>{{restoring ? '正在同步服务器数据' : '微信快捷登录'}}</text>
-    </button>
+    <view class="login-card">
+      <view class="card-title">{{restoring ? '正在同步店铺' : '进入萍萍小助手'}}</view>
+      <text class="card-description">{{restoring ? '正在读取服务器上的经营数据' : '登录后，轻松管理你的门店'}}</text>
 
-    <view class="login-error" wx:if="{{errorText}}">{{errorText}}</view>
-    <view class="offline-actions" wx:if="{{offlineAvailable}}">
-      <button bindtap="retrySync">重新同步</button>
-      <button bindtap="enterOffline">暂不登录，使用本机缓存</button>
+      <button class="login-button {{submitting || restoring ? 'is-disabled' : ''}}" loading="{{submitting || restoring}}" disabled="{{submitting || restoring}}" bindtap="submitWechatLogin">
+        <text>{{restoring ? '正在同步服务器数据' : '微信登录'}}</text>
+      </button>
+
+      <view class="experience-button" aria-role="button" aria-disabled="true">登录体验</view>
+
+      <view class="login-error" wx:if="{{errorText}}">{{errorText}}</view>
+      <view class="offline-actions" wx:if="{{offlineAvailable}}">
+        <button class="offline-action sync-action" bindtap="retrySync">重新同步</button>
+        <button class="offline-action" bindtap="enterOffline">暂不登录，使用本机缓存</button>
+      </view>
+    </view>
+
+    <view class="security-note">
+      <view class="note-dot"></view>
+      <text>今天的经营，从这里开始</text>
     </view>
   </view>
-
-  <text class="login-note">首次登录会同步本机已有库存；仅使用微信身份标识区分账号，不会获取微信聊天内容。</text>
 </view>

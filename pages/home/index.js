@@ -13,6 +13,8 @@ Page({
     loadFailed: false,
     syncError: false,
     greetingLine: homeDashboard.greetingForHour(new Date().getHours()),
+    businessGreetingTitle: '今天还没有经营记录哦',
+    businessGreetingDetail: '记下一笔，让每一次经营都有迹可循',
     todaySaleAmountText: '¥0.00',
     todayProfitText: '¥0.00',
     todaySaleQuantityText: '0',
@@ -24,6 +26,7 @@ Page({
     attentionItems: [],
     recentRecords: [],
     hasStockAlerts: false,
+    stockAlertProductCountText: '0',
     hasExpiryAlerts: false
   },
 

@@ -3,111 +3,108 @@
   min-height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 0 46rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, #fdf8e9 0%, #fcf8ec 72%, #f1f5ed 100%);
-  color: #24443a;
+  padding: 0 44rpx calc(42rpx + env(safe-area-inset-bottom));
+  background: #fbf6ed;
+  color: #30272a;
 }
 
-.login-safe {
+.page-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page-glow-top {
+  top: -190rpx;
+  right: -220rpx;
+  width: 560rpx;
+  height: 560rpx;
+  background: rgba(142, 54, 85, .07);
+}
+
+.page-glow-bottom {
+  bottom: -260rpx;
+  left: -250rpx;
+  width: 620rpx;
+  height: 620rpx;
+  border: 1rpx solid rgba(142, 54, 85, .08);
+}
+
+.login-safe,
+.login-content {
   position: relative;
   z-index: 1;
+}
+
+.login-content {
+  display: flex;
+  min-height: calc(100vh - 90rpx - env(safe-area-inset-bottom));
+  flex-direction: column;
 }
 
 .login-hero {
   display: flex;
-  position: relative;
-  z-index: 1;
   flex-direction: column;
   align-items: center;
-  margin-top: 62rpx;
+  margin-top: 42rpx;
   text-align: center;
 }
 
-.avatar-picker {
+.brand-mark {
   display: flex;
-  width: 118rpx;
-  height: 118rpx;
+  width: 156rpx;
+  height: 156rpx;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  line-height: 1;
 }
 
-.avatar-picker::after,
-.login-button::after,
-.offline-actions button::after {
-  border: 0;
-}
-
-.avatar-picker > image,
-.avatar-fallback {
-  width: 76rpx;
-  height: 76rpx;
-  overflow: hidden;
-  border-radius: 50%;
-}
-
-.avatar-picker > image {
+.brand-logo {
   display: block;
-}
-
-.avatar-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-}
-
-.avatar-fallback image {
-  width: 58rpx;
-  height: 58rpx;
-  filter: saturate(.75) brightness(1.18);
-}
-
-.hero-eyebrow {
-  margin-top: 38rpx;
-  color: #557568;
-  font-size: 18rpx;
-  font-weight: 650;
-  letter-spacing: 7rpx;
-  line-height: 1.3;
+  width: 100%;
+  height: 100%;
 }
 
 .hero-title {
-  margin-top: 22rpx;
-  color: #203f35;
-  font-size: 51rpx;
+  margin-top: 40rpx;
+  color: #4a2834;
+  font-size: 52rpx;
   font-weight: 700;
   letter-spacing: 4rpx;
   line-height: 1.2;
 }
 
 .hero-subtitle {
-  margin-top: 24rpx;
-  color: #7a837c;
-  font-size: 22rpx;
+  margin-top: 22rpx;
+  color: #8c7e82;
+  font-size: 23rpx;
+  letter-spacing: 2rpx;
+  line-height: 1.6;
+}
+
+.feature-summary {
+  display: block;
+  margin-top: 36rpx;
+  color: #755d66;
+  font-size: 21rpx;
+  letter-spacing: 1rpx;
   line-height: 1.6;
 }
 
 .login-card {
   position: relative;
-  z-index: 1;
-  margin-top: 72rpx;
-  padding: 46rpx 38rpx 38rpx;
-  border-radius: 50rpx;
-  background: rgba(255, 255, 255, .92);
-  box-shadow: 0 28rpx 52rpx rgba(50, 70, 56, .09);
+  margin-top: 104rpx;
+  padding: 38rpx 34rpx 34rpx;
+  border: 1rpx solid rgba(142, 54, 85, .08);
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 26rpx 64rpx rgba(81, 54, 62, .10);
   text-align: center;
 }
 
 .card-title {
-  color: #23453a;
-  font-size: 31rpx;
+  color: #4b343c;
+  font-size: 30rpx;
   font-weight: 700;
   letter-spacing: 1rpx;
   line-height: 1.3;
@@ -115,80 +112,63 @@
 
 .card-description {
   display: block;
-  max-width: 530rpx;
-  margin: 23rpx auto 0;
-  color: #858a84;
+  margin-top: 13rpx;
+  color: #9a8c90;
   font-size: 20rpx;
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
-.nickname-field {
+.login-button::after,
+.offline-action::after {
+  border: 0;
+}
+
+.login-button,
+.experience-button {
   display: flex;
-  height: 78rpx;
+  width: 100% !important;
+  min-width: 100%;
+  max-width: 100%;
+  height: 88rpx;
+  min-height: 88rpx;
+  max-height: 88rpx;
   box-sizing: border-box;
   align-items: center;
-  gap: 22rpx;
-  margin-top: 30rpx;
-  padding: 0 26rpx;
-  border: 2rpx solid #ece9df;
-  border-radius: 22rpx;
-  background: #fffdf8;
-  text-align: left;
-}
-
-.nickname-field > text {
-  flex: 0 0 auto;
-  color: #9b9b90;
-  font-size: 20rpx;
-}
-
-.nickname-field input {
-  flex: 1;
-  min-width: 0;
-  color: #294b40;
-  font-size: 22rpx;
+  justify-content: center;
+  margin-right: 0;
+  margin-left: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2rpx solid transparent;
+  border-radius: 24rpx;
+  font-size: 25rpx;
+  font-weight: 650;
+  line-height: 1;
 }
 
 .login-button {
-  display: flex;
-  width: 100%;
-  height: 92rpx;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-  margin: 28rpx 0 0;
-  border-radius: 27rpx;
-  background: #3f735f;
+  margin: 34rpx 0 0;
+  border-color: #8e3655;
+  background: #8e3655;
   color: #fff;
-  box-shadow: 0 18rpx 30rpx rgba(52, 103, 83, .18);
-  font-size: 25rpx;
-  font-weight: 650;
-  line-height: 92rpx;
+  box-shadow: 0 16rpx 30rpx rgba(142, 54, 85, .20);
 }
 
-.login-button[disabled] {
-  background: #739486;
-  color: rgba(255, 255, 255, .8);
+.login-button.is-disabled {
+  background: #b17b8e;
+  color: rgba(255, 255, 255, .82);
 }
 
-.wechat-mark {
-  display: flex;
-  width: 44rpx;
-  height: 44rpx;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border-radius: 13rpx;
+.experience-button {
+  margin-top: 18rpx;
+  border-color: #8e3655;
   background: #fff;
-  color: #3f735f;
-  font-size: 18rpx;
-  font-weight: 700;
-  line-height: 1;
+  color: #8e3655;
 }
 
 .login-error {
   margin-top: 20rpx;
-  color: #b45f48;
+  color: #b24f4f;
   font-size: 20rpx;
   line-height: 1.4;
 }
@@ -200,37 +180,62 @@
   margin-top: 13rpx;
 }
 
-.offline-actions button {
+.offline-action {
   height: 52rpx;
   margin: 0;
   padding: 0 18rpx;
   background: transparent;
-  color: #7d847d;
+  color: #8f7f84;
   font-size: 19rpx;
   line-height: 52rpx;
 }
 
-.offline-actions button:first-child {
-  color: #4d7465;
+.sync-action {
+  color: #8e3655;
 }
 
-.login-note {
-  display: block;
-  position: relative;
-  z-index: 1;
-  margin: 39rpx 36rpx 0;
-  color: #989b94;
-  font-size: 17rpx;
-  line-height: 1.6;
+.security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin: auto 20rpx 0;
+  padding-top: 32rpx;
+  color: #a09196;
+  font-size: 18rpx;
+  line-height: 1.5;
   text-align: center;
+}
+
+.note-dot {
+  width: 8rpx;
+  height: 8rpx;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #8e3655;
+  opacity: .55;
 }
 
 @media (max-height: 700px) {
   .login-hero {
-    margin-top: 34rpx;
+    margin-top: 22rpx;
+  }
+
+  .hero-title {
+    margin-top: 30rpx;
+    font-size: 46rpx;
+  }
+
+  .hero-subtitle {
+    margin-top: 18rpx;
+  }
+
+  .feature-summary {
+    margin-top: 28rpx;
   }
 
   .login-card {
-    margin-top: 46rpx;
+    margin-top: 72rpx;
+    padding-top: 30rpx;
   }
 }

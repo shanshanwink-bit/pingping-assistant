@@ -31,6 +31,7 @@
 .home-greeting { padding: 26rpx 0 24rpx; }
 .home-greeting-line { color: var(--color-text-secondary); font-size: 26rpx; line-height: 1.4; }
 .home-question { margin-top: 4rpx; color: var(--color-text); font-size: 44rpx; font-weight: 700; line-height: 1.28; }
+.home-greeting-detail { margin-top: 8rpx; color: var(--color-text-secondary); font-size: 24rpx; line-height: 1.45; }
 
 .home-state-card,
 .home-empty-card { border: 1rpx solid var(--color-border); border-radius: 32rpx; background: var(--color-surface); }
@@ -60,11 +61,13 @@
 .home-metric-label { color: rgba(255,255,255,.68); font-size: 22rpx; }
 .home-metric-value { margin-top: 8rpx; overflow: hidden; font-size: 32rpx; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .home-metric-unit { margin-left: 4rpx; font-size: 21rpx; font-weight: 400; }
-.home-no-sales { margin-top: 16rpx; color: rgba(255,255,255,.76); font-size: 22rpx; }
+.home-no-sales { margin-top: 20rpx; color: rgba(255,255,255,.78); font-size: 22rpx; line-height: 1.55; white-space: nowrap; }
 
 .home-section { margin-top: 40rpx; }
 .home-section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
+.home-section-title-group { min-width: 0; }
 .home-section-title { color: var(--color-text); font-size: 36rpx; font-weight: 650; }
+.home-section-summary { display: block; margin-top: 6rpx; color: var(--color-text-secondary); font-size: 21rpx; line-height: 1.4; }
 .home-section-more { color: var(--color-brand); font-size: 24rpx; }
 .home-section-link:active { opacity: .65; }
 
@@ -115,7 +118,8 @@
 .home-record-side.income .home-record-value { color: var(--color-success); }
 .home-record-side.expense .home-record-value { color: var(--color-danger); }
 .home-record-time { display: block; margin-top: 6rpx; color: var(--color-text-muted); font-size: 18rpx; }
-.home-record-empty .home-empty-title { color: var(--color-text); }
+.home-record-empty { padding-top: 40rpx; padding-bottom: 40rpx; }
+.home-record-empty-text { color: var(--color-text-secondary); font-size: 23rpx; line-height: 1.55; white-space: nowrap; }
 
 @keyframes home-loading { to { transform: rotate(360deg); } }
 

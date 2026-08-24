@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { buildAttentionItems, buildHomeDashboard, buildRecentRecords, greetingForHour } = require('../utils/home-dashboard')
+const { buildAttentionItems, buildBusinessGreeting, buildHomeDashboard, buildRecentRecords, greetingForHour } = require('../utils/home-dashboard')
 
 assert.strictEqual(greetingForHour(0), '夜深了')
 assert.strictEqual(greetingForHour(4), '夜深了')
@@ -8,6 +8,38 @@ assert.strictEqual(greetingForHour(11), '早上好')
 assert.strictEqual(greetingForHour(12), '中午好')
 assert.strictEqual(greetingForHour(14), '下午好')
 assert.strictEqual(greetingForHour(18), '晚上好')
+
+const greetingNow = new Date(2026, 7, 18, 10)
+assert.deepStrictEqual(buildBusinessGreeting({}, greetingNow, false), {
+  businessGreetingTitle: '今天还没有经营记录哦',
+  businessGreetingDetail: '记下一笔，让每一次经营都有迹可循'
+})
+assert.deepStrictEqual(buildBusinessGreeting({ sales: [
+  { id: 'today-1', createdAt: '2026-08-18 09:00' },
+  { id: 'today-2', createdAt: '2026-08-18 09:30' },
+  { id: 'yesterday', createdAt: '2026-08-17 16:00' }
+] }, greetingNow, false), {
+  businessGreetingTitle: '今天已经完成 2 笔经营啦',
+  businessGreetingDetail: '继续保持哦'
+})
+assert.deepStrictEqual(buildBusinessGreeting({ sales: [
+  { id: 'today-1', createdAt: '2026-08-18 09:00' }
+] }, greetingNow, true), {
+  businessGreetingTitle: '今天销售不错',
+  businessGreetingDetail: '有商品需要补货哦'
+})
+assert.deepStrictEqual(buildBusinessGreeting({ purchases: [
+  { id: 'purchase-1', createdAt: '2026-08-18 08:00' }
+] }, greetingNow, false), {
+  businessGreetingTitle: '今天完成了商品补充',
+  businessGreetingDetail: '记得关注库存变化哦'
+})
+assert.deepStrictEqual(buildBusinessGreeting({ operations: [
+  { id: 'stock-1', type: 'stocktake', createdAt: '2026-08-18 08:00' }
+] }, greetingNow, false), {
+  businessGreetingTitle: '今天完成了商品补充',
+  businessGreetingDetail: '记得关注库存变化哦'
+})
 
 const summary = {
   todaySaleAmount: 1286,
@@ -63,9 +95,10 @@ assert.strictEqual(dashboard.greetingLine, '晚上好，萍萍')
 assert.strictEqual(dashboard.todaySaleAmountText, '¥1,286.00')
 assert.strictEqual(dashboard.todayProfitText, '¥436.00')
 assert.strictEqual(dashboard.stockValueText, '¥23,580.00')
+assert.strictEqual(dashboard.stockAlertProductCountText, '2')
 assert.strictEqual(dashboard.hasExpiryAlerts, true, '即使临期提醒未进入首页前三条，全部入口也应保留化妆品提醒去向')
 const emptyDashboard = buildHomeDashboard({ state: {}, summary: {}, user: { name: '微信店主' }, now: new Date(2026, 7, 18, 9) })
-assert.strictEqual(emptyDashboard.greetingLine, '早上好')
+assert.strictEqual(emptyDashboard.greetingLine, '早上好，萍萍')
 assert.strictEqual(emptyDashboard.salesAmountClass, 'zero')
 
 console.log('home dashboard presentation: PASS')
