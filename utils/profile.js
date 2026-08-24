@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.0'
+const APP_VERSION = '1.2.0'
 const ADMIN_CONSOLE_URL = 'https://shanshanwink.online/pingping/'
 
 const ROLE_LABELS = {

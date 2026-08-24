@@ -129,8 +129,8 @@ test('确认后仅复制正式管理后台地址', () => {
   assert.equal(profile.ADMIN_CONSOLE_URL, 'https://shanshanwink.online/pingping/')
 })
 
-test('页面版本来自明确的 1.0.0 应用常量', () => {
-  assert.equal(profile.APP_VERSION, '1.0.0')
+test('页面版本来自明确的 1.2.0 应用常量', () => {
+  assert.equal(profile.APP_VERSION, '1.2.0')
   assert.equal(pageDefinition.data.version, profile.APP_VERSION)
 })
 
