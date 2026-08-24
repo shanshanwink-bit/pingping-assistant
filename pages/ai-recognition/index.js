@@ -89,7 +89,7 @@ Page({
   leaveDisabledPage() {
     wx.showModal({
       title: '暂时无法使用',
-      content: 'AI 拍照识货当前未开启',
+      content: 'AI商品助手当前未开启',
       showCancel: false,
       complete() {
         wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/inventory/index' }) })
@@ -156,5 +156,10 @@ Page({
       return
     }
     wx.navigateTo({ url: productDetailUrl(product.id) })
+  },
+
+  openAiPurchase() {
+    if (!this.data.featureEnabled) return
+    wx.navigateTo({ url: '/pages/ai-purchase/index' })
   }
 })

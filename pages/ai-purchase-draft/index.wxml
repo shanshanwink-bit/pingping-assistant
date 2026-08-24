@@ -1,0 +1,104 @@
+<view class="page draft-page">
+  <view class="draft-heading">
+    <view class="page-title">入库草稿</view>
+    <view class="draft-subtitle">AI识别结果，请核对后入库</view>
+    <view class="readonly-note">确认前不会修改库存；提交成功后将生成采购记录</view>
+  </view>
+
+  <view wx:if="{{loadError}}" class="state-card error-state">
+    <view class="state-title">草稿无法读取</view>
+    <view class="state-copy">{{loadError}}</view>
+  </view>
+
+  <view wx:elif="{{empty}}" class="state-card empty-state">
+    <view class="state-title">草稿中没有商品</view>
+    <view class="state-copy">请返回后重新识别采购单</view>
+  </view>
+
+  <view wx:elif="{{success}}" class="success-card">
+    <view class="success-mark">✓</view>
+    <view class="success-title">{{successTitle}}</view>
+    <view class="success-copy">{{successMessage}}</view>
+    <view class="success-actions">
+      <button class="outline-action" bindtap="viewPurchases">查看采购记录</button>
+      <button class="primary-action" bindtap="finish">返回商品页</button>
+    </view>
+  </view>
+
+  <block wx:else>
+    <view class="draft-summary">
+      <text>共 {{items.length}} 行</text>
+      <text>草稿合计 {{totalCostText}}</text>
+    </view>
+
+    <view class="draft-list">
+      <view class="draft-card" wx:for="{{items}}" wx:key="lineId">
+        <view class="card-head">
+          <view>
+            <view class="line-title">第 {{index + 1}} 行</view>
+            <view class="recognized-text">AI识别：{{item.recognizedText}}</view>
+          </view>
+          <text class="status-badge {{item.status.tone}}">{{item.status.label}}</text>
+        </view>
+
+        <view class="field-label">匹配商品</view>
+        <view wx:if="{{item.candidates.length}}" class="candidate-list">
+          <button wx:for="{{item.candidates}}" wx:for-item="candidate" wx:key="productId"
+            class="candidate-button {{item.productId === candidate.productId ? 'selected' : ''}}"
+            disabled="{{isSubmitting}}" data-line-id="{{item.lineId}}"
+            data-product-id="{{candidate.productId}}" bindtap="selectProduct">
+            <text>{{candidate.name}}</text>
+            <text wx:if="{{candidate.productCode}}" class="candidate-code">{{candidate.productCode}}</text>
+          </button>
+        </view>
+        <view wx:else class="missing-copy">没有匹配候选，本阶段不会自动创建商品</view>
+
+        <view class="field-label">商品规格</view>
+        <view wx:if="{{item.specCandidates.length}}" class="candidate-list">
+          <button wx:for="{{item.specCandidates}}" wx:for-item="spec" wx:key="specId"
+            class="candidate-button compact {{item.specId === spec.specId ? 'selected' : ''}}"
+            disabled="{{isSubmitting}}" data-line-id="{{item.lineId}}"
+            data-spec-id="{{spec.specId}}" bindtap="selectSpec">
+            {{spec.label}}
+          </button>
+        </view>
+        <view wx:else class="missing-copy">请先选择商品</view>
+
+        <view class="value-grid">
+          <view class="value-field">
+            <view class="field-label">数量</view>
+            <input type="number" value="{{item.quantityInput}}" placeholder="请输入数量"
+              disabled="{{isSubmitting}}" data-line-id="{{item.lineId}}" bindinput="onQuantityInput" />
+          </view>
+          <view class="value-field">
+            <view class="field-label">进价</view>
+            <input type="digit" value="{{item.unitCostInput}}" placeholder="请输入进价"
+              disabled="{{isSubmitting}}" data-line-id="{{item.lineId}}" bindinput="onUnitCostInput" />
+          </view>
+        </view>
+
+        <view class="line-footer">
+          <text>本行 {{item.lineTotalText}}</text>
+          <button class="delete-button" disabled="{{isSubmitting}}"
+            data-line-id="{{item.lineId}}" bindtap="removeItem">删除此行</button>
+        </view>
+
+        <view wx:if="{{item.issues.length}}" class="issue-list">
+          <view wx:for="{{item.issues}}" wx:key="*this">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="draft-footer">
+      <view wx:if="{{submitErrorTitle}}" class="submit-error">
+        <view class="submit-error-title">{{submitErrorTitle}}</view>
+        <view class="submit-error-copy">{{submitErrorText}}</view>
+      </view>
+      <button class="confirm-button" disabled="{{!canConfirm || isSubmitting}}"
+        loading="{{isSubmitting}}" bindtap="confirmDraft">
+        {{isSubmitting ? '正在确认入库…' : '确认入库'}}
+      </button>
+      <view wx:if="{{!canConfirm}}" class="confirm-hint">请先处理所有未完成项目</view>
+    </view>
+  </block>
+</view>

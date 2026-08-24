@@ -2,6 +2,18 @@
 .ai-heading { margin-bottom: 26rpx; }
 .ai-heading .page-title { margin-bottom: 8rpx; }
 .ai-subtitle { color: var(--color-text-secondary); font-size: 24rpx; line-height: 1.55; }
+.future-section { margin-top: 40rpx; }
+.future-section-title { margin-bottom: 16rpx; color: var(--color-text); font-size: 28rpx; font-weight: 600; }
+.future-capabilities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14rpx; }
+.capability-card { min-width: 0; padding: 20rpx; border: 1rpx solid var(--color-border); border-radius: 22rpx; background: var(--color-surface); opacity: .82; }
+.capability-card.available { border-color: rgba(142,54,85,.24); opacity: 1; }
+.capability-head { display: flex; align-items: center; justify-content: space-between; gap: 10rpx; }
+.capability-title { color: var(--color-text); font-size: 26rpx; font-weight: 600; }
+.capability-status { flex: 0 0 auto; padding: 5rpx 10rpx; border-radius: 999rpx; font-size: 19rpx; line-height: 1.3; }
+.capability-status.developing { color: var(--color-brand); background: var(--color-brand-soft); }
+.capability-status.available { color: #287441; background: #e2f5e8; }
+.capability-status.planned { color: var(--color-text-secondary); background: var(--color-surface-muted); }
+.capability-copy { margin-top: 14rpx; color: var(--color-text-secondary); font-size: 21rpx; line-height: 1.5; }
 .privacy-note { margin-bottom: 22rpx; padding: 20rpx 22rpx; border-radius: 20rpx; color: var(--color-text-secondary); background: var(--color-brand-soft); font-size: 23rpx; line-height: 1.65; }
 .image-card { position: relative; overflow: hidden; min-height: 430rpx; border: 2rpx dashed #d8c8ce; border-radius: 30rpx; background: var(--color-surface); }
 .image-card.has-image { border-style: solid; }
@@ -13,13 +25,13 @@
 .image-copy { margin-top: 10rpx; color: var(--color-text-secondary); font-size: 22rpx; }
 .image-preview { display: block; width: 100%; height: 470rpx; background: var(--color-surface-muted); }
 .image-meta { position: absolute; right: 18rpx; bottom: 18rpx; padding: 9rpx 15rpx; border-radius: 999rpx; color: #fff; background: rgba(43,41,39,.72); font-size: 21rpx; }
-.recognize-button { height: 88rpx; margin-top: 24rpx; border-radius: 22rpx; color: #fff; background: var(--color-brand); font-size: 28rpx; line-height: 88rpx; }
+.recognize-button { display: flex; width: 100%; height: 88rpx; box-sizing: border-box; align-items: center; justify-content: center; margin: 24rpx 0 0; padding: 0; border-radius: 22rpx; color: #fff; background: var(--color-brand); font-size: 28rpx; line-height: 1; }
 .recognize-button[disabled] { color: #fff; background: #b9899b; }
 .ai-state-card,.message-card { padding: 56rpx 28rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; background: var(--color-surface); text-align: center; }
 .ai-loading { width: 38rpx; height: 38rpx; margin: 0 auto 20rpx; border: 4rpx solid var(--color-brand-soft); border-top-color: var(--color-brand); border-radius: 50%; animation: ai-loading .8s linear infinite; }
 .state-title { font-size: 28rpx; font-weight: 600; }
 .state-copy { margin-top: 10rpx; color: var(--color-text-secondary); font-size: 23rpx; line-height: 1.6; }
-.outline-button { display: inline-flex; height: 64rpx; align-items: center; margin-top: 26rpx; padding: 0 28rpx; border: 1rpx solid var(--color-brand); border-radius: 18rpx; color: var(--color-brand); background: #fff; font-size: 24rpx; }
+.outline-button { display: inline-flex; height: 64rpx; box-sizing: border-box; align-items: center; justify-content: center; margin-top: 26rpx; padding: 0 28rpx; border: 1rpx solid var(--color-brand); border-radius: 18rpx; color: var(--color-brand); background: #fff; font-size: 24rpx; line-height: 1; }
 .error-message { margin-top: 20rpx; padding: 22rpx; color: var(--color-danger); background: #fff8f8; }
 .result-section { margin-top: 36rpx; }
 .result-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16rpx; }
@@ -40,5 +52,5 @@
 .candidate-metrics text { color: var(--color-text-secondary); font-size: 20rpx; }
 .candidate-metrics view view { overflow: hidden; margin-top: 7rpx; font-size: 22rpx; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .first-purchase,.match-reason { margin-top: 14rpx; color: var(--color-text-secondary); font-size: 21rpx; }
-.detail-button { height: 68rpx; margin-top: 22rpx; border: 1rpx solid var(--color-brand); border-radius: 18rpx; color: var(--color-brand); background: #fff; font-size: 24rpx; line-height: 66rpx; }
+.detail-button { display: flex; width: 100%; height: 68rpx; box-sizing: border-box; align-items: center; justify-content: center; margin: 22rpx 0 0; padding: 0; border: 1rpx solid var(--color-brand); border-radius: 18rpx; color: var(--color-brand); background: #fff; font-size: 24rpx; line-height: 1; }
 @keyframes ai-loading { to { transform: rotate(360deg); } }

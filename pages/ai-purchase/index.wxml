@@ -1,0 +1,43 @@
+<view class="page purchase-ai-page">
+  <view class="purchase-heading">
+    <view class="page-title">拍照入库</view>
+    <view class="purchase-subtitle">上传进货单图片，自动生成入库草稿</view>
+  </view>
+
+  <view wx:if="{{featureChecking}}" class="state-card">
+    <view class="loading-ring"></view>
+    <view>正在确认功能状态</view>
+  </view>
+
+  <view wx:elif="{{featureError}}" class="state-card error-state">
+    <view class="state-title">暂时无法使用</view>
+    <view class="state-copy">{{featureError}}</view>
+    <button class="outline-button" bindtap="checkFeature">重新检查</button>
+  </view>
+
+  <block wx:elif="{{featureEnabled}}">
+    <view class="privacy-note">图片仅用于识别采购明细，不会保存；识别结果需要在草稿页人工核对。</view>
+
+    <view wx:if="{{!selectedImage}}" class="image-card" bindtap="chooseImage">
+      <view class="camera-mark"></view>
+      <view class="image-title">拍摄或选择进货单图片</view>
+      <view class="image-copy">支持 JPG、PNG、WebP，单张不超过 4 MB</view>
+    </view>
+
+    <view wx:else class="preview-card">
+      <image class="image-preview" src="{{selectedImage}}" mode="aspectFit" />
+      <view class="image-meta">{{selectedImageSize}}</view>
+      <view class="image-actions">
+        <button class="image-action" disabled="{{recognizing}}" bindtap="chooseImage">重新选择</button>
+        <button class="image-action danger" disabled="{{recognizing}}" bindtap="removeImage">删除图片</button>
+      </view>
+    </view>
+
+    <button class="recognize-button" disabled="{{recognizing}}" loading="{{recognizing}}" bindtap="startRecognition">
+      {{recognizing ? '正在识别采购单…' : '识别采购单'}}
+    </button>
+
+    <view wx:if="{{errorMessage}}" class="message-card error-message">{{errorMessage}}</view>
+    <view class="safe-note">识别过程不会修改库存，也不会创建采购记录。</view>
+  </block>
+</view>

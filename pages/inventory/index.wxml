@@ -6,7 +6,7 @@
 
   <view wx:if="{{aiImageRecognition}}" class="ai-entry" bindtap="openAiRecognition">
     <view class="ai-entry-mark"><view></view></view>
-    <view class="ai-entry-main"><view>拍照识货</view><text>拍下商品，查询真实售价与库存</text></view>
+    <view class="ai-entry-main"><view>AI商品助手</view><text>快速识别商品，查询库存和价格</text></view>
     <view class="ai-entry-arrow">›</view>
   </view>
 

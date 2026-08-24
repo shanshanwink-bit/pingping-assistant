@@ -16,6 +16,8 @@ const requiredActionPages = [
   'pages/cosmetics/index',
   'pages/product-form/index',
   'pages/ai-recognition/index',
+  'pages/ai-purchase/index',
+  'pages/ai-purchase-draft/index',
   'pages/stock-form/index',
   'pages/purchase-form/index',
   'pages/sale-form/index',

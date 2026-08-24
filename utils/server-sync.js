@@ -150,12 +150,12 @@ async function pullFeatures() {
   return { aiImageRecognition: result.aiImageRecognition === true }
 }
 
-function recognizeProductImage(filePath) {
+function uploadAiImage(path, filePath, responseErrorText, uploadErrorText) {
   const activeSession = session()
   if (!activeSession || !activeSession.token) return Promise.reject(new Error('请先登录'))
   return initServer().then(({ baseUrl }) => new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: `${baseUrl}/ai/image-recognition`,
+      url: `${baseUrl}${path}`,
       filePath,
       name: 'image',
       header: { Authorization: `Bearer ${activeSession.token}` },
@@ -167,17 +167,35 @@ function recognizeProductImage(filePath) {
           resolve(result)
           return
         }
-        const requestError = new Error(result.message || `图片识别失败（${response.statusCode}）`)
+        const requestError = new Error(result.message || `${responseErrorText}（${response.statusCode}）`)
         requestError.statusCode = response.statusCode
         requestError.details = result.details
         requestError.requestId = result.requestId
         reject(requestError)
       },
       fail(error) {
-        reject(new Error(error.errMsg || '图片上传失败，请检查网络后重试'))
+        reject(new Error(error.errMsg || uploadErrorText))
       }
     })
   }))
+}
+
+function recognizeProductImage(filePath) {
+  return uploadAiImage(
+    '/ai/image-recognition',
+    filePath,
+    '图片识别失败',
+    '图片上传失败，请检查网络后重试'
+  )
+}
+
+function recognizePurchaseOrderImage(filePath) {
+  return uploadAiImage(
+    '/ai/purchase-order-recognition',
+    filePath,
+    '采购单识别失败',
+    '采购单图片上传失败，请检查网络后重试'
+  )
 }
 
 async function pushState(state) {
@@ -206,6 +224,14 @@ async function commitSale(payload) {
 
 async function commitPurchase(payload) {
   const result = await request({ path: '/store/purchases', method: 'POST', data: clone(payload) })
+  currentRevision = Number(result.revision || currentRevision)
+  clearPendingPush()
+  markSyncSuccess()
+  return result
+}
+
+async function commitPurchaseBatch(payload) {
+  const result = await request({ path: '/store/purchases/batch', method: 'POST', data: clone(payload) })
   currentRevision = Number(result.revision || currentRevision)
   clearPendingPush()
   markSyncSuccess()
@@ -281,9 +307,11 @@ module.exports = {
   pullProducts,
   pullFeatures,
   recognizeProductImage,
+  recognizePurchaseOrderImage,
   pushState,
   commitSale,
   commitPurchase,
+  commitPurchaseBatch,
   queuePush,
   retryPendingPush,
   getSyncStatus,
