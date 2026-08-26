@@ -44,6 +44,8 @@ type Product struct {
 	ID                int64   `json:"id"`
 	Name              string  `json:"name"`
 	Code              string  `json:"code"`
+	ItemNumber        string  `json:"itemNumber"`
+	ItemNumberManaged bool    `json:"itemNumberManaged"`
 	BusinessType      string  `json:"businessType"`
 	Category          string  `json:"category"`
 	SpecCount         int     `json:"specCount"`
@@ -170,6 +172,7 @@ type AuditLog struct {
 type ProductInput struct {
 	Name              string  `json:"name"`
 	Code              string  `json:"code"`
+	ItemNumber        string  `json:"itemNumber"`
 	BusinessType      string  `json:"businessType"`
 	Category          string  `json:"category"`
 	SpecCount         int     `json:"specCount"`
@@ -179,6 +182,16 @@ type ProductInput struct {
 	Price             float64 `json:"price"`
 	Status            string  `json:"status"`
 	Image             string  `json:"image"`
+	ItemNumberManaged bool    `json:"-"`
+	AuditSummary      string  `json:"-"`
+	AuditAction       string  `json:"-"`
+	AuditRisk         string  `json:"-"`
+	RequestID         string  `json:"-"`
+}
+
+type ProductDeletionInput struct {
+	ProductID int64  `json:"-"`
+	RequestID string `json:"-"`
 }
 type StockAdjustmentInput struct {
 	ProductID      int64  `json:"productId"`

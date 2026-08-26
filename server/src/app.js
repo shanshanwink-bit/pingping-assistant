@@ -183,6 +183,8 @@ function catalogProduct(row) {
     id: Number(row.id),
     name: row.name,
     code: row.code,
+    itemNumber: String(row.item_number || '').trim(),
+    itemNumberManaged: Boolean(row.item_number_managed),
     businessType: row.business_type,
     category: row.category,
     specCount: Number(row.spec_count || 0),
@@ -397,8 +399,8 @@ function createRequestHandler(pool, config, dependencies) {
       if (request.method === 'GET' && url.pathname === '/api/v1/catalog/products') {
         const membership = await requireMembership(request, pool, config)
         const [rows] = await pool.execute(
-          `SELECT id, name, code, business_type, category, spec_count, stock, cost_price,
-                  low_stock_threshold, price, image_url, updated_at
+          `SELECT id, name, code, item_number, item_number_managed, business_type, category, spec_count, stock, cost_price,
+                  low_stock_threshold, price, status, image_url, updated_at
            FROM admin_products
            WHERE store_id = ? AND status = '销售中'
            ORDER BY sort_order, id`,

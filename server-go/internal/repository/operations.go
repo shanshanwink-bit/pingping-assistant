@@ -11,14 +11,23 @@ import (
 
 func scanProduct(row rowScanner) (domain.Product, error) {
 	var item domain.Product
-	err := row.Scan(&item.ID, &item.Name, &item.Code, &item.BusinessType, &item.Category,
+	var itemNumber sql.NullString
+	err := row.Scan(&item.ID, &item.Name, &item.Code, &itemNumber, &item.ItemNumberManaged, &item.BusinessType, &item.Category,
 		&item.SpecCount, &item.Stock, &item.CostPrice, &item.LowStockThreshold, &item.Location,
 		&item.Price, &item.Status, &item.UpdatedAt, &item.Image)
+	item.ItemNumber = itemNumber.String
 	return item, err
 }
 
+func nullableItemNumber(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
+}
+
 func (r *AdminRepository) Product(ctx context.Context, storeID string, id int64) (domain.Product, error) {
-	return scanProduct(r.db.QueryRowContext(ctx, `SELECT id,name,code,business_type,category,spec_count,stock,cost_price,
+	return scanProduct(r.db.QueryRowContext(ctx, `SELECT id,name,code,item_number,item_number_managed,business_type,category,spec_count,stock,cost_price,
 		low_stock_threshold,location,price,status,DATE_FORMAT(updated_at,'%Y-%m-%d %H:%i'),image_url
 		FROM admin_products WHERE store_id=? AND id=?`, storeID, id))
 }
@@ -60,8 +69,8 @@ func (r *AdminRepository) CreateProduct(ctx context.Context, actor domain.Accoun
 		return 0, err
 	}
 	result, err := tx.ExecContext(ctx, `INSERT INTO admin_products
-		(store_id,name,code,business_type,category,spec_count,stock,cost_price,low_stock_threshold,location,price,status,image_url)
-		VALUES (?,?,?,?,?,?,0,?,?,?,?,?,?)`, actor.StoreID, input.Name, input.Code, input.BusinessType, input.Category, input.SpecCount,
+		(store_id,name,code,item_number,item_number_managed,business_type,category,spec_count,stock,cost_price,low_stock_threshold,location,price,status,image_url)
+		VALUES (?,?,?,?,?,?,?,?,0,?,?,?,?,?,?)`, actor.StoreID, input.Name, input.Code, nullableItemNumber(input.ItemNumber), input.ItemNumberManaged, input.BusinessType, input.Category, input.SpecCount,
 		input.CostPrice, input.LowStockThreshold, input.Location, input.Price, input.Status, input.Image)
 	if err != nil {
 		return 0, err
@@ -82,9 +91,9 @@ func (r *AdminRepository) UpdateProduct(ctx context.Context, actor domain.Accoun
 		return err
 	}
 	defer tx.Rollback()
-	result, err := tx.ExecContext(ctx, `UPDATE admin_products SET name=?,business_type=?,category=?,spec_count=?,
+	result, err := tx.ExecContext(ctx, `UPDATE admin_products SET name=?,item_number=?,item_number_managed=?,business_type=?,category=?,spec_count=?,
 		cost_price=?,low_stock_threshold=?,location=?,price=?,status=?,image_url=? WHERE store_id=? AND id=?`,
-		input.Name, input.BusinessType, input.Category, input.SpecCount, input.CostPrice, input.LowStockThreshold, input.Location,
+		input.Name, nullableItemNumber(input.ItemNumber), input.ItemNumberManaged, input.BusinessType, input.Category, input.SpecCount, input.CostPrice, input.LowStockThreshold, input.Location,
 		input.Price, input.Status, input.Image, actor.StoreID, id)
 	if err != nil {
 		return err

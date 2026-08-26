@@ -6,6 +6,8 @@ function normalizeBusinessType(value) {
   return value === '化妆品' || value === 'cosmetics' ? 'cosmetics' : 'clothing'
 }
 
+const { normalizeProductStatus } = require('./product-status')
+
 function reconcileSpecs(product, targetStock) {
   const specs = Array.isArray(product && product.specs) && product.specs.length
     ? clone(product.specs)
@@ -26,17 +28,23 @@ function mergeCatalogProduct(item, existing) {
   const base = existing || {
     id: `admin-product-${adminProductId}`,
     itemNumber: '',
+    status: '销售中',
     supplier: '',
     brand: '',
     expiryDate: '',
     createdAt: item.updatedAt || ''
   }
+  const incomingItemNumber = String(item.itemNumber || '').trim()
+  const itemNumberManaged = item.itemNumberManaged === true
   return {
     ...clone(base),
     source: 'admin',
     adminProductId,
     name: String(item.name || '').trim(),
     code: String(item.code || ''),
+    itemNumber: incomingItemNumber || (itemNumberManaged ? '' : String(base.itemNumber || '').trim()),
+    itemNumberManaged,
+    status: normalizeProductStatus(item.status || base.status),
     businessType: normalizeBusinessType(item.businessType),
     category: String(item.category || ''),
     specCount: Math.max(1, Number(item.specCount || 1)),
@@ -67,4 +75,4 @@ function mergeCatalogProducts(existingProducts, catalogItems) {
   return [...merged, ...legacy]
 }
 
-module.exports = { mergeCatalogProduct, mergeCatalogProducts, normalizeBusinessType }
+module.exports = { mergeCatalogProduct, mergeCatalogProducts, normalizeBusinessType, normalizeProductStatus }

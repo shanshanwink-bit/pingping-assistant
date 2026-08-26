@@ -135,7 +135,7 @@ func (r *AdminRepository) Dashboard(ctx context.Context, storeID string) (domain
 
 func (r *AdminRepository) Products(ctx context.Context, storeID string) ([]domain.Product, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id, name, code, business_type, category, spec_count, stock, cost_price,
+		SELECT id, name, code, item_number, item_number_managed, business_type, category, spec_count, stock, cost_price,
 		       low_stock_threshold, location, price, status,
 		       DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i'), image_url
 		FROM admin_products WHERE store_id = ? ORDER BY sort_order, id`, storeID)
@@ -145,10 +145,8 @@ func (r *AdminRepository) Products(ctx context.Context, storeID string) ([]domai
 	defer rows.Close()
 	items := make([]domain.Product, 0)
 	for rows.Next() {
-		var item domain.Product
-		if err := rows.Scan(&item.ID, &item.Name, &item.Code, &item.BusinessType, &item.Category,
-			&item.SpecCount, &item.Stock, &item.CostPrice, &item.LowStockThreshold, &item.Location,
-			&item.Price, &item.Status, &item.UpdatedAt, &item.Image); err != nil {
+		item, err := scanProduct(rows)
+		if err != nil {
 			return nil, err
 		}
 		items = append(items, item)

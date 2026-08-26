@@ -7,6 +7,7 @@ const apiProduct = catalogProduct({
   id: 6,
   name: '水200ml',
   code: '0002',
+  item_number: ' HZ-200 ',
   business_type: '化妆品',
   category: '护肤',
   spec_count: 2,
@@ -14,12 +15,16 @@ const apiProduct = catalogProduct({
   cost_price: '12.50',
   low_stock_threshold: 3,
   price: '29.90',
+  status: '销售中',
   image_url: '/admin-api/v1/product-images/test.webp',
   updated_at: '2026-08-18 18:00:00'
 })
 
 assert.strictEqual(apiProduct.costPrice, 12.5)
 assert.strictEqual(apiProduct.stock, 9)
+assert.strictEqual(apiProduct.itemNumber, 'HZ-200')
+assert.strictEqual(apiProduct.itemNumberManaged, false)
+assert.strictEqual(apiProduct.status, '销售中')
 
 const legacy = {
   id: 'legacy-1', code: '0002', name: '旧名称', businessType: 'cosmetics', category: '护肤',
@@ -38,6 +43,8 @@ assert.strictEqual(merged.length, 2)
 assert.strictEqual(merged[0].id, 'legacy-1', '按编号接管历史商品时应保留本地 ID 和流水关联')
 assert.strictEqual(merged[0].adminProductId, 6)
 assert.strictEqual(merged[0].name, '水200ml')
+assert.strictEqual(merged[0].itemNumber, 'HZ-200')
+assert.strictEqual(merged[0].status, '销售中')
 assert.strictEqual(merged[0].businessType, 'cosmetics')
 assert.strictEqual(merged[0].specCount, 2)
 assert.strictEqual(merged[0].specs.reduce((sum, item) => sum + item.stock, 0), 9)
@@ -50,6 +57,32 @@ const created = mergeCatalogProducts([], [{ ...apiProduct, id: 7, code: '0003', 
 assert.strictEqual(created.id, 'admin-product-7')
 assert.strictEqual(created.specs[0].stock, 4)
 assert.strictEqual(created.totalStock, undefined)
+
+const legacyItemNumber = mergeCatalogProducts([{
+  ...legacy,
+  itemNumber: 'LOCAL-136',
+  status: '缺货'
+}], [{ ...apiProduct, itemNumber: '', status: undefined }])[0]
+assert.strictEqual(legacyItemNumber.itemNumber, 'LOCAL-136', '后台新列为空时不应破坏旧 JSON 已有货号')
+assert.strictEqual(legacyItemNumber.status, '缺货', '缺货状态应兼容为启用状态并原样保存')
+
+const explicitlyCleared = mergeCatalogProducts([{
+  ...legacy,
+  itemNumber: 'WRONG-136'
+}], [{ ...apiProduct, itemNumber: '', itemNumberManaged: true }])[0]
+assert.strictEqual(explicitlyCleared.itemNumber, '', '用户显式清空后必须清除旧 JSON 货号')
+assert.strictEqual(explicitlyCleared.code, '0002', '清空货号不得改变内部流水号')
+
+const legacyWithoutFields = mergeCatalogProducts([], [{
+  ...apiProduct,
+  id: 8,
+  code: '0008',
+  itemNumber: undefined,
+  status: undefined
+}])[0]
+assert.strictEqual(legacyWithoutFields.itemNumber, '', '老商品没有货号时不得从 code 伪造')
+assert.strictEqual(legacyWithoutFields.status, '销售中', '老 JSON 缺少 status 时按启用处理')
+assert.strictEqual(legacyWithoutFields.code, '0008')
 
 const formalOrigin = 'https://shanshanwink.online/pingping-api/v1'
 assert.strictEqual(
