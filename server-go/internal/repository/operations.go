@@ -102,40 +102,17 @@ func (r *AdminRepository) UpdateProduct(ctx context.Context, actor domain.Accoun
 	if changed == 0 {
 		return sql.ErrNoRows
 	}
-	if err = audit(ctx, tx, actor, "编辑商品", "商品", fmt.Sprint(id), input.Name, "", "normal"); err != nil {
-		return err
+	action, risk := input.AuditAction, input.AuditRisk
+	if action == "" {
+		action = "编辑商品"
 	}
-	return tx.Commit()
-}
-
-func (r *AdminRepository) DeleteProduct(ctx context.Context, actor domain.Account, id int64) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+	if risk == "" {
+		risk = "normal"
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO admin_audit_logs
+		(store_id,operator_id,operator_name,operator_role,action,object_type,object_id,summary,reason,risk_level,request_id)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?)`, actor.StoreID, actor.ID, actor.DisplayName, actor.RoleName, action, "商品", fmt.Sprint(id), input.AuditSummary, "", risk, input.RequestID)
 	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	var name string
-	var stock int
-	err = tx.QueryRowContext(ctx, `SELECT name,stock FROM admin_products
-		WHERE store_id=? AND id=? FOR UPDATE`, actor.StoreID, id).Scan(&name, &stock)
-	if err != nil {
-		return err
-	}
-	inventoryResult, err := tx.ExecContext(ctx, `DELETE FROM admin_inventory_operations WHERE store_id=? AND product_id=?`, actor.StoreID, id)
-	if err != nil {
-		return err
-	}
-	salesResult, err := tx.ExecContext(ctx, `DELETE FROM admin_sales WHERE store_id=? AND product_id=?`, actor.StoreID, id)
-	if err != nil {
-		return err
-	}
-	if _, err = tx.ExecContext(ctx, `DELETE FROM admin_products WHERE store_id=? AND id=?`, actor.StoreID, id); err != nil {
-		return err
-	}
-	inventoryCount, _ := inventoryResult.RowsAffected()
-	salesCount, _ := salesResult.RowsAffected()
-	summary := fmt.Sprintf("%s（库存 %d，删除库存流水 %d 条、销售记录 %d 条）", name, stock, inventoryCount, salesCount)
-	if err = audit(ctx, tx, actor, "永久删除商品及关联记录", "商品", fmt.Sprint(id), summary, "", "danger"); err != nil {
 		return err
 	}
 	return tx.Commit()

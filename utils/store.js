@@ -34,35 +34,26 @@ function createSeedState() {
 }
 
 function migrateProductCodes(products) {
-  const ordered = products
-    .map((product, index) => ({ product, index }))
-    .sort((a, b) => {
-      const timeCompare = String(a.product.createdAt || '').localeCompare(String(b.product.createdAt || ''))
-      return timeCompare || b.index - a.index
-    })
-  ordered.forEach((entry, index) => {
-    entry.product.code = String(index + 1).padStart(4, '0')
-    if (entry.product.itemNumber === undefined) entry.product.itemNumber = ''
+  const usedNumbers = new Set(products
+    .map(product => /^\d+$/.test(String(product.code || '')) ? Number(product.code) : 0)
+    .filter(number => number > 0))
+  let next = usedNumbers.size ? Math.max(...usedNumbers) + 1 : 1
+  products.forEach(product => {
+    if (!/^\d+$/.test(String(product.code || '')) || Number(product.code) <= 0) {
+      while (usedNumbers.has(next)) next += 1
+      product.code = String(next).padStart(4, '0')
+      usedNumbers.add(next)
+      next += 1
+    }
+    if (product.itemNumber === undefined) product.itemNumber = ''
   })
-  return ordered.length + 1
+  return next
 }
 
 function nextNumberFromProducts(products) {
   const numbers = products
     .map(item => /^\d+$/.test(String(item.code || '')) ? Number(item.code) : 0)
   return (numbers.length ? Math.max(...numbers) : 0) + 1
-}
-
-function compactProductCodes(products) {
-  products
-    .slice()
-    .sort((a, b) => {
-      const codeCompare = Number(a.code || 0) - Number(b.code || 0)
-      return codeCompare || String(a.createdAt || '').localeCompare(String(b.createdAt || ''))
-    })
-    .forEach((product, index) => {
-      product.code = String(index + 1).padStart(4, '0')
-    })
 }
 
 function ensureState() {
@@ -122,7 +113,11 @@ function ensureState() {
       }
     })
     if (state.version !== 10) {
-      state.nextProductNumber = migrateProductCodes(state.products)
+      const migratedNextNumber = migrateProductCodes(state.products)
+      state.nextProductNumber = Math.max(
+        Number.isInteger(state.nextProductNumber) && state.nextProductNumber > 0 ? state.nextProductNumber : 1,
+        migratedNextNumber
+      )
       state.version = 10
       migrated = true
     }
@@ -156,7 +151,13 @@ function replaceStateFromServer(serverState, user) {
     throw new Error('服务器库存数据格式不正确')
   }
   const state = clone(serverState)
-  if (state.version !== 10) state.nextProductNumber = migrateProductCodes(state.products)
+  if (state.version !== 10) {
+    const migratedNextNumber = migrateProductCodes(state.products)
+    state.nextProductNumber = Math.max(
+      Number.isInteger(state.nextProductNumber) && state.nextProductNumber > 0 ? state.nextProductNumber : 1,
+      migratedNextNumber
+    )
+  }
   state.version = 10
   state.products.forEach(product => {
     if (product.itemNumber === undefined) product.itemNumber = ''
@@ -194,7 +195,10 @@ function replaceStateFromServer(serverState, user) {
 function replaceProductsFromCatalog(items) {
   const state = ensureState()
   state.products = mergeCatalogProducts(state.products, items)
-  state.nextProductNumber = nextNumberFromProducts(state.products)
+  state.nextProductNumber = Math.max(
+    Number.isInteger(state.nextProductNumber) ? state.nextProductNumber : 1,
+    nextNumberFromProducts(state.products)
+  )
   wx.setStorageSync(STORAGE_KEY, state)
   return clone(state.products)
 }
@@ -356,7 +360,9 @@ function takeNextCode(state) {
       .map(item => /^\d+$/.test(String(item.code || '')) ? Number(item.code) : 0)
       .filter(number => number > 0)
   )
-  let next = 1
+  let next = Number.isInteger(state.nextProductNumber) && state.nextProductNumber > 0
+    ? state.nextProductNumber
+    : nextNumberFromProducts(state.products)
   while (usedNumbers.has(next)) next += 1
   state.nextProductNumber = next + 1
   return String(next).padStart(4, '0')
@@ -414,17 +420,6 @@ function addProduct(payload) {
   }
   saveState(state)
   return withStock(product)
-}
-
-function removeProduct(id) {
-  const state = getState()
-  const index = state.products.findIndex(item => item.id === id)
-  if (index < 0) throw new Error('商品不存在')
-  const removed = state.products.splice(index, 1)[0]
-  compactProductCodes(state.products)
-  state.nextProductNumber = state.products.length + 1
-  saveState(state)
-  return withStock(removed)
 }
 
 function updateProduct(id, payload) {
@@ -961,7 +956,6 @@ module.exports = {
   productStock,
   addProduct,
   updateProduct,
-  removeProduct,
   addPurchase,
   addSale,
   addManualProfit,

@@ -130,14 +130,24 @@ func (s *AdminService) UpdateProduct(ctx context.Context, actor domain.Account, 
 	}
 	return item, err
 }
-func (s *AdminService) DeleteProduct(ctx context.Context, actor domain.Account, id int64) error {
-	if !Can(actor, "products.edit") {
-		return ErrForbidden
+func (s *AdminService) ProductDeletionEligibility(ctx context.Context, actor domain.Account, id int64) (domain.ProductDeletionEligibility, error) {
+	if actor.Role != "owner" {
+		return domain.ProductDeletionEligibility{}, ErrProductDeleteForbidden
 	}
 	if id <= 0 {
+		return domain.ProductDeletionEligibility{}, ErrInvalidInput
+	}
+	return s.repo.ProductDeletionEligibility(ctx, actor.StoreID, id)
+}
+
+func (s *AdminService) DeleteProduct(ctx context.Context, actor domain.Account, input domain.ProductDeletionInput) error {
+	if actor.Role != "owner" {
+		return ErrProductDeleteForbidden
+	}
+	if input.ProductID <= 0 {
 		return ErrInvalidInput
 	}
-	return s.repo.DeleteProduct(ctx, actor, id)
+	return s.repo.DeleteProduct(ctx, actor, input)
 }
 func (s *AdminService) Inventory(ctx context.Context, actor domain.Account) ([]domain.Product, []domain.InventoryOperation, error) {
 	if !Can(actor, "inventory.view") {

@@ -32,13 +32,22 @@ test('navigation only exposes pages granted to the current account', async () =>
   assert.deepEqual(owner.map(item => item.id), ['dashboard', 'products', 'inventory', 'sales', 'analysis', 'employees', 'audit'])
 })
 
-test('write buttons are permission-gated and permanent product delete is absent', () => {
+test('write buttons are permission-gated and safe product deletion is owner-only', () => {
   const products = adminSource('views/ProductsView.vue')
   const employees = adminSource('views/EmployeesView.vue')
   assert.match(products, /v-if="canEdit"/)
   assert.match(products, /v-if="canExport"/)
   assert.match(employees, /v-if="canManage"/)
-  assert.doesNotMatch(products, /deleteProduct|永久删除|@click="remove\(p\)"/)
+  assert.match(products, /currentUser\?\.role===['"]owner['"]/)
+  assert.match(products, /deletionEligibility\[p\.id\]\?\.canDelete/)
+  assert.match(products, /该商品尚无经营记录，将永久删除商品档案，此操作不可撤销。/)
+  assert.doesNotMatch(products, /强制删除/)
+})
+
+test('product editing preserves itemNumber while code remains server-controlled', () => {
+  const products = adminSource('views/ProductsView.vue')
+  assert.match(products, /blank=.*itemNumber:''/)
+  assert.match(products, /filter\(key=>key!==['"]code['"]\)/)
 })
 
 test('inventory and dashboard use truthful aggregate stock semantics', () => {
@@ -57,7 +66,9 @@ test('duplicate operating entry points and template placeholders are absent', ()
   assert.doesNotMatch(sales, /新增销售|记一笔收支|createSale|createFinanceEntry/)
   assert.doesNotMatch(employees, /TEAM & ACCESS|NEW ACCOUNT|ACCESS SETTINGS/)
   assert.equal(fs.existsSync(path.join(project, 'admin', 'src', 'views', 'SettingsView.vue')), false)
-  assert.doesNotMatch(api, /deleteProduct|adjustStock|createSale|reverseSale|createFinanceEntry|reverseFinanceEntry|saveSetting/)
+  assert.match(api, /productDeletionEligibility/)
+  assert.match(api, /deleteProduct/)
+  assert.doesNotMatch(api, /adjustStock|createSale|reverseSale|createFinanceEntry|reverseFinanceEntry|saveSetting/)
 })
 
 test('WeChat package excludes non-miniprogram workspaces and retired proposal CSS', () => {

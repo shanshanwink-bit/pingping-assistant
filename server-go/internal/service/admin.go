@@ -16,12 +16,13 @@ import (
 )
 
 var (
-	ErrUnauthorized       = errors.New("登录已过期，请重新登录")
-	ErrForbidden          = errors.New("当前账号没有此操作权限")
-	ErrInvalidCredentials = errInvalidPassword
-	ErrInvalidInput       = errors.New("提交内容不完整或格式不正确")
-	ErrOwnerProtected     = errors.New("店主账号不能被降级或停用")
-	ErrSelfProtected      = errors.New("不能删除当前登录账号")
+	ErrUnauthorized           = errors.New("登录已过期，请重新登录")
+	ErrForbidden              = errors.New("当前账号没有此操作权限")
+	ErrInvalidCredentials     = errInvalidPassword
+	ErrInvalidInput           = errors.New("提交内容不完整或格式不正确")
+	ErrOwnerProtected         = errors.New("店主账号不能被降级或停用")
+	ErrSelfProtected          = errors.New("不能删除当前登录账号")
+	ErrProductDeleteForbidden = errors.New("仅店主可以永久删除商品")
 )
 
 type Repository interface {
@@ -36,7 +37,8 @@ type Repository interface {
 	Product(context.Context, string, int64) (domain.Product, error)
 	CreateProduct(context.Context, domain.Account, domain.ProductInput) (int64, error)
 	UpdateProduct(context.Context, domain.Account, int64, domain.ProductInput) error
-	DeleteProduct(context.Context, domain.Account, int64) error
+	ProductDeletionEligibility(context.Context, string, int64) (domain.ProductDeletionEligibility, error)
+	DeleteProduct(context.Context, domain.Account, domain.ProductDeletionInput) error
 	InventoryOperations(context.Context, string) ([]domain.InventoryOperation, error)
 	AdjustStock(context.Context, domain.Account, domain.StockAdjustmentInput) error
 	Sales(context.Context, string) ([]domain.Sale, error)

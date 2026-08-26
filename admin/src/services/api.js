@@ -43,7 +43,12 @@ async function request(path, options = {}) {
       session.clear()
       window.dispatchEvent(new CustomEvent('admin:unauthorized'))
     }
-    throw new Error(payload.message || '请求失败，请稍后重试')
+    const error = new Error(payload.message || '请求失败，请稍后重试')
+    error.statusCode = response.status
+    error.code = payload.code || ''
+    error.reasons = Array.isArray(payload.reasons) ? payload.reasons : []
+    error.requestId = payload.requestId || ''
+    throw error
   }
   return payload
 }
@@ -68,6 +73,8 @@ export const api = {
   },
   createProduct: input => request('/products', { method: 'POST', body: JSON.stringify(input) }).then(formalProductResult),
   updateProduct: (id, input) => request(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(input) }).then(formalProductResult),
+  productDeletionEligibility: id => request(`/products/${id}/deletion-eligibility`),
+  deleteProduct: id => request(`/products/${id}`, { method: 'DELETE' }),
   inventory: () => request('/inventory'),
   salesFinance: () => request('/sales-finance'),
   analysis: filters => request(`/analysis?${new URLSearchParams(filters).toString()}`),

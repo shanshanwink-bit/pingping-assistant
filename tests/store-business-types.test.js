@@ -9,6 +9,11 @@ global.wx = {
 
 const store = require('../utils/store')
 const storageKey = 'clothing_inventory_state_v2'
+function applyServerApprovedProductRemoval(id) {
+  const nextState = store.getState()
+  nextState.products = nextState.products.filter(product => product.id !== id)
+  store.replaceStateFromServer(nextState, { id: 'u1', name: '店主', account: 'owner' })
+}
 
 storage[storageKey] = {
   version: 5,
@@ -23,6 +28,7 @@ store.ensureState()
 assert.strictEqual(storage[storageKey].version, 10)
 assert.strictEqual(storage[storageKey].products[0].code, '0001')
 assert.strictEqual(storage[storageKey].products[0].itemNumber, '')
+assert.strictEqual(storage[storageKey].products[0].status, '销售中')
 assert.strictEqual(storage[storageKey].nextProductNumber, 2)
 assert.deepStrictEqual(storage[storageKey].suppliers, [])
 assert.deepStrictEqual(storage[storageKey].brands, [])
@@ -50,6 +56,7 @@ const cosmetic = store.addProduct({
 assert.strictEqual(clothing.code, '0001')
 assert.strictEqual(cosmetic.code, '0002')
 assert.strictEqual(clothing.itemNumber, 'A-136')
+assert.strictEqual(clothing.status, '销售中')
 
 const editedClothing = store.updateProduct(clothing.id, {
   name: '针织衫升级款', category: '上衣', itemNumber: 'A-136', image: '/images/knit.png', costPrice: 20,
@@ -89,6 +96,18 @@ assert.strictEqual(store.getSaleRecords('clothing').length, 0)
 assert.strictEqual(store.getSaleRecords('cosmetics').length, 1)
 
 store.addSale({ productId: clothing.id, specId: clothing.specs[0].id, quantity: 1, unitPrice: 50 })
+const historicalSale = JSON.parse(JSON.stringify(store.getSaleRecords('clothing')[0]))
+const productBeforeArchiveSafeEdit = store.getProduct(clothing.id)
+store.updateProduct(clothing.id, {
+  ...productBeforeArchiveSafeEdit,
+  name: '针织衫最终名称',
+  itemNumber: 'A-NEW',
+  specs: productBeforeArchiveSafeEdit.specs
+})
+const historicalSaleAfterEdit = store.getSaleRecords('clothing')[0]
+assert.strictEqual(historicalSaleAfterEdit.productName, historicalSale.productName)
+assert.strictEqual(historicalSaleAfterEdit.totalAmount, historicalSale.totalAmount)
+assert.strictEqual(historicalSaleAfterEdit.unitPrice, historicalSale.unitPrice)
 const now = new Date()
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 store.addManualProfit({ businessType: 'clothing', date: today, amount: 10, note: '服装补录' })
@@ -120,21 +139,48 @@ const laterCosmetic = store.addProduct({
   specs: [{ color: '正红', size: '标准规格', stock: 0 }]
 })
 assert.strictEqual(laterCosmetic.code, '0003')
-store.removeProduct(cosmetic.id)
+assert.strictEqual(store.removeProduct, undefined)
+applyServerApprovedProductRemoval(cosmetic.id)
 assert.strictEqual(store.getProduct(clothing.id).code, '0001')
-assert.strictEqual(store.getProduct(laterCosmetic.id).code, '0002')
+assert.strictEqual(store.getProduct(laterCosmetic.id).code, '0003')
 const replacementCosmetic = store.addProduct({
   businessType: 'cosmetics', name: '面霜', category: '护肤', image: '', costPrice: 30,
   salePrice: 80, supplier: '', brand: '', batchNumber: '', expiryDate: '',
   location: '', lowStockThreshold: 1,
   specs: [{ color: '通用', size: '50ml', stock: 2 }]
 })
-assert.strictEqual(replacementCosmetic.code, '0003')
-store.removeProduct(laterCosmetic.id)
-store.removeProduct(replacementCosmetic.id)
+assert.strictEqual(replacementCosmetic.code, '0004')
+applyServerApprovedProductRemoval(laterCosmetic.id)
+applyServerApprovedProductRemoval(replacementCosmetic.id)
 assert.strictEqual(store.getProducts('cosmetics').length, 0)
 assert.strictEqual(store.getSaleRecords('cosmetics').length, 1)
 assert.strictEqual(store.getSummary().recentOperations.some(item => item.productId === cosmetic.id), false)
 assert.strictEqual(store.getSummary('cosmetics').recentOperations.length, 0)
+
+const productAfterDeletion = store.addProduct({
+  businessType: 'cosmetics', name: '粉饼', category: '彩妆', image: '', costPrice: 30,
+  salePrice: 80, supplier: '', brand: '', batchNumber: '', expiryDate: '',
+  location: '', lowStockThreshold: 1,
+  specs: [{ color: '自然色', size: '标准规格', stock: 0 }]
+})
+assert.strictEqual(productAfterDeletion.code, '0005')
+applyServerApprovedProductRemoval(productAfterDeletion.id)
+
+storage[storageKey].products.find(item => item.id === clothing.id).status = '已停用'
+assert.strictEqual(store.getProducts('clothing').some(item => item.id === clothing.id), false)
+assert.strictEqual(store.getAllProducts('clothing').some(item => item.id === clothing.id), true)
+assert.strictEqual(store.getProduct(clothing.id).status, '已停用')
+assert.throws(() => store.addSale({
+  productId: clothing.id, specId: clothing.specs[0].id, quantity: 1, unitPrice: 50
+}), /商品已停用/)
+assert.throws(() => store.addPurchase({
+  productId: clothing.id, specId: clothing.specs[0].id, quantity: 1, unitCost: 20
+}), /商品已停用/)
+assert.throws(() => store.updateStock({
+  type: 'inbound', productId: clothing.id, specId: clothing.specs[0].id, quantity: 1, reason: '测试'
+}), /商品已停用/)
+
+storage[storageKey].products.find(item => item.id === clothing.id).status = '缺货'
+assert.strictEqual(store.getProducts('clothing').some(item => item.id === clothing.id), true)
 
 console.log('business type inventory isolation: PASS')

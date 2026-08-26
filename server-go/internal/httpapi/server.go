@@ -37,6 +37,7 @@ func NewServer(address string, db *sql.DB, adminService *service.AdminService, i
 	mux.Handle("GET "+images.URLPrefix+"/", api.serveProductImages())
 	mux.HandleFunc("POST /admin-api/v1/products", api.withAuth(api.createProduct))
 	mux.HandleFunc("PATCH /admin-api/v1/products/{id}", api.withAuth(api.updateProduct))
+	mux.HandleFunc("GET /admin-api/v1/products/{id}/deletion-eligibility", api.withAuth(api.productDeletionEligibility))
 	mux.HandleFunc("DELETE /admin-api/v1/products/{id}", api.withAuth(api.deleteProduct))
 	mux.HandleFunc("GET /admin-api/v1/inventory", api.withAuth(api.inventory))
 	mux.HandleFunc("POST /admin-api/v1/inventory/adjustments", api.withAuth(api.adjustStock))
@@ -79,6 +80,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 func writeError(w http.ResponseWriter, r *http.Request, err error) {
 	status := http.StatusInternalServerError
 	message := "服务暂时不可用，请稍后重试"
+	code := ""
 	switch {
 	case errors.Is(err, service.ErrUnauthorized):
 		status, message = http.StatusUnauthorized, err.Error()
@@ -86,18 +88,39 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) {
 		status, message = http.StatusUnauthorized, err.Error()
 	case errors.Is(err, service.ErrForbidden):
 		status, message = http.StatusForbidden, err.Error()
+	case errors.Is(err, service.ErrProductDeleteForbidden):
+		status, message, code = http.StatusForbidden, err.Error(), "PRODUCT_DELETE_FORBIDDEN"
 	case errors.Is(err, service.ErrInvalidInput), errors.Is(err, service.ErrOwnerProtected), errors.Is(err, service.ErrSelfProtected):
 		status, message = http.StatusBadRequest, err.Error()
+	case errors.Is(err, domain.ErrProductInactive):
+		status, message, code = http.StatusConflict, domain.ErrProductInactive.Error(), "PRODUCT_INACTIVE"
+	case errors.Is(err, domain.ErrProductHasHistory):
+		status, message, code = http.StatusConflict, err.Error(), "PRODUCT_HAS_HISTORY"
 	case errors.Is(err, domain.ErrBusinessRule):
 		status, message = http.StatusConflict, strings.TrimPrefix(err.Error(), domain.ErrBusinessRule.Error()+": ")
 	case errors.Is(err, sql.ErrNoRows):
 		status, message = http.StatusNotFound, "没有找到对应记录"
 	}
-	requestID := r.Header.Get("X-Request-Id")
-	if requestID == "" {
-		requestID = strconv.FormatInt(time.Now().UnixNano(), 36)
+	requestID := requestID(r)
+	payload := map[string]any{"ok": false, "message": message, "requestId": requestID}
+	if code != "" {
+		payload["code"] = code
 	}
-	writeJSON(w, status, map[string]any{"ok": false, "message": message, "requestId": requestID})
+	if reasons := domain.ProductDeletionReasons(err); len(reasons) > 0 {
+		payload["reasons"] = reasons
+	}
+	writeJSON(w, status, payload)
+}
+
+func requestID(r *http.Request) string {
+	value := strings.TrimSpace(r.Header.Get("X-Request-Id"))
+	if value == "" {
+		value = strconv.FormatInt(time.Now().UnixNano(), 36)
+	}
+	if len(value) > 80 {
+		return value[:80]
+	}
+	return value
 }
 
 func decodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {
@@ -247,6 +270,7 @@ func (a *API) updateProduct(w http.ResponseWriter, r *http.Request, account doma
 	if !decodeJSON(w, r, &input) {
 		return
 	}
+	input.RequestID = requestID(r)
 	item, err := a.service.UpdateProduct(r.Context(), account, id, input)
 	if err != nil {
 		writeError(w, r, err)
@@ -260,11 +284,28 @@ func (a *API) deleteProduct(w http.ResponseWriter, r *http.Request, account doma
 		writeError(w, r, err)
 		return
 	}
-	if err = a.service.DeleteProduct(r.Context(), account, id); err != nil {
+	if err = a.service.DeleteProduct(r.Context(), account, domain.ProductDeletionInput{
+		ProductID: id,
+		RequestID: requestID(r),
+	}); err != nil {
 		writeError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (a *API) productDeletionEligibility(w http.ResponseWriter, r *http.Request, account domain.Account, _ string) {
+	id, err := pathID(r)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	result, err := a.service.ProductDeletionEligibility(r.Context(), account, id)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
 }
 func (a *API) inventory(w http.ResponseWriter, r *http.Request, account domain.Account, _ string) {
 	items, ops, err := a.service.Inventory(r.Context(), account)
