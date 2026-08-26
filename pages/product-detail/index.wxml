@@ -83,7 +83,11 @@
       <view wx:else class="section-empty">暂未设置规格</view>
     </block>
 
-    <view class="detail-readonly-note">商品资料与复杂编辑请前往网页管理后台</view>
+    <view wx:if="{{canEditProduct}}" class="detail-management-row">
+      <view><text>商品资料</text><view>名称、货号和基础资料</view></view>
+      <button disabled="{{isNavigating}}" bindtap="openEdit">编辑商品</button>
+    </view>
+    <view wx:else class="detail-readonly-note">商品资料请联系店主在管理后台维护</view>
 
     <view wx:if="{{!product.isActive}}" class="detail-inactive-note">该商品已停用，仅可查看历史资料；请先在网页后台重新启用后再卖货或拿货。</view>
 

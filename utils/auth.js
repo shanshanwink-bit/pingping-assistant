@@ -17,6 +17,10 @@ function getCurrentUser() {
   }
 }
 
+function canEditProducts() {
+  return getCurrentUser()?.role === 'owner'
+}
+
 async function loginWithWechat(profile) {
   const identity = await serverSync.wechatLogin(profile)
   const remoteUser = identity.user
@@ -41,6 +45,7 @@ function logout() {
 }
 
 module.exports = {
+  canEditProducts,
   getCurrentUser,
   loginWithWechat,
   logout

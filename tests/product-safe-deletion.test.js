@@ -76,10 +76,22 @@ test('Web only shows qualified owner deletion with a second confirmation', () =>
   const api = source('admin/src/services/api.js')
   assert.match(api, /products\/\$\{id\}\/deletion-eligibility/)
   assert.match(api, /method: 'DELETE'/)
-  assert.match(view, /currentUser\?\.role===['"]owner['"]/)
+  assert.match(view, /currentUser\?\.role===['"]owner['"]/) // owner only
   assert.match(view, /deletionEligibility\[p\.id\]\?\.canDelete/)
-  assert.match(view, /window\.confirm\('该商品尚无经营记录，将永久删除商品档案，此操作不可撤销。'\)/)
+  assert.match(view, /该商品尚无经营记录，将永久删除商品档案，此操作不可撤销。/)
+  assert.match(view, /pendingConfirm\.kind===['"]delete['"]\?['"]永久删除['"]/) // unified dialog
+  assert.match(view, /不可永久删除，可停用/)
+  assert.doesNotMatch(view, /window\.confirm/)
   assert.doesNotMatch(view, /强制删除/)
+})
+
+test('Web deactivation uses the same business confirmation from list and edit form', () => {
+  const view = source('admin/src/views/ProductsView.vue')
+  assert.match(view, /停用后，该商品将不再参与卖货、拿货和普通 AI 匹配，历史记录仍会保留。确定停用吗？/)
+  assert.match(view, /kind:['"]inactive['"]/)
+  assert.match(view, /kind:['"]save-inactive['"]/)
+  assert.match(view, /确认停用/)
+  assert.match(view, /if\(isProductActiveStatus\(p\.status\)\)/)
 })
 
 test('deletion audit records identifiers, operator context, request and eligibility summary', () => {

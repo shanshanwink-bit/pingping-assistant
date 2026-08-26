@@ -67,6 +67,13 @@
 .expiry-status { text-align: right; font-size: 23rpx; font-weight: 500; }
 .section-empty { padding: 52rpx 24rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; color: var(--color-text-secondary); background: var(--color-surface); text-align: center; font-size: 24rpx; }
 .detail-readonly-note { margin: 34rpx 10rpx 0; color: var(--color-text-muted); text-align: center; font-size: 21rpx; line-height: 1.6; }
+.detail-management-row { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; margin-top: 34rpx; padding: 20rpx 22rpx; border: 1rpx solid var(--color-border); border-radius: 22rpx; background: var(--color-surface); }
+.detail-management-row > view { min-width: 0; }
+.detail-management-row > view > text { color: var(--color-text); font-size: 24rpx; font-weight: 600; }
+.detail-management-row > view > view { margin-top: 5rpx; color: var(--color-text-secondary); font-size: 20rpx; }
+.detail-management-row button { flex: 0 0 auto; height: 60rpx; margin: 0; padding: 0 22rpx; border: 1rpx solid var(--color-brand); border-radius: 16rpx; color: var(--color-brand); background: #fff; font-size: 23rpx; line-height: 60rpx; }
+.detail-management-row button::after { border: 0; }
+.detail-management-row button[disabled] { opacity: .52; }
 .detail-inactive-note { margin: 24rpx 0 0; padding: 22rpx 24rpx; border: 1rpx solid #f0c9ce; border-radius: 22rpx; color: var(--color-danger); background: #fbf0f1; font-size: 23rpx; line-height: 1.6; }
 
 .detail-action-bar { display: grid; position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; grid-template-columns: 1fr 1.35fr; gap: 18rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--color-border); background: rgba(255, 255, 255, .97); }

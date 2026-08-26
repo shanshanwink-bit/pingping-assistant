@@ -1,5 +1,6 @@
 const store = require('../../utils/store')
 const catalogSync = require('../../utils/catalog-sync')
+const auth = require('../../utils/auth')
 const { buildProductDetail } = require('../../utils/product-display')
 
 function decoded(value) {
@@ -18,11 +19,12 @@ Page({
     isLoading: true,
     isRefreshing: false,
     loadError: false,
-    isNavigating: false
+    isNavigating: false,
+    canEditProduct: false
   },
 
   onLoad(options) {
-    this.setData({ productId: decoded(options.id) })
+    this.setData({ productId: decoded(options.id), canEditProduct: auth.canEditProducts() })
   },
 
   onShow() {
@@ -84,6 +86,18 @@ Page({
 
   openPurchase() {
     this.openOperation('/pages/purchase-form/index')
+  },
+
+  openEdit() {
+    if (!this.data.product || !this.data.canEditProduct || this.data.isNavigating) return
+    this.setData({ isNavigating: true })
+    wx.navigateTo({
+      url: `/pages/product-form/index?id=${encodeURIComponent(this.data.product.id)}`,
+      fail: () => {
+        this.setData({ isNavigating: false })
+        wx.showToast({ title: '编辑页面暂时无法打开', icon: 'none' })
+      }
+    })
   },
 
   openOperation(path) {

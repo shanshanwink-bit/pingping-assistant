@@ -97,6 +97,11 @@ async function run() {
   assert.strictEqual(user.openid, 'openid_test_owner')
   assert.strictEqual(user.name, '水水店主')
   assert.strictEqual(user.storeId, 'store-test')
+  assert.strictEqual(auth.canEditProducts(), true)
+  const ownerSession = storage.shuishui_wechat_session_v1
+  storage.shuishui_wechat_session_v1 = { ...ownerSession, role: 'admin' }
+  assert.strictEqual(auth.canEditProducts(), false)
+  storage.shuishui_wechat_session_v1 = ownerSession
   store.setCurrentUser(user)
   await serverSync.pushState(store.getState())
   assert.strictEqual(serverState.products[0].id, product.id)

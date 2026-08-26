@@ -48,7 +48,7 @@
 
       <view wx:else class="candidate-list">
         <view class="candidate-card" wx:for="{{candidates}}" wx:key="id">
-          <view class="candidate-top"><view><view class="candidate-name">{{item.name}}</view><view class="candidate-identifiers"><text>{{item.itemNumberText}}</text><text wx:if="{{item.internalCodeText}}">{{item.internalCodeText}}</text></view><view class="candidate-tags"><text>{{item.typeLabel}}</text><text>{{item.category}}</text></view></view><view class="candidate-price">{{item.salePriceText}}</view></view>
+          <view class="candidate-top"><view><view class="candidate-identifiers"><text class="candidate-item-number">{{item.itemNumberText}}</text><text wx:if="{{item.internalCodeText}}" class="candidate-internal-code">{{item.internalCodeText}}</text></view><view class="candidate-name">{{item.name}}</view><view class="candidate-tags"><text>{{item.typeLabel}}</text><text>{{item.category}}</text></view></view><view class="candidate-price">{{item.salePriceText}}</view></view>
           <view class="candidate-spec">{{item.specText}}</view>
           <view class="candidate-metrics">
             <view><text>当前库存</text><view>{{item.stockText}} 件</view></view>

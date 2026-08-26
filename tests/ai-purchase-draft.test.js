@@ -313,6 +313,8 @@ test('草稿页面只通过批量采购提交，不调用单笔拿货或卖货�
   assert.match(template, /内部流水号 \{\{candidate\.code\}\}/)
   assert.doesNotMatch(template, /candidate\.code\s*\|\|\s*candidate\.itemNumber/)
   assert.match(template, /本阶段不会自动创建商品/)
+  assert.match(template, /找到已停用商品，请先重新启用或选择其他商品。/)
+  assert.match(template, /停用商品不会直接参与入库。/)
   assert.doesNotMatch(template, /作为新商品|建档并入库|createNew/)
   assert.doesNotMatch(template, /确认草稿（暂不入库）/)
 })

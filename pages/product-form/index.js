@@ -1,5 +1,6 @@
 const store = require('../../utils/store')
 const serverSync = require('../../utils/server-sync')
+const auth = require('../../utils/auth')
 
 const COLOR_PRESETS = ['黑色', '白色', '灰色', '米白色', '杏色', '蓝色', '粉色', '红色', '绿色', '卡其色']
 const LETTER_SIZE_PRESETS = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '均码']
@@ -68,6 +69,10 @@ Page({
 
   onLoad(options) {
     const settings = options || {}
+    if (settings.id && !auth.canEditProducts()) {
+      wx.showToast({ title: '仅店主可编辑商品资料', icon: 'none' })
+      return setTimeout(() => wx.navigateBack(), 500)
+    }
     const product = settings.id ? store.getProduct(settings.id) : null
     if (settings.id && !product) {
       wx.showToast({ title: '商品不存在', icon: 'none' })
