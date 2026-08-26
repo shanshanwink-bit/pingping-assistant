@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"math"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"pingping-assistant-admin/internal/domain"
 )
@@ -16,13 +19,58 @@ type SettingInput = domain.SettingInput
 
 func normalizeProduct(input *ProductInput) bool {
 	input.Name = strings.TrimSpace(input.Name)
+	input.ItemNumber = strings.TrimSpace(input.ItemNumber)
 	input.Category, input.Location, input.Image = strings.TrimSpace(input.Category), strings.TrimSpace(input.Location), strings.TrimSpace(input.Image)
 	if input.Status == "" {
-		input.Status = "销售中"
+		input.Status = domain.ProductStatusSelling
 	}
-	return input.Name != "" && (input.BusinessType == "服装" || input.BusinessType == "化妆品") &&
-		input.Category != "" && input.SpecCount >= 0 && input.CostPrice >= 0 && input.Price >= 0 && input.LowStockThreshold >= 0 &&
-		(input.Status == "销售中" || input.Status == "已停用")
+	return input.Name != "" && utf8.RuneCountInString(input.Name) <= 120 &&
+		utf8.RuneCountInString(input.ItemNumber) <= 80 &&
+		(input.BusinessType == "服装" || input.BusinessType == "化妆品") &&
+		input.Category != "" && utf8.RuneCountInString(input.Category) <= 40 && input.SpecCount >= 0 &&
+		validProductMoney(input.CostPrice) && validProductMoney(input.Price) && input.LowStockThreshold >= 0 &&
+		domain.IsEditableProductStatus(input.Status)
+}
+
+func validProductMoney(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && value >= 0 && value <= 9999999999.99
+}
+
+func auditText(value string) string {
+	runes := []rune(strings.TrimSpace(value))
+	if len(runes) > 32 {
+		return string(runes[:32]) + "…"
+	}
+	if len(runes) == 0 {
+		return "未填写"
+	}
+	return string(runes)
+}
+
+func productEditSummary(current domain.Product, input ProductInput) string {
+	changes := make([]string, 0, 6)
+	if current.Name != input.Name {
+		changes = append(changes, fmt.Sprintf("name: %s → %s", auditText(current.Name), auditText(input.Name)))
+	}
+	if current.ItemNumber != input.ItemNumber {
+		changes = append(changes, fmt.Sprintf("itemNumber: %s → %s", auditText(current.ItemNumber), auditText(input.ItemNumber)))
+	}
+	if current.Category != input.Category {
+		changes = append(changes, fmt.Sprintf("category: %s → %s", auditText(current.Category), auditText(input.Category)))
+	}
+	if current.Price != input.Price {
+		changes = append(changes, fmt.Sprintf("salePrice: %.2f → %.2f", current.Price, input.Price))
+	}
+	if current.CostPrice != input.CostPrice {
+		changes = append(changes, fmt.Sprintf("costPrice: %.2f → %.2f", current.CostPrice, input.CostPrice))
+	}
+	if current.Status != input.Status {
+		changes = append(changes, fmt.Sprintf("status: %s → %s", auditText(current.Status), auditText(input.Status)))
+	}
+	if len(changes) == 0 {
+		return "关键字段无变化"
+	}
+	return strings.Join(changes, "；")
 }
 
 func (s *AdminService) CreateProduct(ctx context.Context, actor domain.Account, input ProductInput) (domain.Product, error) {
@@ -36,6 +84,7 @@ func (s *AdminService) CreateProduct(ctx context.Context, actor domain.Account, 
 	if !Can(actor, "finance.cost.view") {
 		input.CostPrice = 0
 	}
+	input.ItemNumberManaged = true
 	id, err := s.repo.CreateProduct(ctx, actor, input)
 	if err != nil {
 		return domain.Product{}, err
@@ -60,6 +109,17 @@ func (s *AdminService) UpdateProduct(ctx context.Context, actor domain.Account, 
 	input.Code = current.Code
 	if !Can(actor, "finance.cost.view") {
 		input.CostPrice = current.CostPrice
+	}
+	input.ItemNumberManaged = current.ItemNumberManaged || input.ItemNumber != current.ItemNumber
+	input.AuditSummary = productEditSummary(current, input)
+	input.AuditAction, input.AuditRisk = "编辑商品", "normal"
+	if current.Status != input.Status {
+		input.AuditRisk = "warning"
+		if domain.IsProductActiveStatus(input.Status) {
+			input.AuditAction = "重新启用商品"
+		} else {
+			input.AuditAction = "停用商品"
+		}
 	}
 	if err := s.repo.UpdateProduct(ctx, actor, id, input); err != nil {
 		return domain.Product{}, err

@@ -164,6 +164,17 @@ async function pullProducts() {
   return { items: Array.isArray(result.items) ? result.items : [] }
 }
 
+async function updateProductProfile(adminProductId, input) {
+  const id = Number(adminProductId)
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error('后台商品关联不正确')
+  const result = await request({
+    path: `/catalog/products/${id}`,
+    method: 'PATCH',
+    data: clone(input)
+  })
+  return result.item || null
+}
+
 async function pullFeatures() {
   const result = await request({ path: '/features' })
   return { aiImageRecognition: result.aiImageRecognition === true }
@@ -324,6 +335,7 @@ module.exports = {
   wechatLogin,
   pullState,
   pullProducts,
+  updateProductProfile,
   pullFeatures,
   recognizeProductImage,
   recognizePurchaseOrderImage,

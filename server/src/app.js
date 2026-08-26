@@ -4,6 +4,8 @@ const { applyPurchase, applySale, stockOf } = require('./business-transactions')
 const { createAiRecognitionService } = require('./ai-recognition')
 const { createPurchaseOrderRecognitionService } = require('./purchase-order-recognition')
 const { commitPurchaseBatch } = require('./batch-purchases')
+const { updateProductProfile } = require('./product-profile')
+const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
 
 class HttpError extends Error {
   constructor(statusCode, message, details) {
@@ -192,6 +194,7 @@ function catalogProduct(row) {
     costPrice: Number(row.cost_price || 0),
     lowStockThreshold: Number(row.low_stock_threshold || 0),
     price: Number(row.price || 0),
+    status: normalizeProductStatus(row.status),
     image: row.image_url || '',
     updatedAt: row.updated_at
   }
@@ -203,7 +206,7 @@ function corsHeaders(request, config) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Request-Id',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, OPTIONS',
     'Vary': 'Origin'
   }
 }
@@ -407,6 +410,15 @@ function createRequestHandler(pool, config, dependencies) {
           [membership.storeId]
         )
         sendJson(response, 200, { ok: true, items: rows.map(catalogProduct) }, headers)
+        return
+      }
+
+      const productProfileMatch = url.pathname.match(/^\/api\/v1\/catalog\/products\/(\d+)$/)
+      if (request.method === 'PATCH' && productProfileMatch) {
+        const membership = await requireMembership(request, pool, config)
+        const body = await readJson(request, config.bodyLimitBytes)
+        const item = await updateProductProfile(pool, membership, productProfileMatch[1], body, requestId)
+        sendJson(response, 200, { ok: true, item }, headers)
         return
       }
 

@@ -15,17 +15,17 @@
     <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
       <view class="picker-value">{{form.category}} <text>⌄</text></view>
     </picker>
-    <view class="hint">分类仅用于筛选，不再影响商品编号。</view>
+    <view class="hint">分类仅用于筛选，不影响系统内部流水号。</view>
   </view>
 
   <view class="code-management-card {{quickCreate ? 'compact' : ''}}">
     <view class="system-code-row">
-      <view><text>商品编号</text><view>{{systemCode || '保存后自动生成'}}</view></view>
-      <text>系统管理号</text>
+      <view><text>内部流水号</text><view>{{systemCode || '保存后自动生成'}}</view></view>
+      <text>由系统管理，不可修改</text>
     </view>
     <view class="field item-number-field" wx:if="{{!quickCreate}}">
       <label class="field-label">货号（选填）</label>
-      <input class="input" placeholder="可填写吊牌、厂家货号或条形码" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
+      <input class="input" maxlength="80" placeholder="可填写吊牌、进货单或供应商货号" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
     </view>
   </view>
 
@@ -44,7 +44,7 @@
     <view class="optional-section-title" wx:if="{{quickCreate}}">选填资料</view>
     <view class="field" wx:if="{{quickCreate}}">
       <label class="field-label">货号（选填）</label>
-      <input class="input" placeholder="可填写吊牌、厂家货号或条形码" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
+      <input class="input" maxlength="80" placeholder="可填写吊牌、进货单或供应商货号" data-field="itemNumber" value="{{form.itemNumber}}" bindinput="onInput" />
     </view>
     <view class="image-field">
       <image wx:if="{{form.image}}" class="photo-preview" src="{{form.image}}" mode="aspectFill" bindtap="chooseImage" />
@@ -174,5 +174,5 @@
     <text>{{isCosmetics ? '通用 / 标准规格' : '通用 / 均码'}} · 库存 0 件，创建后可随时修改</text>
   </view>
 
-  <button class="primary-button save-button" bindtap="submit">{{saveButtonText}}</button>
+  <button class="primary-button save-button" bindtap="submit" disabled="{{saving}}">{{saving ? '保存中…' : saveButtonText}}</button>
 </view>

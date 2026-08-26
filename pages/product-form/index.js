@@ -1,4 +1,5 @@
 const store = require('../../utils/store')
+const serverSync = require('../../utils/server-sync')
 
 const COLOR_PRESETS = ['黑色', '白色', '灰色', '米白色', '杏色', '蓝色', '粉色', '红色', '绿色', '卡其色']
 const LETTER_SIZE_PRESETS = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '均码']
@@ -25,6 +26,7 @@ Page({
     showSpecs: true,
     showAdvanced: true,
     editing: false,
+    saving: false,
     saveButtonText: '先创建商品',
     productId: '',
     systemCode: '',
@@ -284,13 +286,16 @@ Page({
     this.setData({ 'form.image': '' })
   },
 
-  submit() {
+  async submit() {
+    if (this.data.saving) return
     const form = this.data.form
+    const itemNumber = String(form.itemNumber || '').trim()
     const enteredColors = splitValues(form.colors)
     const quickWithoutSpecs = this.data.quickCreate && !this.data.showSpecs
     const colors = enteredColors.length ? enteredColors : ['通用']
     const sizes = quickWithoutSpecs ? [this.data.isCosmetics ? '标准规格' : '均码'] : splitValues(form.sizes)
     if (!form.name.trim()) return wx.showToast({ title: `请填写${this.data.nameLabel}`, icon: 'none' })
+    if ([...itemNumber].length > 80) return wx.showToast({ title: '货号最多 80 个字符', icon: 'none' })
     if (!sizes.length) return wx.showToast({ title: `请至少填写一个${this.data.sizeLabel}`, icon: 'none' })
     if (colors.length * sizes.length > 40) return wx.showToast({ title: '一次最多生成 40 个规格', icon: 'none' })
 
@@ -310,16 +315,35 @@ Page({
       stock: item.stock === '' ? 0 : Number(item.stock)
     }))
 
-    const product = this.data.editing
-      ? store.updateProduct(this.data.productId, { ...form, businessType: this.data.businessType, specs })
-      : store.addProduct({ ...form, businessType: this.data.businessType, specs })
-    wx.showToast({ title: this.data.editing ? '商品已更新' : `已创建 ${product.code}`, icon: 'success' })
-    setTimeout(() => {
-      if (this.data.quickCreate) {
-        wx.redirectTo({ url: `/pages/product-detail/index?id=${product.id}` })
-      } else {
-        wx.navigateBack()
+    const normalizedForm = { ...form, itemNumber }
+    this.setData({ saving: true })
+    try {
+      const existing = this.data.editing ? store.getProduct(this.data.productId) : null
+      if (existing && existing.adminProductId) {
+        await serverSync.updateProductProfile(existing.adminProductId, {
+          name: String(normalizedForm.name || '').trim(),
+          itemNumber,
+          category: normalizedForm.category,
+          salePrice: Number(normalizedForm.salePrice || 0),
+          costPrice: Number(normalizedForm.costPrice || 0),
+          status: existing.status || '销售中'
+        })
       }
-    }, 700)
+      const product = this.data.editing
+        ? store.updateProduct(this.data.productId, { ...normalizedForm, businessType: this.data.businessType, specs })
+        : store.addProduct({ ...normalizedForm, businessType: this.data.businessType, specs })
+      wx.showToast({ title: this.data.editing ? '商品已更新' : '商品已创建', icon: 'success' })
+      setTimeout(() => {
+        if (this.data.quickCreate) {
+          wx.redirectTo({ url: `/pages/product-detail/index?id=${product.id}` })
+        } else {
+          wx.navigateBack()
+        }
+      }, 700)
+    } catch (error) {
+      wx.showToast({ title: error.message || '商品保存失败', icon: 'none' })
+    } finally {
+      this.setData({ saving: false })
+    }
   }
 })
