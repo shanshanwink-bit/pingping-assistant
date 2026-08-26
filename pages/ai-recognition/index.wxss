@@ -43,6 +43,8 @@
 .candidate-card { padding: 24rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; background: var(--color-surface); }
 .candidate-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18rpx; }
 .candidate-name { font-size: 30rpx; font-weight: 600; }
+.candidate-identifiers { display: flex; flex-wrap: wrap; gap: 8rpx 14rpx; margin-top: 9rpx; color: var(--color-text-secondary); font-size: 21rpx; }
+.candidate-identifiers text+text { opacity: .78; }
 .candidate-tags { display: flex; gap: 10rpx; margin-top: 9rpx; color: var(--color-text-secondary); font-size: 21rpx; }
 .candidate-tags text+text { padding-left: 10rpx; border-left: 1rpx solid var(--color-border); }
 .candidate-price { flex: 0 0 auto; color: var(--color-brand); font-size: 30rpx; font-weight: 650; }

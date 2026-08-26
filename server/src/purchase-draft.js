@@ -4,6 +4,9 @@ const {
   matchProducts,
   normalizeText
 } = require('./product-matcher')
+const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
+
+const INACTIVE_MATCH_MESSAGE = '找到已停用商品，请先重新启用或选择其他商品。'
 
 class PurchaseDraftDataError extends Error {
   constructor(message) {
@@ -40,6 +43,7 @@ function purchasableProduct(product) {
     adminProductId: Number(product && product.adminProductId) || null,
     code: text(product && product.code),
     itemNumber: text(product && product.itemNumber),
+    status: normalizeProductStatus(product && product.status),
     name: text(product && product.name) || '未命名商品',
     businessType: product && product.businessType === 'cosmetics' ? 'cosmetics' : 'clothing',
     category: text(product && product.category),
@@ -61,11 +65,17 @@ function parseProducts(row) {
 
 async function loadPurchasableProducts(pool, storeId) {
   try {
-    const [rows] = await pool.execute(
-      'SELECT state FROM store_states WHERE store_id = ? LIMIT 1',
-      [storeId]
-    )
-    return parseProducts(Array.isArray(rows) ? rows[0] : null)
+    const [stateResult, adminResult] = await Promise.all([
+      pool.execute('SELECT state FROM store_states WHERE store_id = ? LIMIT 1', [storeId]),
+      pool.execute('SELECT id, code, status FROM admin_products WHERE store_id = ?', [storeId])
+    ])
+    const products = parseProducts(Array.isArray(stateResult[0]) ? stateResult[0][0] : null)
+    const adminRows = Array.isArray(adminResult[0]) ? adminResult[0] : []
+    return products.map(product => {
+      const admin = adminRows.find(row => Number(row.id) === Number(product.adminProductId)) ||
+        adminRows.find(row => text(row.code) && text(row.code) === product.code)
+      return admin ? { ...product, status: normalizeProductStatus(admin.status) } : product
+    })
   } catch (error) {
     if (error instanceof PurchaseDraftDataError) throw error
     throw new PurchaseDraftDataError('真实商品数据查询失败')
@@ -80,8 +90,9 @@ function recognitionForMatch(item) {
     productName: text(item && item.productName),
     brand: '',
     spec: text(item && item.spec),
-    visibleText: productCode ? [productCode] : [],
-    keywords: productCode ? [productCode] : [],
+    productCode,
+    visibleText: [],
+    keywords: [],
     confidence: Number.isFinite(confidence) ? confidence : 0
   }
 }
@@ -96,6 +107,7 @@ function matchProjection(product) {
     businessType: product.businessType,
     category: product.category,
     brand: product.brand,
+    status: product.status,
     specs: product.specs.map(spec => spec.label)
   }
 }
@@ -106,7 +118,10 @@ function publicCandidate(matched, products) {
   return {
     productId: source.id,
     name: source.name,
-    productCode: source.code || source.itemNumber,
+    itemNumber: source.itemNumber,
+    code: source.code,
+    productCode: source.itemNumber || source.code,
+    productCodeLabel: source.itemNumber ? '货号' : '内部流水号',
     businessType: source.businessType,
     matchScore: Number(matched.matchScore || 0),
     matchReasons: Array.isArray(matched.matchReasons) ? matched.matchReasons.slice() : [],
@@ -114,28 +129,9 @@ function publicCandidate(matched, products) {
   }
 }
 
-function matchPurchaseProducts(item, products) {
+function matchPurchaseProducts(item, products, options) {
   const vision = recognitionForMatch(item)
-  const identifier = normalizeText(item && item.productCode)
-  const exact = identifier ? products.filter(product => (
-    [product.code, product.itemNumber].map(normalizeText).filter(Boolean).includes(identifier)
-  )) : []
-  if (exact.length) {
-    const items = exact
-      .slice()
-      .sort((left, right) => left.name.localeCompare(right.name, 'zh-CN'))
-      .slice(0, 3)
-      .map(product => ({
-        ...matchProjection(product),
-        matchScore: 100,
-        matchReasons: ['商品编号一致']
-      }))
-    return {
-      matchType: exact.length === 1 && vision.confidence >= MIN_UNIQUE_CONFIDENCE ? 'unique' : 'candidates',
-      items
-    }
-  }
-  return matchProducts(vision, products.map(matchProjection))
+  return matchProducts(vision, products.map(matchProjection), options)
 }
 
 function exactSpecMatches(recognizedSpec, specs) {
@@ -172,7 +168,7 @@ function recognizedItem(item) {
 function itemIssues(productId, specId, recognized, candidates, originalIssues) {
   const issues = (Array.isArray(originalIssues) ? originalIssues : []).filter(issue => {
     if (issue === '行金额无法确认') return false
-    if (productId && issue === '商品名称或编号无法确认') return false
+    if (productId && ['商品名称或编号无法确认', '商品名称或货号无法确认'].includes(issue)) return false
     if (specId && issue === '规格无法确认') return false
     if (recognized.quantity !== null && issue === '数量无法确认') return false
     if (recognized.unitCost !== null && issue === '单价无法确认') return false
@@ -188,9 +184,40 @@ function itemIssues(productId, specId, recognized, candidates, originalIssues) {
   return Array.from(new Set(issues))
 }
 
-function draftItem(item, products) {
+function inactiveDraftItem(item, recognized, matched, inactiveProducts) {
+  const match = matched.items.map(candidate => publicCandidate(candidate, inactiveProducts)).filter(Boolean)[0]
+  if (!match) return null
+  return {
+    lineId: text(item && item.lineId),
+    recognized,
+    matchStatus: 'inactive_match',
+    productId: '',
+    specId: '',
+    quantity: recognized.quantity,
+    unitCost: recognized.unitCost,
+    candidates: [],
+    specCandidates: [],
+    inactiveMatch: {
+      name: match.name,
+      itemNumber: match.itemNumber,
+      code: match.code,
+      productCode: match.productCode,
+      productCodeLabel: match.productCodeLabel
+    },
+    requiresManual: true,
+    issues: [INACTIVE_MATCH_MESSAGE]
+  }
+}
+
+function draftItem(item, products, inactiveProducts) {
   const recognized = recognizedItem(item)
   const matched = matchPurchaseProducts(item, products)
+  if (matched.matchType === 'none' && inactiveProducts.length) {
+    const inactiveMatched = matchPurchaseProducts(item, inactiveProducts, { includeInactive: true })
+    if (inactiveMatched.matchType !== 'none') {
+      return inactiveDraftItem(item, recognized, inactiveMatched, inactiveProducts)
+    }
+  }
   const candidates = matched.items.map(candidate => publicCandidate(candidate, products)).filter(Boolean)
   const uniqueProduct = matched.matchType === 'unique' ? candidates[0] : null
   const spec = uniqueProduct ? selectedSpec(recognized.spec, uniqueProduct.specs) : null
@@ -200,7 +227,13 @@ function draftItem(item, products) {
   if (!productId) matchStatus = 'needs_product'
   else if (!specId) matchStatus = 'needs_spec'
   else if (recognized.quantity === null || recognized.unitCost === null) matchStatus = 'needs_values'
-  const issues = itemIssues(productId, specId, recognized, candidates, item && item.issues)
+  const issues = itemIssues(
+    productId,
+    specId,
+    recognized,
+    candidates,
+    item && item.issues
+  )
   return {
     lineId: text(item && item.lineId),
     recognized,
@@ -218,10 +251,12 @@ function draftItem(item, products) {
 
 function createPurchaseDraftFromProducts(recognition, products, draftId) {
   const items = Array.isArray(recognition && recognition.items) ? recognition.items : []
-  const availableProducts = Array.isArray(products) ? products.map(purchasableProduct).filter(product => product.id) : []
+  const allProducts = Array.isArray(products) ? products.map(purchasableProduct).filter(product => product.id) : []
+  const availableProducts = allProducts.filter(product => isProductActiveStatus(product.status))
+  const inactiveProducts = allProducts.filter(product => !isProductActiveStatus(product.status))
   return {
     draftId: text(draftId) || crypto.randomUUID(),
-    items: items.map(item => draftItem(item, availableProducts))
+    items: items.map(item => draftItem(item, availableProducts, inactiveProducts))
   }
 }
 
@@ -235,6 +270,7 @@ async function createPurchaseDraft(pool, storeId, recognition, dependencies) {
 
 module.exports = {
   MIN_UNIQUE_CONFIDENCE,
+  INACTIVE_MATCH_MESSAGE,
   PurchaseDraftDataError,
   createPurchaseDraft,
   createPurchaseDraftFromProducts,

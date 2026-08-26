@@ -28,6 +28,7 @@ function recognized(overrides) {
       productName: '清润爽肤水',
       productCode: '',
       spec: '100ml',
+      businessType: 'cosmetics',
       quantity: 5,
       unitCost: 60,
       lineTotal: 300,
@@ -42,7 +43,7 @@ function draft(input, products) {
   return createPurchaseDraftFromProducts(input, products, 'draft-test')
 }
 
-test('货号唯一匹配并使用真实商品和单规格 ID', () => {
+test('旧 code 兼容匹配并使用真实商品和单规格 ID', () => {
   const result = draft(recognized({
     productName: '',
     productCode: 'HZ001',
@@ -54,7 +55,7 @@ test('货号唯一匹配并使用真实商品和单规格 ID', () => {
   assert.equal(result.items[0].requiresManual, false)
 })
 
-test('商品编号可以与真实 itemNumber 完全匹配', () => {
+test('真实货号可以与 itemNumber 原值完全匹配', () => {
   const result = draft(recognized({
     productName: '',
     productCode: 'TONER100',
@@ -62,7 +63,28 @@ test('商品编号可以与真实 itemNumber 完全匹配', () => {
   }), [product({ code: 'SYS0001', itemNumber: 'TONER100' })])
   assert.equal(result.items[0].matchStatus, 'ready')
   assert.equal(result.items[0].productId, 'water-100')
-  assert.deepEqual(result.items[0].candidates[0].matchReasons, ['商品编号一致'])
+  assert.deepEqual(result.items[0].candidates[0].matchReasons, ['真实货号原值一致'])
+  assert.equal(result.items[0].candidates[0].productCode, 'TONER100')
+  assert.equal(result.items[0].candidates[0].productCodeLabel, '货号')
+})
+
+test('AI 入库真实货号优先于同值旧 code', () => {
+  const result = draft(recognized({ productName: '', productCode: 'TAG100', spec: '' }), [
+    product({ id: 'real-item', itemNumber: 'TAG100', code: 'SYS0001' }),
+    product({ id: 'legacy-code', itemNumber: '', code: 'TAG100' })
+  ])
+  assert.equal(result.items[0].matchStatus, 'ready')
+  assert.equal(result.items[0].productId, 'real-item')
+})
+
+test('AI 入库重复真实货号返回候选，不自动绑定', () => {
+  const result = draft(recognized({ productName: '', productCode: 'TAG100', spec: '' }), [
+    product({ id: 'first', itemNumber: 'TAG100' }),
+    product({ id: 'second', itemNumber: 'TAG100' })
+  ])
+  assert.equal(result.items[0].matchStatus, 'needs_product')
+  assert.equal(result.items[0].productId, '')
+  assert.equal(result.items[0].candidates.length, 2)
 })
 
 test('标准化后的商品名称可以唯一匹配', () => {
@@ -83,16 +105,19 @@ test('同名不同规格商品在规格不足时返回商品候选', () => {
   assert.equal(result.items[0].candidates.length, 2)
 })
 
-test('无匹配时不会创建商品或规格', () => {
+test('无匹配时保持不可确认且不生成新商品建议', () => {
   const products = [product()]
   const snapshot = JSON.parse(JSON.stringify(products))
   const result = draft(recognized({
     productName: '完全不存在的连衣裙',
     productCode: '',
-    spec: '黑色 L'
+    spec: '黑色 L',
+    businessType: 'clothing'
   }), products)
   assert.equal(result.items[0].matchStatus, 'needs_product')
   assert.equal(result.items[0].candidates.length, 0)
+  assert.equal(Object.hasOwn(result.items[0], 'createNew'), false)
+  assert.equal(Object.hasOwn(result.items[0], 'newProduct'), false)
   assert.equal(result.items[0].productId, '')
   assert.equal(result.items[0].specId, '')
   assert.deepEqual(products, snapshot)
@@ -141,12 +166,14 @@ test('门店商品加载严格按 storeId 只读查询', async () => {
     async execute(sql, args) {
       calls.push({ sql, args })
       assert.match(sql, /^SELECT\s/i)
-      return [[{ state: JSON.stringify({ products: [product()] }) }]]
+      if (sql.includes('store_states')) return [[{ state: JSON.stringify({ products: [product()] }) }]]
+      return [[{ id: 1, code: 'HZ001', status: '销售中' }]]
     }
   }
   const products = await loadPurchasableProducts(pool, 'store-a')
   assert.equal(products[0].id, 'water-100')
-  assert.deepEqual(calls[0].args, ['store-a'])
+  assert.equal(calls.length, 2)
+  calls.forEach(call => assert.deepEqual(call.args, ['store-a']))
 })
 
 test('草稿 ID 由服务端生成器提供且生成过程不写数据库', async () => {
@@ -154,7 +181,8 @@ test('草稿 ID 由服务端生成器提供且生成过程不写数据库', asyn
   const pool = {
     async execute(sql) {
       calls.push(sql)
-      return [[{ state: JSON.stringify({ products: [product()] }) }]]
+      if (sql.includes('store_states')) return [[{ state: JSON.stringify({ products: [product()] }) }]]
+      return [[{ id: 1, code: 'HZ001', status: '销售中' }]]
     }
   }
   const result = await createPurchaseDraft(pool, 'store-a', recognized(), {
@@ -162,6 +190,45 @@ test('草稿 ID 由服务端生成器提供且生成过程不写数据库', asyn
   })
   assert.equal(result.draftId, 'server-draft-id')
   assert.equal(result.items[0].matchStatus, 'ready')
-  assert.equal(calls.length, 1)
+  assert.equal(calls.length, 2)
   assert.ok(calls.every(sql => /^SELECT\s/i.test(sql)))
+})
+
+test('AI 入库读取以数据库当前状态覆盖陈旧 JSON 状态', async () => {
+  const pool = {
+    async execute(sql) {
+      if (sql.includes('store_states')) {
+        return [[{ state: JSON.stringify({ products: [product({ status: '销售中' })] }) }]]
+      }
+      return [[{ id: 1, code: 'HZ001', status: '已停用' }]]
+    }
+  }
+  const products = await loadPurchasableProducts(pool, 'store-a')
+  assert.equal(products[0].status, '已停用')
+  const result = createPurchaseDraftFromProducts(recognized({ productName: '', productCode: 'HZ001' }), products, 'draft-current-status')
+  assert.equal(result.items[0].matchStatus, 'inactive_match')
+})
+
+test('AI 入库仅命中停用货号时返回 inactive_match 且不绑定内部 ID', () => {
+  const result = draft(recognized({ productName: '', productCode: 'TONER100', spec: '' }), [
+    product({ status: '已停用' })
+  ])
+  const item = result.items[0]
+  assert.equal(item.matchStatus, 'inactive_match')
+  assert.equal(item.productId, '')
+  assert.equal(item.specId, '')
+  assert.equal(Object.hasOwn(item, 'createNew'), false)
+  assert.equal(item.candidates.length, 0)
+  assert.equal(item.inactiveMatch.name, '清润爽肤水')
+  assert.match(item.issues[0], /找到已停用商品/)
+})
+
+test('AI 入库优先启用商品，重新启用后恢复正常匹配', () => {
+  const inactive = product({ id: 'inactive', status: '已停用' })
+  const active = product({ id: 'active', status: '销售中' })
+  const activeFirst = draft(recognized({ productName: '', productCode: 'TONER100', spec: '' }), [inactive, active])
+  assert.equal(activeFirst.items[0].productId, 'active')
+  const enabled = draft(recognized({ productName: '', productCode: 'TONER100', spec: '' }), [{ ...inactive, status: '销售中' }])
+  assert.equal(enabled.items[0].matchStatus, 'ready')
+  assert.equal(enabled.items[0].productId, 'inactive')
 })

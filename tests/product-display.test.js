@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 const {
+  buildListProduct,
   buildProductDetail,
   filterProducts,
   formatMoney,
@@ -20,6 +21,14 @@ test('商品名称搜索', () => {
 test('货号和编号搜索', () => {
   assert.equal(filterProducts(products, { keyword: 'a1023', businessType: 'all' })[0].id, 'coat')
   assert.equal(filterProducts(products, { keyword: '0002', businessType: 'all' })[0].id, 'water')
+})
+
+test('货号为空时不把内部流水号回退显示成货号', () => {
+  const listItem = buildListProduct(products[1])
+  const detail = buildProductDetail({ ...products[1], specs: [] })
+  assert.equal(listItem.identifier, '')
+  assert.equal(detail.identifier, '')
+  assert.equal(listItem.code, '0002')
 })
 
 test('商品类型分类筛选使用真实字段', () => {
@@ -86,4 +95,12 @@ test('缺失字段不产生 undefined 或 NaN', () => {
 
 test('商品详情路由参数安全编码', () => {
   assert.equal(productDetailUrl('商品 1/2'), '/pages/product-detail/index?id=%E5%95%86%E5%93%81%201%2F2')
+})
+
+test('停用商品详情保留可见状态但标记为不可交易', () => {
+  const inactive = buildProductDetail({ id: 'old', name: '历史商品', status: '已停用', specs: [] })
+  assert.equal(inactive.status, '已停用')
+  assert.equal(inactive.isActive, false)
+  const legacy = buildProductDetail({ id: 'legacy', name: '历史缺货商品', status: '缺货', specs: [] })
+  assert.equal(legacy.isActive, true)
 })

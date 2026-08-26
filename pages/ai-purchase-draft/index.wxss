@@ -24,6 +24,7 @@
 .candidate-button.selected { border-color: #80b58d; background: #e8f5eb; color: #276b3a; }
 .candidate-button.compact { padding: 12rpx 16rpx; }
 .candidate-code { margin-left: 10rpx; color: var(--color-text-secondary); font-size: 20rpx; }
+.candidate-code.internal-code { opacity: .78; }
 .missing-copy { padding: 16rpx; border-radius: 16rpx; background: #faeaec; color: #a14651; font-size: 22rpx; }
 .value-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; }
 .value-field input { height: 76rpx; padding: 0 20rpx; border: 2rpx solid #e5e1dc; border-radius: 18rpx; background: #faf9f7; font-size: 25rpx; }
@@ -50,3 +51,6 @@
 .success-actions button::after { border: 0; }
 .outline-action { border: 2rpx solid #8e3655; background: #fff; color: #8e3655; }
 .primary-action { background: #8e3655; color: #fff; }
+.inactive-match-note { margin: 20rpx 0; padding: 22rpx 24rpx; border: 1rpx solid #f0c9ce; border-radius: 20rpx; color: var(--color-danger); background: #fbf0f1; font-size: 23rpx; line-height: 1.6; }
+.inactive-match-note view { font-weight: 650; }
+.inactive-match-note text { display: block; margin-top: 6rpx; }

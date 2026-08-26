@@ -32,6 +32,12 @@ function submitErrorView(error) {
       text: `${message || '该批次已被不同内容使用'}。库存未因本次提交发生变化，请重新识别后核对。`
     }
   }
+  if (statusCode === 409 && code === 'PRODUCT_INACTIVE') {
+    return {
+      title: '商品已停用',
+      text: `${message || '商品已停用，请先重新启用'}。整批事务已回滚，库存和采购记录均未修改。`
+    }
+  }
   if (!statusCode) {
     return {
       title: '网络连接失败',

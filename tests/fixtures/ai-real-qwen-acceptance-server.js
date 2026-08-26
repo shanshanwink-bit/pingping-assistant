@@ -10,18 +10,21 @@ const PORT = 3101
 const STORE_ID = 'local-ai-acceptance-store'
 const USER_ID = 'local-ai-acceptance-user'
 const ALLOWED_VISION_FIELDS = [
-  'brand', 'category', 'confidence', 'keywords', 'productName', 'spec', 'visibleText'
+  'brand', 'category', 'confidence', 'keywords', 'productCode', 'productName', 'spec', 'visibleText'
 ]
 
 const productRow = {
   id: 1,
   name: '水润修护精华液',
   code: 'HZ001',
+  item_number: null,
+  item_number_managed: 0,
   business_type: 'cosmetics',
   category: '护肤',
   spec_count: 1,
   stock: 3,
-  price: 100
+  price: 100,
+  status: '销售中'
 }
 
 const state = {

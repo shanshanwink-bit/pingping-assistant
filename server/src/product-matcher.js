@@ -2,6 +2,14 @@ const MIN_CANDIDATE_SCORE = 28
 const UNIQUE_MATCH_SCORE = 55
 const UNIQUE_MATCH_GAP = 15
 const MIN_UNIQUE_CONFIDENCE = 0.65
+const MATCH_PRIORITY = Object.freeze({
+  ocr: 1,
+  legacyCode: 2,
+  identity: 3,
+  normalizedItemNumber: 4,
+  rawItemNumber: 5
+})
+const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
 
 class RecognitionDataError extends Error {
   constructor(message) {
@@ -106,7 +114,8 @@ function businessProduct(row, stateProduct, purchases) {
     businessType: businessType(row.business_type || local.businessType),
     category: text(row.category || local.category),
     brand: text(local.brand),
-    itemNumber: text(local.itemNumber),
+    itemNumber: text(row.item_number) || (Boolean(row.item_number_managed) ? '' : text(local.itemNumber)),
+    status: normalizeProductStatus(row.status || local.status),
     specs: specLabels(local, row.spec_count),
     salePrice: knownSalePrice(row.price !== undefined ? row.price : local.salePrice),
     stock: row.stock !== undefined ? safeStock(row.stock) : stockOf(local),
@@ -123,7 +132,8 @@ function stateOnlyProduct(product, purchases) {
     category: product.category,
     spec_count: Array.isArray(product.specs) ? product.specs.length : 0,
     price: product.salePrice,
-    stock: stockOf(product)
+    stock: stockOf(product),
+    status: product.status
   }, product, purchases)
 }
 
@@ -131,9 +141,9 @@ async function loadBusinessProducts(pool, storeId) {
   try {
     const [adminResult, stateResult] = await Promise.all([
       pool.execute(
-        `SELECT id,name,code,business_type,category,spec_count,stock,price
+        `SELECT id,name,code,item_number,item_number_managed,business_type,category,spec_count,stock,price,status
          FROM admin_products
-         WHERE store_id = ? AND status IN ('销售中','缺货')
+         WHERE store_id = ?
          ORDER BY sort_order,id`,
         [storeId]
       ),
@@ -142,13 +152,17 @@ async function loadBusinessProducts(pool, storeId) {
     const adminRows = Array.isArray(adminResult[0]) ? adminResult[0] : []
     const state = parsedState(Array.isArray(stateResult[0]) ? stateResult[0][0] : null)
     const matchedStateIds = new Set()
-    const products = adminRows.map(row => {
+    const products = []
+    adminRows.forEach(row => {
       const local = stateProductFor(row, state.products)
       if (local) matchedStateIds.add(text(local.id))
-      return businessProduct(row, local, state.purchases)
+      const product = businessProduct(row, local, state.purchases)
+      if (isProductActiveStatus(product.status)) products.push(product)
     })
     state.products.forEach(product => {
-      if (!matchedStateIds.has(text(product.id))) products.push(stateOnlyProduct(product, state.purchases))
+      if (!matchedStateIds.has(text(product.id)) && isProductActiveStatus(product.status)) {
+        products.push(stateOnlyProduct(product, state.purchases))
+      }
     })
     return products
   } catch (error) {
@@ -166,20 +180,11 @@ function sharedCharacterRatio(left, right) {
   return overlap / Math.min(a.size, b.size)
 }
 
-function scoreProduct(vision, product) {
+function identityScore(vision, product) {
   const name = normalizeText(product.name)
-  const code = normalizeText(product.code)
   const brand = normalizeText(product.brand)
-  const searchable = normalizeText([
-    product.name, product.code, product.itemNumber, product.category, product.brand, ...(product.specs || [])
-  ].join(' '))
-  const terms = Array.from(new Set(
-    [vision.productName, vision.brand, vision.spec, ...(vision.visibleText || []), ...(vision.keywords || [])]
-      .map(normalizeText).filter(Boolean)
-  ))
   let score = 0
   const reasons = []
-  if (code && terms.includes(code)) { score += 60; reasons.push('货号文字一致') }
   const visionName = normalizeText(vision.productName)
   if (visionName && visionName === name) { score += 55; reasons.push('商品名称一致') }
   else if (visionName && Math.min(visionName.length, name.length) >= 2 && (visionName.includes(name) || name.includes(visionName))) {
@@ -189,40 +194,98 @@ function scoreProduct(vision, product) {
     if (ratio >= 0.5) { score += 20; reasons.push('品名特征相近') }
     else if (ratio >= 0.25) score += 10
   }
-  let termScore = 0
-  terms.forEach(term => {
-    if (term.length >= 2 && searchable.includes(term)) termScore += 12
-  })
-  if (termScore) { score += Math.min(36, termScore); reasons.push('包装文字或规格匹配') }
   if (brand && normalizeText(vision.brand) === brand) { score += 18; reasons.push('品牌一致') }
+  const visionSpec = normalizeText(vision.spec)
+  const specs = (product.specs || []).map(normalizeText).filter(Boolean)
+  if (visionSpec && specs.some(spec => spec === visionSpec || spec.includes(visionSpec))) {
+    score += 16
+    reasons.push('包装文字或规格匹配')
+  }
   if (vision.category !== 'unknown' && vision.category === product.businessType) {
     score += 8; reasons.push('商品类型一致')
   }
-  return { product, score: Math.min(100, score), reasons: reasons.slice(0, 3) }
+  return { score, reasons }
+}
+
+function ocrScore(vision, product) {
+  const searchable = normalizeText([
+    product.name, product.itemNumber, product.category, product.brand, ...(product.specs || [])
+  ].join(' '))
+  const recognizedSpec = normalizeText(vision.spec)
+  const terms = Array.from(new Set(
+    [...(Array.isArray(vision.visibleText) ? vision.visibleText : []), ...(Array.isArray(vision.keywords) ? vision.keywords : [])]
+      .map(normalizeText).filter(term => term.length >= 2 && term !== recognizedSpec)
+  ))
+  const matches = terms.filter(term => searchable.includes(term)).length
+  if (!matches) return { score: 0, reasons: [] }
+  return { score: Math.min(36, matches * 12), reasons: ['包装文字或规格匹配'] }
+}
+
+function scoreProduct(vision, product) {
+  const productCode = text(vision && vision.productCode)
+  const itemNumber = text(product && product.itemNumber)
+  if (productCode && itemNumber && productCode === itemNumber) {
+    return { product, priority: MATCH_PRIORITY.rawItemNumber, score: 100, reasons: ['真实货号原值一致'] }
+  }
+  if (normalizeText(productCode) && normalizeText(productCode) === normalizeText(itemNumber)) {
+    return { product, priority: MATCH_PRIORITY.normalizedItemNumber, score: 96, reasons: ['真实货号标准化一致'] }
+  }
+
+  const identity = identityScore(vision, product)
+  const ocr = ocrScore(vision, product)
+  if (identity.score >= MIN_CANDIDATE_SCORE) {
+    return {
+      product,
+      priority: MATCH_PRIORITY.identity,
+      score: Math.min(100, identity.score + ocr.score),
+      reasons: Array.from(new Set([...identity.reasons, ...ocr.reasons])).slice(0, 3)
+    }
+  }
+
+  const legacyCode = normalizeText(product && product.code)
+  if (normalizeText(productCode) && legacyCode === normalizeText(productCode)) {
+    return { product, priority: MATCH_PRIORITY.legacyCode, score: 60, reasons: ['内部流水号兼容一致'] }
+  }
+
+  const fuzzyScore = identity.score + ocr.score
+  return {
+    product,
+    priority: MATCH_PRIORITY.ocr,
+    score: Math.min(100, fuzzyScore),
+    reasons: Array.from(new Set([...identity.reasons, ...ocr.reasons])).slice(0, 3)
+  }
 }
 
 function publicCandidate(item) {
   return { ...item.product, matchScore: item.score, matchReasons: item.reasons }
 }
 
-function matchProducts(vision, products) {
+function matchProducts(vision, products, options) {
+  const includeInactive = Boolean(options && options.includeInactive)
   const ranked = (Array.isArray(products) ? products : [])
+    .filter(product => includeInactive || isProductActiveStatus(product && product.status))
     .map(product => scoreProduct(vision, product))
     .filter(item => item.score >= MIN_CANDIDATE_SCORE)
-    .sort((a, b) => b.score - a.score || a.product.name.localeCompare(b.product.name, 'zh-CN'))
+    .sort((a, b) => b.priority - a.priority || b.score - a.score || a.product.name.localeCompare(b.product.name, 'zh-CN'))
   if (!ranked.length) return { matchType: 'none', items: [] }
   const first = ranked[0]
-  const gap = first.score - (ranked[1] ? ranked[1].score : 0)
+  const itemNumberMatches = ranked.filter(item => item.priority >= MATCH_PRIORITY.normalizedItemNumber)
+  const duplicateItemNumber = first.priority >= MATCH_PRIORITY.normalizedItemNumber && itemNumberMatches.length > 1
+  const tier = duplicateItemNumber
+    ? itemNumberMatches
+    : ranked.filter(item => item.priority === first.priority)
+  const gap = first.score - (tier[1] ? tier[1].score : 0)
   if (Number(vision.confidence) >= MIN_UNIQUE_CONFIDENCE &&
-      first.score >= UNIQUE_MATCH_SCORE && (!ranked[1] || gap >= UNIQUE_MATCH_GAP)) {
+      !duplicateItemNumber && first.score >= UNIQUE_MATCH_SCORE && (!tier[1] || gap >= UNIQUE_MATCH_GAP)) {
     return { matchType: 'unique', items: [publicCandidate(first)] }
   }
-  return { matchType: 'candidates', items: ranked.slice(0, 3).map(publicCandidate) }
+  return { matchType: 'candidates', items: tier.slice(0, 3).map(publicCandidate) }
 }
 
 module.exports = {
   MIN_CANDIDATE_SCORE,
   MIN_UNIQUE_CONFIDENCE,
+  MATCH_PRIORITY,
   UNIQUE_MATCH_GAP,
   UNIQUE_MATCH_SCORE,
   RecognitionDataError,

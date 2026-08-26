@@ -2,7 +2,7 @@ const assert = require('node:assert/strict')
 const { Readable } = require('node:stream')
 const { test } = require('node:test')
 const { detectImageMime, readImageUpload } = require('../server/src/image-upload')
-const { createQwenVisionClient, parseJsonContent, validateVisionResult } = require('../server/src/qwen-vision')
+const { SYSTEM_PROMPT, createQwenVisionClient, parseJsonContent, validateVisionResult } = require('../server/src/qwen-vision')
 const { validateSelectedImage } = require('../utils/ai-image')
 
 function jpegBuffer(size) {
@@ -70,12 +70,13 @@ test('正常 AI JSON 会转换为受控视觉特征', async () => {
   const client = createQwenVisionClient(clientConfig(), async (url, options) => {
     requestBody = JSON.parse(options.body)
     return responseWith(JSON.stringify({
-      category: 'cosmetics', productName: '爽肤水', brand: '', spec: '100ml',
+      category: 'cosmetics', productName: '爽肤水', brand: '', spec: '100ml', productCode: 'TONER100',
       visibleText: ['100ml'], keywords: ['爽肤水'], confidence: 0.86
     }))
   })
   const result = await client.recognize({ mime: 'image/jpeg', buffer: jpegBuffer(20) })
   assert.equal(result.productName, '爽肤水')
+  assert.equal(result.productCode, 'TONER100')
   assert.equal(requestBody.model, 'vision-model-from-config')
   assert.match(requestBody.messages[1].content[1].image_url.url, /^data:image\/jpeg;base64,/)
 })
@@ -113,15 +114,27 @@ test('AI 字段类型或 confidence 异常时拒绝', () => {
   }), /confidence|productName/)
 })
 
-test('AI 即使返回价格和库存也会被白名单丢弃', () => {
+test('AI 即使返回内部 ID、内部 code、价格和库存也会被白名单丢弃', () => {
   const result = validateVisionResult({
     category: 'cosmetics', productName: '爽肤水', brand: '', spec: '100ml',
     visibleText: [], keywords: ['爽肤水'], confidence: 0.9,
-    price: 999, stock: 888, purchaseDate: '2099-01-01'
+    productId: 'p-1', adminProductId: 1, specId: 's-1', code: '0001',
+    price: 999, costPrice: 500, stock: 888, purchaseDate: '2099-01-01'
   })
+  assert.equal(Object.hasOwn(result, 'productId'), false)
+  assert.equal(Object.hasOwn(result, 'adminProductId'), false)
+  assert.equal(Object.hasOwn(result, 'specId'), false)
+  assert.equal(Object.hasOwn(result, 'code'), false)
   assert.equal(Object.hasOwn(result, 'price'), false)
+  assert.equal(Object.hasOwn(result, 'costPrice'), false)
   assert.equal(Object.hasOwn(result, 'stock'), false)
   assert.equal(Object.hasOwn(result, 'purchaseDate'), false)
+})
+
+test('普通视觉提示只允许提取可见真实货号且禁止生成内部 ID', () => {
+  assert.match(SYSTEM_PROMPT, /吊牌货号、商品编码或供应商货号/)
+  assert.match(SYSTEM_PROMPT, /不得猜测、生成或补全/)
+  assert.match(SYSTEM_PROMPT, /productId、adminProductId、specId、内部流水号 code/)
 })
 
 test('千问请求超时会返回明确错误', async () => {

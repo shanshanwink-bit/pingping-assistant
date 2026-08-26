@@ -59,6 +59,7 @@ function recognizedOrder(overrides) {
       productName: '清润爽肤水',
       productCode: 'HZ001',
       spec: '通用 / 100ml',
+      businessType: 'cosmetics',
       quantity: 5,
       unitCost: 60,
       lineTotal: 300,
@@ -97,6 +98,7 @@ test('正常采购单图片 mock 返回受控 JSON 和服务端 lineId', async (
       productName: '清润爽肤水',
       productCode: 'HZ001',
       spec: '通用 / 100ml',
+      businessType: 'cosmetics',
       quantity: 5,
       unitCost: 60,
       lineTotal: 300,
@@ -108,6 +110,8 @@ test('正常采购单图片 mock 返回受控 JSON 和服务端 lineId', async (
   assert.equal(requestBody.model, 'purchase-order-vision-model')
   assert.match(requestBody.messages[1].content[1].image_url.url, /^data:image\/jpeg;base64,/)
   assert.match(SYSTEM_PROMPT, /不得猜测或补全/)
+  assert.match(SYSTEM_PROMPT, /吊牌货号、商品编码或供应商货号/)
+  assert.match(SYSTEM_PROMPT, /productId、adminProductId、specId、内部流水号 code/)
 })
 
 test('AI 返回 Markdown 包裹 JSON 时可安全解析', async () => {
@@ -125,12 +129,13 @@ test('AI 缺少字段时返回 null、空字符串和明确 issues', () => {
     productName: '',
     productCode: '',
     spec: '',
+    businessType: 'unknown',
     quantity: null,
     unitCost: null,
     lineTotal: null,
     confidence: null,
     issues: [
-      '商品名称或编号无法确认',
+      '商品名称或货号无法确认',
       '规格无法确认',
       '数量无法确认',
       '单价无法确认',
@@ -142,14 +147,18 @@ test('AI 缺少字段时返回 null、空字符串和明确 issues', () => {
 test('AI 返回禁止字段时白名单丢弃且不作为经营数据返回', () => {
   const result = validatePurchaseOrderResult(recognizedOrder({
     productId: 'ai-product-id',
+    adminProductId: 12,
     specId: 'ai-spec-id',
+    code: '0001',
     stock: 999,
     cost: 1,
     profit: 998
   }))
   const item = result.items[0]
   assert.equal(Object.hasOwn(item, 'productId'), false)
+  assert.equal(Object.hasOwn(item, 'adminProductId'), false)
   assert.equal(Object.hasOwn(item, 'specId'), false)
+  assert.equal(Object.hasOwn(item, 'code'), false)
   assert.equal(Object.hasOwn(item, 'stock'), false)
   assert.equal(Object.hasOwn(item, 'cost'), false)
   assert.equal(Object.hasOwn(item, 'profit'), false)
@@ -163,6 +172,10 @@ test('AI 返回错误字段类型时拒绝', () => {
   assert.throws(
     () => validatePurchaseOrderResult(recognizedOrder({ unitCost: -1 })),
     error => error.statusCode === 502 && /unitCost/.test(error.message)
+  )
+  assert.throws(
+    () => validatePurchaseOrderResult(recognizedOrder({ businessType: 'food' })),
+    error => error.statusCode === 502 && /businessType/.test(error.message)
   )
 })
 
@@ -228,6 +241,7 @@ test('采购单识别接口只执行登录和开关读取，不执行数据库�
       }
       if (sql.includes('FROM store_members')) return [[{ role: 'owner', store_name: '测试店铺' }]]
       if (sql.includes('FROM admin_settings')) return [[{ enabled: 1 }]]
+      if (sql.includes('FROM admin_products')) return [[{ id: 1, code: 'HZ001', status: '销售中' }]]
       if (sql.includes('FROM store_states')) return [[{ state: JSON.stringify({
         products: [{
           id: 'water-100', code: 'HZ001', name: '清润爽肤水', businessType: 'cosmetics',
@@ -249,7 +263,7 @@ test('采购单识别接口只执行登录和开关读取，不执行数据库�
   assert.equal(result.body.items[0].lineId, 'line-1')
   assert.equal(result.body.draft.items[0].productId, 'water-100')
   assert.equal(result.body.draft.items[0].specId, 'spec-100')
-  assert.equal(queries.length, 3)
+      assert.equal(queries.length, 4)
   assert.ok(queries.every(call => /^\s*SELECT\b/i.test(call.sql)))
 })
 

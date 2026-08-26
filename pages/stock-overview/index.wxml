@@ -16,7 +16,8 @@
       <view wx:else class="overview-placeholder {{item.businessType}}">{{item.businessType === 'cosmetics' ? '妆' : '衣'}}</view>
       <view class="overview-main">
         <view class="overview-name">{{item.productName}}</view>
-        <view class="overview-detail">{{item.code}} · {{item.detailText}}</view>
+        <view class="overview-detail">{{item.itemNumber ? '货号 ' + item.itemNumber : '未填写货号'}} · {{item.detailText}}</view>
+        <view wx:if="{{item.code}}" class="overview-detail">内部流水号 {{item.code}}</view>
         <view class="overview-tags"><text>{{item.businessText}}</text><text class="status {{item.statusText === '已缺货' ? 'out' : ''}}">{{item.statusText}}</text></view>
       </view>
       <view class="overview-stock"><text>{{item.stockText}}</text><view>›</view></view>

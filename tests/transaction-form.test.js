@@ -35,6 +35,11 @@ test('商品名称和货号搜索会去除首尾空格', () => {
   assert.deepEqual(form.productOptions([singleProduct], ' w100 ').map(item => item.id), ['water-100'])
 })
 
+test('交易商品没有货号时不把内部流水号显示成货号', () => {
+  const [option] = form.productOptions([{ ...multiProduct, code: '0099' }], '')
+  assert.equal(option.identifier, '')
+})
+
 test('单规格自动选中', () => {
   assert.equal(form.resolveSpec(singleProduct, '', 'sale').id, 'spec-all')
 })

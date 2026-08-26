@@ -9,9 +9,9 @@ class PurchaseOrderModelError extends Error {
   }
 }
 
-const SYSTEM_PROMPT = `你是零售采购单图片识别器。只提取图片中清晰可见的采购商品明细，不得猜测或补全。只返回一个 JSON 对象，不要 Markdown。顶层只允许 items 字段，items 最多 20 项。每项只允许字段：productName、productCode、spec、quantity、unitCost、lineTotal、confidence。quantity 无法确认时返回 null，否则必须是正整数。unitCost 和 lineTotal 仅表示采购单上清晰可见的采购单价和行金额，无法确认时返回 null，不得使用历史成本或推测值。confidence 为 0 到 1 的数字，无法判断时返回 null。禁止输出 productId、specId、库存、历史成本、利润或其他经营数据。`
+const SYSTEM_PROMPT = `你是零售采购单图片识别器。只提取图片中清晰可见的采购商品明细，不得猜测或补全。只返回一个 JSON 对象，不要 Markdown。顶层只允许 items 字段，items 最多 20 项。每项只允许字段：productName、productCode、spec、businessType、quantity、unitCost、lineTotal、confidence。productCode 只允许提取采购单明确标注的吊牌货号、商品编码或供应商货号；不可见时返回空字符串，不得生成编号。businessType 仅在商品名称能明确判断时返回 clothing 或 cosmetics，无法明确判断时返回 unknown。quantity 无法确认时返回 null，否则必须是正整数。unitCost 和 lineTotal 仅表示采购单上清晰可见的采购单价和行金额，无法确认时返回 null，不得使用历史成本或推测值。confidence 为 0 到 1 的数字，无法判断时返回 null。禁止输出 productId、adminProductId、specId、内部流水号 code、库存、历史成本、利润或其他经营数据。`
 
-const USER_PROMPT = '识别这张采购单中的商品明细，逐行提取商品名称、商品编号、规格、数量、单价和行金额。看不清的字段必须返回空字符串或 null，不要猜测。'
+const USER_PROMPT = '识别这张采购单中的商品明细，逐行提取商品名称、真实货号、规格、商品类型、数量、单价和行金额。真实货号只取单据明确标注的吊牌货号、商品编码或供应商货号；看不清的字段必须返回空字符串或 null，不要猜测。'
 
 function limitedText(value, maximum, field) {
   if (value === undefined || value === null || value === '') return ''
@@ -45,9 +45,19 @@ function nullableConfidence(value) {
   return value
 }
 
+function controlledBusinessType(value) {
+  if (value === undefined || value === null || value === '') return 'unknown'
+  if (typeof value !== 'string') throw new PurchaseOrderModelError(502, 'AI 返回的 businessType 字段无效')
+  const result = value.trim().toLowerCase()
+  if (!['clothing', 'cosmetics', 'unknown'].includes(result)) {
+    throw new PurchaseOrderModelError(502, 'AI 返回的 businessType 字段无效')
+  }
+  return result
+}
+
 function issueList(item) {
   const issues = []
-  if (!item.productName && !item.productCode) issues.push('商品名称或编号无法确认')
+  if (!item.productName && !item.productCode) issues.push('商品名称或货号无法确认')
   if (!item.spec) issues.push('规格无法确认')
   if (item.quantity === null) issues.push('数量无法确认')
   if (item.unitCost === null) issues.push('单价无法确认')
@@ -74,6 +84,7 @@ function validatePurchaseOrderResult(input) {
       productName: limitedText(source.productName, 120, 'productName'),
       productCode: limitedText(source.productCode, 80, 'productCode'),
       spec: limitedText(source.spec, 120, 'spec'),
+      businessType: controlledBusinessType(source.businessType),
       quantity: nullablePositiveInteger(source.quantity, 'quantity'),
       unitCost: nullableMoney(source.unitCost, 'unitCost'),
       lineTotal: nullableMoney(source.lineTotal, 'lineTotal'),

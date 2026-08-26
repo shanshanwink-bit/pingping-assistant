@@ -37,7 +37,7 @@ function selectionFromQuery(options) {
 }
 
 function productIdentifier(product) {
-  return text(product && product.itemNumber) || text(product && product.code)
+  return text(product && product.itemNumber)
 }
 
 function productOptions(products, keyword) {

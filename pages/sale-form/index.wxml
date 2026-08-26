@@ -25,14 +25,14 @@
       <view class="form-section">
         <view class="form-section-label">选择商品</view>
         <view wx:if="{{currentProduct && !showProductChooser}}" class="selected-product" bindtap="toggleProductChooser">
-          <view><text>{{currentProduct.name}}</text><view>{{currentProduct.itemNumber || currentProduct.code ? '货号 ' + (currentProduct.itemNumber || currentProduct.code) : '暂无货号'}}</view></view>
+          <view><text>{{currentProduct.name}}</text><view>{{currentProduct.itemNumber ? '货号 ' + currentProduct.itemNumber : '货号未填写'}}</view></view>
           <text>更换 ›</text>
         </view>
         <view wx:if="{{showProductChooser}}" class="product-chooser">
           <view class="transaction-search"><view class="search-symbol"></view><input placeholder="搜索商品名称 / 货号" value="{{keyword}}" bindinput="onProductSearch" /><button wx:if="{{keyword}}" bindtap="clearProductSearch">清除</button></view>
           <view wx:if="{{productOptions.length}}" class="product-option-list">
             <view class="product-option" wx:for="{{productOptions}}" wx:key="id" data-id="{{item.id}}" bindtap="selectProduct">
-              <view><text>{{item.name}}</text><view>{{item.typeLabel}} · {{item.identifier ? '货号 ' + item.identifier : '暂无货号'}}</view></view><text>库存 {{item.stockText}}件</text>
+              <view><text>{{item.name}}</text><view>{{item.typeLabel}} · {{item.identifier ? '货号 ' + item.identifier : '货号未填写'}}</view></view><text>库存 {{item.stockText}}件</text>
             </view>
           </view>
           <view wx:else class="chooser-empty">没有找到相关商品</view>

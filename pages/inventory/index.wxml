@@ -45,7 +45,7 @@
         <view class="product-identity">
           <text>{{item.typeLabel}}</text>
           <text wx:if="{{item.identifier}}">货号 {{item.identifier}}</text>
-          <text wx:else>暂无货号</text>
+          <text wx:else>货号未填写</text>
         </view>
         <view class="stock-status {{item.stockStatus.tone}}"><view class="status-dot"></view><text>{{item.stockStatus.label}}</text></view>
       </view>

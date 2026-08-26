@@ -57,7 +57,7 @@ function draft(overrides) {
     quantity: 2,
     unitCost: 60,
     candidates: [{
-      productId: 'water', name: '清润爽肤水', productCode: 'HZ001',
+      productId: 'water', name: '清润爽肤水', itemNumber: 'TONER100', code: 'HZ001', productCode: 'TONER100',
       specs: [{ specId: 'spec-100', label: '通用 / 100ml', stock: 3 }]
     }],
     issues: [],
@@ -114,6 +114,21 @@ test('未完成行禁止确认', () => {
   assert.equal(draftState.presentDraft(missingSpec).items[0].matchStatus, 'needs_spec')
 })
 
+test('inactive_match 在小程序保持不可确认且不能生成入库请求', () => {
+  const source = draft({
+    matchStatus: 'inactive_match',
+    productId: '',
+    specId: '',
+    candidates: [],
+    inactiveMatch: { name: '清润爽肤水', productCode: 'TONER100' }
+  })
+  const normalized = draftState.normalizeDraft(source)
+  assert.equal(normalized.items[0].matchStatus, 'inactive_match')
+  assert.equal(Object.hasOwn(normalized.items[0], 'createNew'), false)
+  assert.equal(draftState.canConfirm(normalized), false)
+  assert.throws(() => draftState.batchPayload(normalized), /未完成项目/)
+})
+
 test('选择商品后单规格可预选，多规格仍要求人工选择', () => {
   const source = draft({ productId: '', specId: '', candidates: [{
     productId: 'water', name: '清润爽肤水', specs: [
@@ -141,6 +156,16 @@ test('确认草稿生成批量接口要求的最小可信字段', () => {
       unitCost: 60
     }]
   })
+})
+
+test('未匹配商品保持安全状态且不能确认入库', () => {
+  const unmatched = draft({ productId: '', specId: '', candidates: [] })
+  const view = draftState.presentDraft(unmatched)
+  assert.equal(view.canConfirm, false)
+  assert.equal(view.items[0].matchStatus, 'needs_product')
+  assert.equal(view.items[0].status.label, '未找到商品')
+  assert.equal(Object.hasOwn(view.items[0], 'createNew'), false)
+  assert.throws(() => draftState.batchPayload(view.draft), /未完成项目/)
 })
 
 test('确认入库成功调用批量接口并用服务端状态刷新本地库存', async () => {
@@ -284,5 +309,10 @@ test('草稿页面只通过批量采购提交，不调用单笔拿货或卖货�
   assert.match(source, /commitPurchaseBatch/)
   assert.doesNotMatch(source, /commitPurchase\s*\(|commitSale\s*\(|updateStock|addPurchase/)
   assert.match(template, /'确认入库'/)
+  assert.match(template, /candidate\.itemNumber \? '货号 '/)
+  assert.match(template, /内部流水号 \{\{candidate\.code\}\}/)
+  assert.doesNotMatch(template, /candidate\.code\s*\|\|\s*candidate\.itemNumber/)
+  assert.match(template, /本阶段不会自动创建商品/)
+  assert.doesNotMatch(template, /作为新商品|建档并入库|createNew/)
   assert.doesNotMatch(template, /确认草稿（暂不入库）/)
 })

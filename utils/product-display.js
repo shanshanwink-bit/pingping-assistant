@@ -1,5 +1,6 @@
 const { normalizeBusinessType } = require('./catalog-products')
 const { buildAttentionItems } = require('./home-dashboard')
+const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
 
 const SUMMARY_SPEC_PATTERN = /^(全部规格|汇总|聚合|SKU_SUMMARY)$/i
 const TYPE_META = {
@@ -92,7 +93,9 @@ function buildListProduct(product, imageFailed) {
     name: text(product && product.name, '未命名商品'),
     code: text(product && product.code),
     itemNumber: text(product && product.itemNumber),
-    identifier: text(product && product.itemNumber) || text(product && product.code),
+    identifier: text(product && product.itemNumber),
+    status: normalizeProductStatus(product && product.status),
+    isActive: isProductActiveStatus(product && product.status),
     category: text(product && product.category, '未分类'),
     businessType: type,
     typeLabel: meta.label,
@@ -203,7 +206,9 @@ function buildProductDetail(product, options) {
     name: text(product && product.name, '未命名商品'),
     code: text(product && product.code),
     itemNumber: text(product && product.itemNumber),
-    identifier: text(product && product.itemNumber) || text(product && product.code),
+    identifier: text(product && product.itemNumber),
+    status: normalizeProductStatus(product && product.status),
+    isActive: isProductActiveStatus(product && product.status),
     category: text(product && product.category, '未分类'),
     businessType: type,
     typeLabel: meta.label,

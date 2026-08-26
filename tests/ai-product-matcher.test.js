@@ -7,6 +7,7 @@ function vision(overrides) {
   return {
     category: 'cosmetics',
     productName: '爽肤水',
+    productCode: '',
     brand: '',
     spec: '100ml',
     visibleText: ['100ml'],
@@ -54,10 +55,73 @@ const adminRows = [{
   spec_count: 1, stock: 3, price: '100.00'
 }]
 
+test('AI 商品读取使用后台新货号并识别显式清空语义', async () => {
+  const updated = await loadBusinessProducts(businessPool([{
+    ...adminRows[0], item_number: 'NEW-100', item_number_managed: 1
+  }], sampleState()))
+  assert.equal(updated[0].itemNumber, 'NEW-100')
+
+  const cleared = await loadBusinessProducts(businessPool([{
+    ...adminRows[0], item_number: null, item_number_managed: 1
+  }], sampleState()))
+  assert.equal(cleared[0].itemNumber, '')
+
+  const legacy = await loadBusinessProducts(businessPool([{
+    ...adminRows[0], item_number: null, item_number_managed: 0
+  }], sampleState()))
+  assert.equal(legacy[0].itemNumber, 'TONER100')
+})
+
 test('唯一高置信商品匹配', () => {
   const result = matchProducts(vision(), [product()])
   assert.equal(result.matchType, 'unique')
   assert.equal(result.items[0].name, '爽肤水')
+})
+
+test('真实货号原值精确匹配优先于名称组合和旧 code', () => {
+  const result = matchProducts(vision({
+    productName: '旧流水号商品', productCode: 'TAG-100', spec: '', visibleText: [], keywords: []
+  }), [
+    product({ id: 'real-item', name: '另一商品', itemNumber: 'TAG-100', code: 'SYS0009' }),
+    product({ id: 'legacy-code', name: '旧流水号商品', itemNumber: '', code: 'TAG-100' })
+  ])
+  assert.equal(result.matchType, 'unique')
+  assert.equal(result.items[0].id, 'real-item')
+  assert.deepEqual(result.items[0].matchReasons, ['真实货号原值一致'])
+})
+
+test('真实货号标准化精确匹配支持格式差异', () => {
+  const result = matchProducts(vision({
+    productName: '', productCode: 'tag 100', spec: '', visibleText: [], keywords: []
+  }), [product({ itemNumber: 'TAG-100', code: 'SYS0001' })])
+  assert.equal(result.matchType, 'unique')
+  assert.deepEqual(result.items[0].matchReasons, ['真实货号标准化一致'])
+})
+
+test('重复真实货号即使格式不同也只返回候选，不自动绑定', () => {
+  const result = matchProducts(vision({
+    productName: '', productCode: 'TAG-100', spec: '', visibleText: [], keywords: []
+  }), [
+    product({ id: 'p-raw', itemNumber: 'TAG-100' }),
+    product({ id: 'p-normalized', itemNumber: 'TAG 100' })
+  ])
+  assert.equal(result.matchType, 'candidates')
+  assert.deepEqual(result.items.map(item => item.id), ['p-raw', 'p-normalized'])
+})
+
+test('旧 code 只在没有更强业务信号时作为兼容回退', () => {
+  const result = matchProducts(vision({
+    productName: '', productCode: 'HZ001', spec: '', visibleText: [], keywords: []
+  }), [product({ itemNumber: '', code: 'HZ001' })])
+  assert.equal(result.matchType, 'unique')
+  assert.deepEqual(result.items[0].matchReasons, ['内部流水号兼容一致'])
+})
+
+test('OCR 数字与旧 code 相似不会直接形成 code 候选', () => {
+  const result = matchProducts(vision({
+    productName: '', productCode: '', spec: '', visibleText: ['HZ001'], keywords: []
+  }), [product({ name: '完全无关商品', itemNumber: '', code: 'HZ001' })])
+  assert.deepEqual(result, { matchType: 'none', items: [] })
 })
 
 test('多个合理候选最多返回 3 个并交给用户选择', () => {
@@ -199,4 +263,21 @@ test('完整识别流程只把模型特征交给本地匹配器', async () => {
 test('真实商品数据查询失败时不会退回 AI 猜测', async () => {
   const pool = { async execute() { throw new Error('db failed') } }
   await assert.rejects(() => loadBusinessProducts(pool, 'store-a'), error => error.statusCode === 500)
+})
+
+test('普通 AI 排除停用商品且 state-only 不能重新加入', async () => {
+  const inactiveAdmin = [{ ...adminRows[0], status: '已停用' }]
+  const adminLinked = await loadBusinessProducts(businessPool(inactiveAdmin, sampleState([], { status: '销售中' })), 'store-a')
+  assert.equal(adminLinked.length, 0, '数据库停用状态必须覆盖陈旧 JSON 启用状态')
+
+  const stateOnly = sampleState([], { adminProductId: null, id: 'state-only', status: '已停用' })
+  const stateOnlyProducts = await loadBusinessProducts(businessPool([], stateOnly), 'store-a')
+  assert.equal(stateOnlyProducts.length, 0)
+
+  assert.deepEqual(matchProducts(vision(), [product({ status: '已停用' })]), { matchType: 'none', items: [] })
+})
+
+test('缺失状态和历史缺货继续作为普通 AI 启用候选', () => {
+  assert.equal(matchProducts(vision(), [product()]).matchType, 'unique')
+  assert.equal(matchProducts(vision(), [product({ status: '缺货' })]).matchType, 'unique')
 })

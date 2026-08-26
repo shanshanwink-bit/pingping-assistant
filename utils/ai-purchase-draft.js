@@ -34,6 +34,19 @@ function candidateSpecs(candidate) {
 
 function recalculateItem(source) {
   const item = { ...source }
+  const inactiveMatch = item.matchStatus === 'inactive_match' || Boolean(item.inactiveMatch)
+  if (inactiveMatch) {
+    item.productId = ''
+    item.specId = ''
+    item.candidates = []
+    item.specCandidates = []
+    item.quantity = positiveInteger(item.quantity)
+    item.unitCost = positiveMoney(item.unitCost)
+    item.matchStatus = 'inactive_match'
+    item.requiresManual = true
+    item.issues = ['找到已停用商品，请先重新启用或选择其他商品。']
+    return item
+  }
   const selectedProduct = candidateFor(item, item.productId)
   const specCandidates = selectedProduct ? candidateSpecs(selectedProduct) : []
   const selectedSpec = specCandidates.find(spec => spec.specId === text(item.specId)) || null
@@ -63,6 +76,8 @@ function normalizeItem(source) {
   return recalculateItem({
     lineId: text(source && source.lineId),
     recognized,
+    matchStatus: text(source && source.matchStatus),
+    inactiveMatch: source && source.inactiveMatch ? { ...source.inactiveMatch } : null,
     productId: text(source && source.productId),
     specId: text(source && source.specId),
     quantity: source && source.quantity !== undefined ? source.quantity : recognized.quantity,
@@ -145,6 +160,7 @@ function batchPayload(draft) {
 }
 
 function statusPresentation(item) {
+  if (item.matchStatus === 'inactive_match') return { label: '商品已停用', tone: 'error' }
   if (item.matchStatus === 'ready') return { label: '已匹配', tone: 'ready' }
   if (item.matchStatus === 'needs_product' && !item.candidates.length) return { label: '未找到商品', tone: 'error' }
   if (item.matchStatus === 'needs_product') return { label: '请选择商品', tone: 'warning' }

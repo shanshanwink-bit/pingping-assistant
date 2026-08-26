@@ -5,9 +5,9 @@ class VisionModelError extends Error {
   }
 }
 
-const SYSTEM_PROMPT = `你是零售商品图片识别器。只描述图片中可能出现的商品特征，不得推测或输出售价、进价、库存、进货日期、商品ID、盈利。只返回一个 JSON 对象，不要 Markdown。允许字段：category、productName、brand、spec、visibleText、keywords、confidence。category 只能是 clothing、cosmetics、unknown。无法判断的字符串用空字符串，数组最多 8 项。`
+const SYSTEM_PROMPT = `你是零售商品图片识别器。只提取图片中真实清晰可见的商品特征，不得猜测、生成或补全。只返回一个 JSON 对象，不要 Markdown。允许字段：category、productName、brand、spec、productCode、visibleText、keywords、confidence。productCode 只允许提取图片中明确标注的吊牌货号、商品编码或供应商货号；没有明确可见货号时必须返回空字符串，不得把价格、日期、容量或其他数字猜成货号。禁止输出或猜测 productId、adminProductId、specId、内部流水号 code、售价、进价、库存、进货日期或盈利。category 只能是 clothing、cosmetics、unknown。无法判断的字符串用空字符串，数组最多 8 项。`
 
-const USER_PROMPT = '识别这张图片中的主要零售商品，提取包装可见文字、品名、品牌和规格。不要查询或猜测任何经营数据。'
+const USER_PROMPT = '识别这张图片中的主要零售商品，提取包装可见文字、品名、品牌、规格，以及图片中明确标注的吊牌货号、商品编码或供应商货号。货号不可见时 productCode 返回空字符串，不要猜测、生成编号或查询经营数据。'
 
 function limitedText(value, maximum, field) {
   if (value === undefined || value === null || value === '') return ''
@@ -57,11 +57,12 @@ function validateVisionResult(input) {
     productName: limitedText(input.productName, 120, 'productName'),
     brand: limitedText(input.brand, 80, 'brand'),
     spec: limitedText(input.spec, 80, 'spec'),
+    productCode: limitedText(input.productCode, 80, 'productCode'),
     visibleText: limitedTextArray(input.visibleText, 'visibleText'),
     keywords: limitedTextArray(input.keywords, 'keywords'),
     confidence
   }
-  if (![result.productName, result.brand, result.spec, ...result.visibleText, ...result.keywords].some(Boolean)) {
+  if (![result.productName, result.brand, result.spec, result.productCode, ...result.visibleText, ...result.keywords].some(Boolean)) {
     throw new VisionModelError(502, 'AI 未识别到可用于匹配的商品特征')
   }
   return result
