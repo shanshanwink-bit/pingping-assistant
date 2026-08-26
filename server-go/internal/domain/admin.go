@@ -6,6 +6,7 @@ import (
 )
 
 var ErrBusinessRule = errors.New("业务规则校验失败")
+var ErrProductInactive = errors.New("商品已停用，请先重新启用")
 
 type Account struct {
 	ID           int64    `json:"id"`

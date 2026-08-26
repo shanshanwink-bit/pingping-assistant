@@ -13,6 +13,10 @@ type permissionRepo struct {
 	saleCreated, saleReversed, entryCreated, entryReversed bool
 }
 
+func (r *permissionRepo) Product(context.Context, string, int64) (domain.Product, error) {
+	return domain.Product{Status: domain.ProductStatusSelling}, nil
+}
+
 func (r *permissionRepo) CreateSale(context.Context, domain.Account, domain.SaleInput) (int64, error) {
 	r.saleCreated = true
 	return 1, nil

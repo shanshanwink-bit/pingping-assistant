@@ -88,6 +88,10 @@ Page({
 
   openOperation(path) {
     if (!this.data.product || this.data.isNavigating) return
+    if (!this.data.product.isActive) {
+      wx.showToast({ title: '商品已停用，请先重新启用', icon: 'none' })
+      return
+    }
     this.setData({ isNavigating: true })
     const specs = Array.isArray(this.data.product.specs) ? this.data.product.specs : []
     const params = [

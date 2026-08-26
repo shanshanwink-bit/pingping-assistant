@@ -3,6 +3,7 @@ const LEGACY_STORAGE_KEYS = ['clothing_inventory_state_v1']
 const serverSync = require('./server-sync')
 const { mergeCatalogProducts } = require('./catalog-products')
 const { summarizeProfitRecords } = require('./ledger')
+const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -105,6 +106,10 @@ function ensureState() {
         product.itemNumber = ''
         migrated = true
       }
+      if (!product.status) {
+        product.status = normalizeProductStatus(product.status)
+        migrated = true
+      }
     })
     state.manualProfits.forEach(record => {
       if (!record.businessType) {
@@ -155,6 +160,7 @@ function replaceStateFromServer(serverState, user) {
   state.version = 10
   state.products.forEach(product => {
     if (product.itemNumber === undefined) product.itemNumber = ''
+    if (!product.status) product.status = normalizeProductStatus(product.status)
   })
   if (!Number.isInteger(state.nextProductNumber) || state.nextProductNumber < 1) {
     state.nextProductNumber = nextNumberFromProducts(state.products)
@@ -212,6 +218,13 @@ function productBusinessType(product) {
 }
 
 function getProducts(businessType) {
+  return getState().products
+    .filter(product => isProductActiveStatus(product.status))
+    .filter(product => !businessType || productBusinessType(product) === businessType)
+    .map(withStock)
+}
+
+function getAllProducts(businessType) {
   return getState().products
     .filter(product => !businessType || productBusinessType(product) === businessType)
     .map(withStock)
@@ -356,6 +369,7 @@ function addProduct(payload) {
     id,
     code: takeNextCode(state),
     itemNumber: String(payload.itemNumber || '').trim(),
+    status: '销售中',
     name: payload.name.trim(),
     businessType: payload.businessType === 'cosmetics' ? 'cosmetics' : 'clothing',
     category: payload.category,
@@ -497,6 +511,7 @@ function updateProduct(id, payload) {
 function findProductAndSpec(state, productId, specId) {
   const product = state.products.find(item => item.id === productId)
   if (!product) throw new Error('商品不存在')
+  if (!isProductActiveStatus(product.status)) throw new Error('商品已停用，请先重新启用')
   const spec = product.specs.find(item => item.id === specId)
   if (!spec) throw new Error('商品规格不存在')
   return { product, spec }
@@ -878,6 +893,7 @@ function updateStock(payload) {
   const state = getState()
   const product = state.products.find(item => item.id === payload.productId)
   if (!product) throw new Error('商品不存在')
+  if (!isProductActiveStatus(product.status)) throw new Error('商品已停用，请先重新启用')
   const spec = product.specs.find(item => item.id === payload.specId)
   if (!spec) throw new Error('商品规格不存在')
 
@@ -931,6 +947,7 @@ module.exports = {
   replaceStateFromServer,
   replaceProductsFromCatalog,
   getProducts,
+  getAllProducts,
   getProduct,
   getSuppliers,
   getBrands,

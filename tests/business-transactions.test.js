@@ -80,6 +80,9 @@ function fakePool(sourceState, options = {}) {
     async execute(sql) {
       calls.push(sql.replace(/\s+/g, ' ').trim())
       if (sql.includes('SELECT state, revision')) return [[{ state: JSON.stringify(sourceState), revision: 4 }]]
+      if (sql.includes('SELECT status FROM admin_products')) {
+        return [[{ status: options.inactiveProduct ? '已停用' : '销售中' }]]
+      }
       if (sql.includes('UPDATE admin_products')) return [{ affectedRows: options.missingProduct ? 0 : 1 }]
       return [{ affectedRows: 1 }]
     }
@@ -111,3 +114,32 @@ test('后台汇总商品更新失败时整个数据库事务回滚', async () =>
   assert.equal(pool.calls.includes('commit'), false)
 })
 
+test('卖货和拿货均拒绝停用商品且不生成经营记录', () => {
+  const inactive = state()
+  inactive.products[0].status = '已停用'
+  for (const [handler, payload] of [
+    [applySale, { transactionId: 'inactive-sale', productId: 'water', specId: 'all', quantity: 1, unitPrice: 100 }],
+    [applyPurchase, { transactionId: 'inactive-purchase', productId: 'water', specId: 'all', quantity: 1, unitCost: 50 }]
+  ]) {
+    assert.throws(() => handler(inactive, payload), error => (
+      error.statusCode === 409 && error.details.code === 'PRODUCT_INACTIVE'
+    ))
+  }
+  assert.equal(inactive.sales.length, 0)
+  assert.equal(inactive.purchases.length, 0)
+  assert.equal(inactive.operations.length, 0)
+  assert.equal(inactive.products[0].specs[0].stock, 5)
+})
+
+test('数据库当前状态已停用时交易整体回滚且不写状态', async () => {
+  const pool = fakePool(state(), { inactiveProduct: true })
+  await assert.rejects(
+    commitStoreTransaction(pool, { storeId: 'store-1', userId: 'user-1' }, 'sale', {
+      transactionId: 'inactive-db', productId: 'water', specId: 'all', quantity: 1, unitPrice: 100
+    }, 'request-inactive'),
+    error => error.statusCode === 409 && error.details.code === 'PRODUCT_INACTIVE'
+  )
+  assert.equal(pool.calls.some(call => call.startsWith('UPDATE store_states')), false)
+  assert.equal(pool.calls.some(call => call.startsWith('INSERT INTO audit_logs')), false)
+  assert.ok(pool.calls.includes('rollback'))
+})

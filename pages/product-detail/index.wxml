@@ -17,7 +17,8 @@
       <view class="detail-head-main">
         <view class="detail-name">{{product.name}}</view>
         <view class="detail-tags"><text>{{product.typeLabel}}</text><text>{{product.category}}</text></view>
-        <view class="detail-identifier">{{product.identifier ? '货号 ' + product.identifier : '暂无货号'}}</view>
+        <view class="detail-identifier">{{product.identifier ? '货号 ' + product.identifier : '货号未填写'}}</view>
+        <view wx:if="{{!product.isActive}}" class="detail-inactive-badge">已停用</view>
         <view class="detail-stock-status {{product.stockStatus.tone}}"><view></view><text>{{product.stockStatus.label}}</text></view>
       </view>
     </view>
@@ -84,7 +85,9 @@
 
     <view class="detail-readonly-note">商品资料与复杂编辑请前往网页管理后台</view>
 
-    <view class="detail-action-bar">
+    <view wx:if="{{!product.isActive}}" class="detail-inactive-note">该商品已停用，仅可查看历史资料；请先在网页后台重新启用后再卖货或拿货。</view>
+
+    <view wx:if="{{product.isActive}}" class="detail-action-bar">
       <button class="purchase-button" disabled="{{isNavigating}}" bindtap="openPurchase">拿货</button>
       <button class="sale-button" disabled="{{isNavigating}}" bindtap="openSale">卖货</button>
     </view>

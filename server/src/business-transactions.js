@@ -1,7 +1,10 @@
+const { isProductActiveStatus } = require('./product-status')
+
 class BusinessTransactionError extends Error {
-  constructor(statusCode, message) {
+  constructor(statusCode, message, code) {
     super(message)
     this.statusCode = statusCode
+    this.details = code ? { code } : undefined
   }
 }
 
@@ -42,6 +45,9 @@ function findProductAndSpec(state, payload) {
   const specId = safeText(payload.specId)
   const product = state.products.find(item => safeText(item.id) === productId)
   if (!product) throw new BusinessTransactionError(404, '商品不存在，请返回商品页刷新')
+  if (!isProductActiveStatus(product.status)) {
+    throw new BusinessTransactionError(409, '商品已停用，请先重新启用', 'PRODUCT_INACTIVE')
+  }
   const specs = Array.isArray(product.specs) ? product.specs : []
   const spec = specs.find(item => safeText(item.id) === specId)
   if (!spec) throw new BusinessTransactionError(404, '商品规格不存在，请重新选择')

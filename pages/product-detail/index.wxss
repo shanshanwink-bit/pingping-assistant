@@ -10,6 +10,7 @@
 .detail-tags { display: flex; gap: 10rpx; margin-top: 12rpx; }
 .detail-tags text { padding: 5rpx 12rpx; border-radius: 999rpx; color: var(--color-text-secondary); background: var(--color-surface-muted); font-size: 20rpx; }
 .detail-identifier { margin-top: 12rpx; color: var(--color-text-secondary); font-size: 22rpx; }
+.detail-inactive-badge { display: inline-flex; margin-top: 12rpx; padding: 6rpx 14rpx; border-radius: 999rpx; color: var(--color-danger); background: #fbf0f1; font-size: 21rpx; font-weight: 600; }
 .detail-stock-status { display: inline-flex; align-items: center; gap: 8rpx; margin-top: 12rpx; font-size: 22rpx; }
 .detail-stock-status view { width: 12rpx; height: 12rpx; border-radius: 50%; background: currentColor; }
 .detail-stock-status.success,
@@ -66,6 +67,7 @@
 .expiry-status { text-align: right; font-size: 23rpx; font-weight: 500; }
 .section-empty { padding: 52rpx 24rpx; border: 1rpx solid var(--color-border); border-radius: 28rpx; color: var(--color-text-secondary); background: var(--color-surface); text-align: center; font-size: 24rpx; }
 .detail-readonly-note { margin: 34rpx 10rpx 0; color: var(--color-text-muted); text-align: center; font-size: 21rpx; line-height: 1.6; }
+.detail-inactive-note { margin: 24rpx 0 0; padding: 22rpx 24rpx; border: 1rpx solid #f0c9ce; border-radius: 22rpx; color: var(--color-danger); background: #fbf0f1; font-size: 23rpx; line-height: 1.6; }
 
 .detail-action-bar { display: grid; position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; grid-template-columns: 1fr 1.35fr; gap: 18rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--color-border); background: rgba(255, 255, 255, .97); }
 .purchase-button,

@@ -229,6 +229,17 @@ async function commitStoreTransaction(pool, membership, kind, body, requestId) {
     let revision = Number(rows[0].revision || 0)
 
     if (!result.duplicate) {
+      const adminProductId = Number(result.product && result.product.adminProductId || 0)
+      if (adminProductId > 0) {
+        const [adminRows] = await connection.execute(
+          'SELECT status FROM admin_products WHERE id = ? AND store_id = ? FOR UPDATE',
+          [adminProductId, membership.storeId]
+        )
+        if (!adminRows[0]) throw new HttpError(409, '后台商品已发生变化，请返回商品页刷新')
+        if (!isProductActiveStatus(adminRows[0].status)) {
+          throw new HttpError(409, '商品已停用，请先重新启用', { code: 'PRODUCT_INACTIVE' })
+        }
+      }
       revision += 1
       await connection.execute(
         `UPDATE store_states
@@ -237,7 +248,6 @@ async function commitStoreTransaction(pool, membership, kind, body, requestId) {
         [JSON.stringify(result.state), revision, membership.userId, membership.storeId]
       )
 
-      const adminProductId = Number(result.product && result.product.adminProductId || 0)
       if (adminProductId > 0) {
         const [productUpdate] = await connection.execute(
           `UPDATE admin_products
@@ -405,7 +415,7 @@ function createRequestHandler(pool, config, dependencies) {
           `SELECT id, name, code, item_number, item_number_managed, business_type, category, spec_count, stock, cost_price,
                   low_stock_threshold, price, status, image_url, updated_at
            FROM admin_products
-           WHERE store_id = ? AND status = '销售中'
+           WHERE store_id = ?
            ORDER BY sort_order, id`,
           [membership.storeId]
         )

@@ -1,5 +1,6 @@
 const crypto = require('node:crypto')
 const { applyPurchase, stockOf } = require('./business-transactions')
+const { isProductActiveStatus } = require('./product-status')
 
 const MAX_BATCH_ITEMS = 20
 const MAX_BATCH_ID_LENGTH = 64
@@ -10,6 +11,26 @@ class BatchPurchaseError extends Error {
     super(message)
     this.statusCode = statusCode
     this.details = code ? { code } : undefined
+  }
+}
+
+async function assertBatchProductsActive(connection, state, membership, batch) {
+  for (const item of batch.items) {
+    const product = state.products.find(candidate => text(candidate && candidate.id) === item.productId)
+    if (!product) continue
+    if (!isProductActiveStatus(product.status)) {
+      throw new BatchPurchaseError(409, '商品已停用，请先重新启用', 'PRODUCT_INACTIVE')
+    }
+    const adminProductId = Number(product.adminProductId || 0)
+    if (adminProductId <= 0) continue
+    const [rows] = await connection.execute(
+      'SELECT status FROM admin_products WHERE id = ? AND store_id = ? FOR UPDATE',
+      [adminProductId, membership.storeId]
+    )
+    if (!rows[0]) throw new BatchPurchaseError(409, '后台商品已发生变化，请返回商品页刷新')
+    if (!isProductActiveStatus(rows[0].status)) {
+      throw new BatchPurchaseError(409, '商品已停用，请先重新启用', 'PRODUCT_INACTIVE')
+    }
   }
 }
 
@@ -252,6 +273,7 @@ async function commitPurchaseBatch(pool, membership, body, requestId, now) {
     }
 
     const occurredAt = now || new Date()
+    await assertBatchProductsActive(connection, state, membership, batch)
     const results = batch.items.map(item => {
       const result = applyPurchase(state, item, occurredAt)
       result.record.batchTransactionId = batch.batchTransactionId
@@ -284,6 +306,7 @@ async function commitPurchaseBatch(pool, membership, body, requestId, now) {
 module.exports = {
   MAX_BATCH_ITEMS,
   BatchPurchaseError,
+  assertBatchProductsActive,
   commitPurchaseBatch,
   derivePurchaseTransactionId,
   existingBatch,

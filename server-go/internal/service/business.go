@@ -163,6 +163,13 @@ func (s *AdminService) AdjustStock(ctx context.Context, actor domain.Account, in
 	if input.ProductID <= 0 || input.QuantityChange == 0 || input.Reason == "" {
 		return ErrInvalidInput
 	}
+	product, err := s.repo.Product(ctx, actor.StoreID, input.ProductID)
+	if err != nil {
+		return err
+	}
+	if !domain.IsProductActiveStatus(product.Status) {
+		return domain.ErrProductInactive
+	}
 	return s.repo.AdjustStock(ctx, actor, input)
 }
 func (s *AdminService) CreateSale(ctx context.Context, actor domain.Account, input SaleInput) (domain.Sale, error) {
@@ -172,6 +179,13 @@ func (s *AdminService) CreateSale(ctx context.Context, actor domain.Account, inp
 	}
 	if input.ProductID <= 0 || input.Quantity <= 0 || input.UnitPrice < 0 || input.PaymentMethod == "" {
 		return domain.Sale{}, ErrInvalidInput
+	}
+	product, err := s.repo.Product(ctx, actor.StoreID, input.ProductID)
+	if err != nil {
+		return domain.Sale{}, err
+	}
+	if !domain.IsProductActiveStatus(product.Status) {
+		return domain.Sale{}, domain.ErrProductInactive
 	}
 	id, err := s.repo.CreateSale(ctx, actor, input)
 	if err != nil {

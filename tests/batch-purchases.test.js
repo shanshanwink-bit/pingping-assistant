@@ -92,6 +92,10 @@ function createDatabase(initialState, options = {}) {
           if (normalized.startsWith('SELECT state, revision FROM store_states')) {
             return [[{ state: JSON.stringify(database.state), revision: database.revision }]]
           }
+          if (normalized.startsWith('SELECT status FROM admin_products')) {
+            const productId = Number(args[0])
+            return [[{ status: Number(options.inactiveAdminProductId || 0) === productId ? '已停用' : '销售中' }]]
+          }
           if (normalized.startsWith('UPDATE store_states')) {
             pendingStoreUpdates += 1
             if (options.failStateUpdate) return [{ affectedRows: 0 }]
@@ -260,6 +264,21 @@ test('任意一行失败时整体回滚且前一行不会部分成功', async ()
   assert.equal(database.rollbackCount, 1)
 })
 
+test('批量采购包含停用商品时整批拒绝且不产生部分写入', async () => {
+  const original = state()
+  const { database, pool } = createDatabase(original, { inactiveAdminProductId: 9 })
+  await assert.rejects(
+    () => commitPurchaseBatch(pool, membership, batch(), 'request-inactive-batch'),
+    error => error.statusCode === 409 && error.details.code === 'PRODUCT_INACTIVE'
+  )
+  assert.deepEqual(database.state, original)
+  assert.equal(database.storeUpdates, 0)
+  assert.equal(database.adminUpdates.length, 0)
+  assert.equal(database.audits.length, 0)
+  assert.equal(database.commitCount, 0)
+  assert.equal(database.rollbackCount, 1)
+})
+
 test('完全相同 batch 重试返回已处理且不重复增加库存', async () => {
   const { database, pool } = createDatabase(state())
   const request = batch()
@@ -373,6 +392,7 @@ test('批次和行号生成稳定且请求只采纳交易白名单字段', () =>
   assert.equal(Object.hasOwn(normalized.items[0], 'confidence'), false)
   assert.equal(Object.hasOwn(normalized.items[0], 'matchScore'), false)
   assert.equal(Object.hasOwn(normalized.items[0], 'recognized'), false)
+  assert.equal(Object.hasOwn(normalized.items[0], 'newProduct'), false)
 })
 
 test('HTTP 批量采购接口先校验登录和当前门店权限再提交事务', async () => {

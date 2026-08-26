@@ -167,9 +167,12 @@ func (r *AdminRepository) AdjustStock(ctx context.Context, actor domain.Account,
 	}
 	defer tx.Rollback()
 	var before int
-	var name string
-	if err = tx.QueryRowContext(ctx, `SELECT stock,name FROM admin_products WHERE store_id=? AND id=? FOR UPDATE`, actor.StoreID, input.ProductID).Scan(&before, &name); err != nil {
+	var name, status string
+	if err = tx.QueryRowContext(ctx, `SELECT stock,name,status FROM admin_products WHERE store_id=? AND id=? FOR UPDATE`, actor.StoreID, input.ProductID).Scan(&before, &name, &status); err != nil {
 		return err
+	}
+	if !domain.IsProductActiveStatus(status) {
+		return domain.ErrProductInactive
 	}
 	after := before + input.QuantityChange
 	if after < 0 {
@@ -216,6 +219,9 @@ func (r *AdminRepository) CreateSale(ctx context.Context, actor domain.Account, 
 	err = tx.QueryRowContext(ctx, `SELECT id,name,code,business_type,category,spec_count,stock,cost_price,low_stock_threshold,location,price,status,DATE_FORMAT(updated_at,'%Y-%m-%d %H:%i'),image_url FROM admin_products WHERE store_id=? AND id=? FOR UPDATE`, actor.StoreID, input.ProductID).Scan(&product.ID, &product.Name, &product.Code, &product.BusinessType, &product.Category, &product.SpecCount, &product.Stock, &product.CostPrice, &product.LowStockThreshold, &product.Location, &product.Price, &product.Status, &product.UpdatedAt, &product.Image)
 	if err != nil {
 		return 0, err
+	}
+	if !domain.IsProductActiveStatus(product.Status) {
+		return 0, domain.ErrProductInactive
 	}
 	if product.Stock < input.Quantity {
 		return 0, fmt.Errorf("%w: 商品库存不足", domain.ErrBusinessRule)
