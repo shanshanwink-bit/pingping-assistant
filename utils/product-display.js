@@ -67,7 +67,7 @@ function stockPresentation(product) {
 }
 
 function searchableValue(product) {
-  return [product && product.name, product && product.code, product && product.itemNumber]
+  return [product && product.name, product && product.itemNumber]
     .map(value => text(value).toLowerCase())
     .join('\n')
 }
@@ -91,7 +91,6 @@ function buildListProduct(product, imageFailed) {
   return {
     id: text(product && product.id),
     name: text(product && product.name, '未命名商品'),
-    code: text(product && product.code),
     itemNumber: text(product && product.itemNumber),
     identifier: text(product && product.itemNumber),
     status: normalizeProductStatus(product && product.status),
@@ -204,7 +203,6 @@ function buildProductDetail(product, options) {
   return {
     id: text(product && product.id),
     name: text(product && product.name, '未命名商品'),
-    code: text(product && product.code),
     itemNumber: text(product && product.itemNumber),
     identifier: text(product && product.itemNumber),
     status: normalizeProductStatus(product && product.status),

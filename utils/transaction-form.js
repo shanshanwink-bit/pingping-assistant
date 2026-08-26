@@ -43,7 +43,7 @@ function productIdentifier(product) {
 function productOptions(products, keyword) {
   const query = text(keyword).toLowerCase()
   return (Array.isArray(products) ? products : [])
-    .filter(product => !query || [product.name, product.code, product.itemNumber]
+    .filter(product => !query || [product.name, product.itemNumber]
       .some(value => text(value).toLowerCase().includes(query)))
     .map(product => ({
       id: text(product.id),

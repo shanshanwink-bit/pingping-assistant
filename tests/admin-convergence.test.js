@@ -39,8 +39,11 @@ test('write buttons are permission-gated and safe product deletion is owner-only
   assert.match(products, /v-if="canExport"/)
   assert.match(employees, /v-if="canManage"/)
   assert.match(products, /currentUser\?\.role===['"]owner['"]/)
-  assert.match(products, /deletionEligibility\[p\.id\]\?\.canDelete/)
+  assert.match(products, /editing\.id&&canDeleteProducts/)
+  assert.match(products, /editingDeletionEligibility\?\.canDelete/)
+  assert.match(products, /永久删除商品/)
   assert.match(products, /该商品尚无经营记录，将永久删除商品档案，此操作不可撤销。/)
+  assert.doesNotMatch(products, /@click="requestDelete\(p\)"/)
   assert.doesNotMatch(products, /强制删除/)
 })
 
@@ -48,6 +51,8 @@ test('product editing preserves itemNumber while code remains server-controlled'
   const products = adminSource('views/ProductsView.vue')
   assert.match(products, /blank=.*itemNumber:''/)
   assert.match(products, /filter\(key=>key!==['"]code['"]\)/)
+  assert.match(products, /货号（选填）/)
+  assert.match(products, /可填写吊牌、进货单或供应商货号/)
 })
 
 test('inventory and dashboard use truthful aggregate stock semantics', () => {

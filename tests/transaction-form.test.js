@@ -33,6 +33,7 @@ test('商品预选按安全 productId 解析', () => {
 test('商品名称和货号搜索会去除首尾空格', () => {
   assert.deepEqual(form.productOptions([singleProduct, multiProduct], ' 针织 ').map(item => item.id), ['coat'])
   assert.deepEqual(form.productOptions([singleProduct], ' w100 ').map(item => item.id), ['water-100'])
+  assert.deepEqual(form.productOptions([singleProduct], ' 0001 '), [])
 })
 
 test('交易商品没有货号时不把内部流水号显示成货号', () => {

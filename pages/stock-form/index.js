@@ -55,7 +55,7 @@ Page({
       specLabel: businessType === 'cosmetics' ? '色号 / 容量' : '颜色 / 尺码',
       meta,
       products,
-      productNames: products.map(item => `${item.name}（${item.itemNumber ? `货号 ${item.itemNumber}` : '货号未填写'} · 内部流水号 ${item.code}）`),
+      productNames: products.map(item => `${item.name}（${item.itemNumber ? `货号 ${item.itemNumber}` : '货号未填写'}）`),
       productIndex
     }, () => this.syncProduct())
   },

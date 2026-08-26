@@ -18,9 +18,9 @@ test('商品名称搜索', () => {
   assert.deepEqual(filterProducts(products, { keyword: ' 针织 ', businessType: 'all' }).map(item => item.id), ['coat'])
 })
 
-test('货号和编号搜索', () => {
+test('普通商品搜索只使用名称和真实货号', () => {
   assert.equal(filterProducts(products, { keyword: 'a1023', businessType: 'all' })[0].id, 'coat')
-  assert.equal(filterProducts(products, { keyword: '0002', businessType: 'all' })[0].id, 'water')
+  assert.equal(filterProducts(products, { keyword: '0002', businessType: 'all' }).length, 0)
 })
 
 test('货号为空时不把内部流水号回退显示成货号', () => {
@@ -28,7 +28,8 @@ test('货号为空时不把内部流水号回退显示成货号', () => {
   const detail = buildProductDetail({ ...products[1], specs: [] })
   assert.equal(listItem.identifier, '')
   assert.equal(detail.identifier, '')
-  assert.equal(listItem.code, '0002')
+  assert.equal(Object.hasOwn(listItem, 'code'), false)
+  assert.equal(Object.hasOwn(detail, 'code'), false)
 })
 
 test('商品类型分类筛选使用真实字段', () => {

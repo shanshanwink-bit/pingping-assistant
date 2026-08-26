@@ -50,13 +50,13 @@
   </view>
 
   <view class="closet-heading">
-    <view><view class="section-title">我的美妆柜</view><text>按名称、货号、内部流水号或分类查找</text></view>
+    <view><view class="section-title">我的美妆柜</view><text>按名称、货号或分类查找</text></view>
     <view class="closet-total">{{filteredProducts.length}} 款</view>
   </view>
 
   <view class="clothing-search cosmetic-search">
     <view class="search-lens"></view>
-    <input placeholder="搜索名称、货号或内部流水号" value="{{keyword}}" bindinput="onSearch" />
+    <input placeholder="搜索名称或货号" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
   <scroll-view class="category-scroll clothing-categories" scroll-x enhanced show-scrollbar="{{false}}">
@@ -71,7 +71,7 @@
       <view wx:else class="clothing-product-placeholder cosmetic-placeholder"><image src="/assets/icons/tab-cosmetics-active.svg" mode="aspectFit" /></view>
       <view class="clothing-product-main">
         <view class="clothing-product-name">{{item.name}}</view>
-        <view class="clothing-product-meta"><text wx:if="{{item.itemNumber}}">货号 {{item.itemNumber}}</text><text wx:else>货号未填写</text> · 内部流水号 {{item.code}} · {{item.specCount}} 个规格</view>
+        <view class="clothing-product-meta"><text wx:if="{{item.itemNumber}}">货号 {{item.itemNumber}}</text><text wx:else>货号未填写</text> · {{item.specCount}} 个规格</view>
         <view class="clothing-status {{item.stockStatus === '库存正常' ? 'normal' : 'warning'}}">{{item.stockStatus}}</view>
       </view>
       <view class="clothing-product-stock"><view><text>{{item.totalStock}}</text> 件</view><text class="card-arrow">›</text></view>

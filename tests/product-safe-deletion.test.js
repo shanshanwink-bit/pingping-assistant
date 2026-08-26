@@ -77,10 +77,14 @@ test('Web only shows qualified owner deletion with a second confirmation', () =>
   assert.match(api, /products\/\$\{id\}\/deletion-eligibility/)
   assert.match(api, /method: 'DELETE'/)
   assert.match(view, /currentUser\?\.role===['"]owner['"]/) // owner only
-  assert.match(view, /deletionEligibility\[p\.id\]\?\.canDelete/)
+  assert.match(view, /editing\.id&&canDeleteProducts/)
+  assert.match(view, /editingDeletionEligibility\?\.canDelete/)
+  assert.match(view, /仅零库存且无经营历史的商品可以永久删除。/)
+  assert.match(view, /该商品已有经营记录，为保留历史数据不可永久删除；如不再经营，可停用商品。/)
   assert.match(view, /该商品尚无经营记录，将永久删除商品档案，此操作不可撤销。/)
   assert.match(view, /pendingConfirm\.kind===['"]delete['"]\?['"]永久删除['"]/) // unified dialog
-  assert.match(view, /不可永久删除，可停用/)
+  assert.doesNotMatch(view, /@click="requestDelete\(p\)"/)
+  assert.match(view, /@click="requestDelete\(editing\)"/)
   assert.doesNotMatch(view, /window\.confirm/)
   assert.doesNotMatch(view, /强制删除/)
 })

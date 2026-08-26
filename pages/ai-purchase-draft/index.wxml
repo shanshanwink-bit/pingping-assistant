@@ -45,7 +45,6 @@
           <view>找到已停用商品，请先重新启用或选择其他商品。</view>
           <text class="inactive-item-number">{{item.inactiveMatch.itemNumber ? '货号 ' + item.inactiveMatch.itemNumber : '货号未填写'}}</text>
           <text>{{item.inactiveMatch.name}}</text>
-          <text wx:if="{{item.inactiveMatch.code}}">内部流水号 {{item.inactiveMatch.code}}</text>
           <text class="inactive-help">停用商品不会直接参与入库。</text>
         </view>
 
@@ -57,7 +56,6 @@
             data-product-id="{{candidate.productId}}" bindtap="selectProduct">
             <text class="candidate-code item-number">{{candidate.itemNumber ? '货号 ' + candidate.itemNumber : '货号未填写'}}</text>
             <text class="candidate-name">{{candidate.name}}</text>
-            <text wx:if="{{candidate.code}}" class="candidate-code internal-code">内部流水号 {{candidate.code}}</text>
           </button>
         </view>
         <view wx:elif="{{item.matchStatus !== 'inactive_match'}}" class="missing-copy">没有匹配候选，本阶段不会自动创建商品</view>

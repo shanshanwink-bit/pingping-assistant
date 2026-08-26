@@ -9,15 +9,6 @@
 .progressive-option > view:first-child > view { color: #31536b; font-size: 25rpx; font-weight: 600; }
 .progressive-option > view:first-child > text { display: block; margin-top: 5rpx; color: #8499a7; font-size: 19rpx; }
 .progressive-action { padding: 8rpx 17rpx; border-radius: 999rpx; background: rgba(255,255,255,.74); color: #5c9ec8; font-size: 21rpx; }
-.code-management-card { margin: 2rpx 0 24rpx; padding: 20rpx 22rpx 2rpx; border: 2rpx solid rgba(255,255,255,.82); border-radius: 24rpx; background: rgba(255,255,255,.48); }
-.code-management-card.compact { padding-bottom: 20rpx; }
-.code-management-card.compact .system-code-row { margin-bottom: 0; }
-.system-code-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
-.system-code-row > view { display: flex; align-items: center; gap: 16rpx; }
-.system-code-row > view > text { color: #718a9b; font-size: 21rpx; }
-.system-code-row > view > view { color: #315b78; font-size: 27rpx; font-weight: 650; letter-spacing: 2rpx; }
-.system-code-row > text { padding: 6rpx 12rpx; border-radius: 999rpx; background: rgba(218,240,255,.7); color: #6b9fbe; font-size: 18rpx; }
-.item-number-field { margin-bottom: 20rpx; }
 .optional-section-title { margin: 4rpx 0 22rpx; color: #31536b; font-size: 27rpx; font-weight: 650; }
 .image-field { display: flex; flex-direction: column; align-items: center; margin-bottom: 36rpx; }
 .photo-picker,

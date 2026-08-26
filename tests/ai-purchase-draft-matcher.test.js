@@ -68,6 +68,16 @@ test('真实货号可以与 itemNumber 原值完全匹配', () => {
   assert.equal(result.items[0].candidates[0].productCodeLabel, '货号')
 })
 
+test('AI 候选没有真实货号时不使用内部 code 填充 productCode', () => {
+  const result = draft(recognized({ productName: '清润爽肤水', productCode: '', spec: '' }), [
+    product({ code: 'SYS0001', itemNumber: '' })
+  ])
+  const candidate = result.items[0].candidates[0]
+  assert.equal(candidate.itemNumber, '')
+  assert.equal(candidate.productCode, '')
+  assert.equal(candidate.productCodeLabel, '')
+})
+
 test('AI 入库真实货号优先于同值旧 code', () => {
   const result = draft(recognized({ productName: '', productCode: 'TAG100', spec: '' }), [
     product({ id: 'real-item', itemNumber: 'TAG100', code: 'SYS0001' }),

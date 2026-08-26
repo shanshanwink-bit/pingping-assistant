@@ -19,8 +19,7 @@ function presentCandidate(item) {
   const recent = item && item.recentPurchase
   return {
     ...item,
-    itemNumberText: item.itemNumber ? `货号 ${item.itemNumber}` : '未填写货号',
-    internalCodeText: item.code ? `内部流水号 ${item.code}` : '',
+    itemNumberText: item.itemNumber ? `货号 ${item.itemNumber}` : '货号未填写',
     typeLabel: item.businessType === 'cosmetics' ? '化妆品' : '服装',
     specText: Array.isArray(item.specs) && item.specs.length ? item.specs.join('、') : '暂无规格信息',
     salePriceText: money(item.salePrice),

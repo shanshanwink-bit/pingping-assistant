@@ -55,7 +55,6 @@ Page({
     const filteredProducts = this.data.products.filter(item => {
       const matchKeyword = !keyword ||
         item.name.toLowerCase().includes(keyword) ||
-        item.code.toLowerCase().includes(keyword) ||
         String(item.itemNumber || '').toLowerCase().includes(keyword)
       const matchCategory = category === '全部' || item.category === category
       return matchKeyword && matchCategory
