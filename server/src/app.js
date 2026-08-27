@@ -176,7 +176,7 @@ async function findDemoMembership(pool, config) {
   if (row.role !== 'clerk') throw new HttpError(503, '体验账号必须使用店员角色')
   return {
     id: row.id,
-    name: row.display_name || '面试体验账号',
+    name: row.display_name || '体验账号',
     avatarUrl: row.avatar_url || '',
     storeId: demo.storeId,
     storeName: row.store_name,

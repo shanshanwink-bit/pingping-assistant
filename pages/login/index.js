@@ -94,7 +94,7 @@ Page({
     try {
       const user = await auth.loginDemo()
       await this.syncAndEnter(user)
-      wx.showToast({ title: '已进入面试体验店', icon: 'success' })
+      wx.showToast({ title: '已进入萍萍体验店', icon: 'success' })
     } catch (error) {
       if (auth.getCurrentUser()?.demo) auth.logout()
       this.setData({

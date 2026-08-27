@@ -1,6 +1,6 @@
 {
   "name": "pingping-assistant-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "萍萍小助手自有云服务器 API",
   "main": "src/index.js",

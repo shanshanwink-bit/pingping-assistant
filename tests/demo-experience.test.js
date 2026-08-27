@@ -36,15 +36,15 @@ function apiPool() {
       if (normalized.includes('FROM users u')) {
         return [[{
           id: DEMO_USER_ID,
-          display_name: '面试体验账号',
+          display_name: '体验账号',
           avatar_url: '',
           role: 'clerk',
-          store_name: '萍萍小助手面试体验店'
+          store_name: '萍萍体验店'
         }]]
       }
       if (normalized.includes('FROM store_members sm')) {
         if (args[0] === DEMO_USER_ID && args[1] === DEMO_STORE_ID) {
-          return [[{ role: 'clerk', store_name: '萍萍小助手面试体验店' }]]
+          return [[{ role: 'clerk', store_name: '萍萍体验店' }]]
         }
         return [[]]
       }
@@ -53,7 +53,7 @@ function apiPool() {
       }
       if (normalized.includes('FROM admin_products')) {
         return [[{
-          id: 81, name: '【演示数据】提花针织短外套', code: 'DEMO-FW2601', item_number: 'PP-D2601',
+          id: 81, name: '提花针织短外套', code: 'DEMO-FW2601', item_number: 'PP-D2601',
           item_number_managed: 1, business_type: '服装', category: '外套', spec_count: 4,
           stock: 12, cost_price: 86, low_stock_threshold: 3, price: 199, status: '销售中',
           image_url: '', updated_at: '2026-08-26 10:00:00'
@@ -84,9 +84,9 @@ async function invoke(handler, method, path, options = {}) {
 function demoState(stock = 5) {
   return {
     version: 10,
-    currentUser: { id: DEMO_USER_ID, name: '面试体验账号', role: 'clerk', storeId: DEMO_STORE_ID, demo: true },
+    currentUser: { id: DEMO_USER_ID, name: '体验账号', role: 'clerk', storeId: DEMO_STORE_ID, demo: true },
     products: [{
-      id: 'demo-coat', adminProductId: 81, name: '【演示数据】提花针织短外套',
+      id: 'demo-coat', adminProductId: 81, name: '提花针织短外套',
       businessType: 'clothing', salePrice: 199, costPrice: 86,
       specs: [{ id: 'demo-coat-m', color: '米白', size: 'M', stock }]
     }],
@@ -147,7 +147,7 @@ test('demo 可以查看 Demo 商品且查询不接触真实门店', async () => 
   const result = await invoke(handler, 'GET', '/api/v1/catalog/products', { token: login.body.token })
 
   assert.equal(result.statusCode, 200)
-  assert.equal(result.body.items[0].name, '【演示数据】提花针织短外套')
+  assert.equal(result.body.items[0].name, '提花针织短外套')
   const catalogCall = calls.find(call => call.sql.includes('FROM admin_products'))
   assert.deepEqual(catalogCall.args, [DEMO_STORE_ID])
 })

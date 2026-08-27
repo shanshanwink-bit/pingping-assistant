@@ -8,12 +8,12 @@ function getCurrentUser() {
   return {
     id: session.id || session.openid,
     openid: session.openid || '',
-    account: session.account || session.openid || '',
-    name: session.name || '用户',
+    account: isDemo ? '体验账号' : session.account || session.openid || '',
+    name: isDemo ? '体验账号' : session.name || '用户',
     avatarUrl: session.avatarUrl || '',
     role: session.role || '',
     storeId: session.storeId || '',
-    storeName: session.storeName || '',
+    storeName: isDemo ? '萍萍体验店' : session.storeName || '',
     loggedInAt: session.loggedInAt || '',
     demo: isDemo
   }
@@ -51,8 +51,8 @@ async function loginDemo() {
     token: identity.token,
     id: remoteUser.id,
     openid: '',
-    account: 'demo',
-    name: remoteUser.name || '面试体验账号',
+    account: '体验账号',
+    name: remoteUser.name || '体验账号',
     avatarUrl: remoteUser.avatarUrl || '',
     role: remoteUser.role || 'clerk',
     storeId: remoteUser.storeId || '',

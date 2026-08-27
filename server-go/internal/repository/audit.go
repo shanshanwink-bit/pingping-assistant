@@ -106,14 +106,19 @@ func miniAuditSummary(raw []byte) string {
 		return ""
 	}
 	parts := make([]string, 0, 3)
-	if details.ProductID != "" {
+	if details.ProductID != "" && !isExperienceIdentifier(details.ProductID) {
 		parts = append(parts, "商品 "+details.ProductID)
 	}
-	if details.SpecID != "" {
+	if details.SpecID != "" && !isExperienceIdentifier(details.SpecID) {
 		parts = append(parts, "规格 "+details.SpecID)
 	}
 	parts = append(parts, fmt.Sprintf("数量 %d，库存 %d → %d", details.Quantity, details.BeforeStock, details.AfterStock))
 	return strings.Join(parts, " · ")
+}
+
+func isExperienceIdentifier(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	return strings.HasPrefix(normalized, "demo-") || strings.HasPrefix(normalized, "mock-")
 }
 
 func roleName(role string) string {

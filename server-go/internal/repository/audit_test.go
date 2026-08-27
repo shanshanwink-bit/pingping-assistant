@@ -18,3 +18,10 @@ func TestAuditSourcesAndTimeOrdering(t *testing.T) {
 		t.Fatalf("mini audit adaptation mismatch: %#v", mini)
 	}
 }
+
+func TestMiniAuditSummaryHidesExperienceIdentifiers(t *testing.T) {
+	summary := miniAuditSummary([]byte(`{"productId":"demo-coat","specId":"demo-coat-ivory-s","quantity":1,"beforeStock":2,"afterStock":1}`))
+	if summary != "数量 1，库存 2 → 1" {
+		t.Fatalf("experience identifiers should not be user-visible: %q", summary)
+	}
+}
