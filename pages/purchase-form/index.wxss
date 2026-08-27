@@ -131,11 +131,11 @@
 .success-grid text { color: var(--color-text-secondary); font-size: 20rpx; }
 .success-grid view view { margin-top: 7rpx; color: var(--color-brand); font-size: 27rpx; font-weight: 600; }
 .success-profit { margin-top: 14rpx; color: var(--color-success); font-size: 22rpx; }
-.success-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14rpx; margin-top: 28rpx; }
+.success-actions { display: flex; margin-top: 28rpx; }
 .outline-action,
-.primary-action { height: 82rpx; margin: 0; border-radius: 20rpx; font-size: 25rpx; line-height: 82rpx; }
+.primary-action { display: flex; width: 0; min-width: 0; height: 82rpx; flex: 1 1 0; box-sizing: border-box; align-items: center; justify-content: center; margin: 0; padding: 0; border-radius: 20rpx; font-size: 25rpx; line-height: 1; }
 .outline-action { border: 1rpx solid var(--color-brand); color: var(--color-brand); background: #fff; }
-.primary-action { color: #fff; background: var(--color-brand); }
+.primary-action { margin-left: 14rpx; color: #fff; background: var(--color-brand); }
 .finish-action { height: 64rpx; margin: 18rpx 0 0; color: var(--color-text-secondary); background: transparent; font-size: 23rpx; line-height: 64rpx; }
 @keyframes transaction-loading { to { transform: rotate(360deg); } }
 @media (max-width: 340px) {

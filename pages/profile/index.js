@@ -61,13 +61,9 @@ Page({
   showAdminConsole() {
     wx.showModal({
       title: '管理后台',
-      content: '用于商品维护和系统管理。微信小程序暂不直接打开外部网页，请在电脑浏览器中使用正式管理后台地址。',
-      cancelText: '取消',
-      confirmText: '复制地址',
-      success: result => {
-        if (!result.confirm) return
-        wx.setClipboardData({ data: profile.ADMIN_CONSOLE_URL })
-      }
+      content: '用于商品维护和系统管理，请在电脑浏览器中访问正式管理后台。',
+      showCancel: false,
+      confirmText: '知道了'
     })
   },
 

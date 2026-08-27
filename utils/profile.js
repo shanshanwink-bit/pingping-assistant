@@ -1,5 +1,4 @@
-const APP_VERSION = '1.2.0'
-const ADMIN_CONSOLE_URL = 'https://shanshanwink.online/pingping/'
+const APP_VERSION = '1.0.1'
 
 const ROLE_LABELS = {
   owner: '店主',
@@ -69,7 +68,6 @@ function shouldConfirmLogout(result) {
 
 module.exports = {
   APP_VERSION,
-  ADMIN_CONSOLE_URL,
   buildUserView,
   buildSyncView,
   shouldConfirmLogout

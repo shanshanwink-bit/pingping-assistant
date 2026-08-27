@@ -1,4 +1,5 @@
 const store = require('../../utils/store')
+const { visibleSpecs } = require('../../utils/product-specs')
 
 const TYPE_META = {
   inbound: { title: '商品入库', quantityLabel: '入库数量', buttonText: '确认入库', reasons: ['采购入库', '顾客退货', '盘盈补录', '其他入库'] },
@@ -61,7 +62,10 @@ Page({
   },
 
   syncProduct() {
-    const currentProduct = this.data.products[this.data.productIndex] || null
+    const selectedProduct = this.data.products[this.data.productIndex] || null
+    const currentProduct = selectedProduct
+      ? { ...selectedProduct, specs: visibleSpecs(selectedProduct.specs) }
+      : null
     const specs = currentProduct ? currentProduct.specs : []
     this.setData({
       currentProduct,

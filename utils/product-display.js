@@ -1,6 +1,7 @@
 const { normalizeBusinessType } = require('./catalog-products')
 const { buildAttentionItems } = require('./home-dashboard')
 const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
+const { visibleSpecs } = require('./product-specs')
 
 const SUMMARY_SPEC_PATTERN = /^(全部规格|汇总|聚合|SKU_SUMMARY)$/i
 const TYPE_META = {
@@ -60,7 +61,7 @@ function stockPresentation(product) {
   const stock = totalStock(product)
   if (stock === 0) return { code: 'out', label: '已缺货', tone: 'danger' }
   const threshold = Math.max(0, number(product && product.lowStockThreshold))
-  const specs = Array.isArray(product && product.specs) ? product.specs : []
+  const specs = visibleSpecs(product && product.specs)
   const hasLowSpec = specs.some(spec => Math.max(0, number(spec && spec.stock)) <= threshold)
   if (hasLowSpec) return { code: 'low', label: '库存偏低', tone: 'warning' }
   return { code: 'normal', label: '库存正常', tone: 'success' }
@@ -138,7 +139,7 @@ function specPresentation(spec, threshold) {
 
 function buildSpecList(product) {
   const threshold = Math.max(0, number(product && product.lowStockThreshold))
-  return (Array.isArray(product && product.specs) ? product.specs : [])
+  return visibleSpecs(product && product.specs)
     .map(spec => specPresentation(spec, threshold))
 }
 

@@ -28,8 +28,8 @@
       <image class="image-preview" src="{{selectedImage}}" mode="aspectFit" />
       <view class="image-meta">{{selectedImageSize}}</view>
       <view class="image-actions">
-        <button class="image-action" disabled="{{recognizing}}" bindtap="chooseImage">重新选择</button>
-        <button class="image-action danger" disabled="{{recognizing}}" bindtap="removeImage">删除图片</button>
+        <view class="image-action-slot"><button class="image-action" disabled="{{recognizing}}" bindtap="chooseImage">重新选择</button></view>
+        <view class="image-action-slot"><button class="image-action danger" disabled="{{recognizing}}" bindtap="removeImage">删除图片</button></view>
       </view>
     </view>
 

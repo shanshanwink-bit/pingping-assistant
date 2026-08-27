@@ -73,7 +73,9 @@ button::after { border: 0; }
 
 .primary-button { border: 1rpx solid var(--color-brand) !important; color: #fff !important; background: var(--color-brand) !important; box-shadow: none !important; }
 .secondary-button { border: 1rpx solid var(--color-border) !important; color: var(--color-text) !important; background: #fff !important; box-shadow: none !important; }
-.button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20rpx; margin-top: 36rpx; }
+.button-row { display: flex; margin-top: 36rpx; }
+.button-row > button { width: 0; min-width: 0; flex: 1 1 0; box-sizing: border-box; margin: 0; }
+.button-row > button + button { margin-left: 20rpx; }
 
 .empty { padding: 72rpx 24rpx; color: var(--color-text-secondary) !important; text-align: center; }
 .field { margin-bottom: 28rpx; }

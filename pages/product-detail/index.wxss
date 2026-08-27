@@ -76,11 +76,11 @@
 .detail-management-row button[disabled] { opacity: .52; }
 .detail-inactive-note { margin: 24rpx 0 0; padding: 22rpx 24rpx; border: 1rpx solid #f0c9ce; border-radius: 22rpx; color: var(--color-danger); background: #fbf0f1; font-size: 23rpx; line-height: 1.6; }
 
-.detail-action-bar { display: grid; position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; grid-template-columns: 1fr 1.35fr; gap: 18rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--color-border); background: rgba(255, 255, 255, .97); }
+.detail-action-bar { display: flex; position: fixed; z-index: 10; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--color-border); background: rgba(255, 255, 255, .97); }
 .purchase-button,
-.sale-button { display: flex; height: 88rpx; align-items: center; justify-content: center; margin: 0; border-radius: 20rpx; font-size: 28rpx; font-weight: 600; line-height: 88rpx; }
+.sale-button { display: flex; width: 0; min-width: 0; height: 88rpx; flex: 1 1 0; box-sizing: border-box; align-items: center; justify-content: center; margin: 0; padding: 0; border-radius: 20rpx; font-size: 28rpx; font-weight: 600; line-height: 1; }
 .purchase-button { border: 1rpx solid var(--color-brand); color: var(--color-brand); background: var(--color-surface); }
-.sale-button { color: #fff; background: var(--color-brand); }
+.sale-button { margin-left: 18rpx; color: #fff; background: var(--color-brand); }
 .purchase-button[disabled],
 .sale-button[disabled] { opacity: .55; }
 

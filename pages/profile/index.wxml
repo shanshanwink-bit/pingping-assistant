@@ -65,7 +65,7 @@
     <view class="menu-row">
       <view class="menu-icon muted">版</view>
       <view class="menu-copy"><view>当前版本</view></view>
-      <text class="row-value">v{{version}}</text>
+      <text class="row-value">{{version}}</text>
     </view>
   </view>
 

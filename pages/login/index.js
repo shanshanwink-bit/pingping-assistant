@@ -9,6 +9,7 @@ Page({
     ownerName: '微信店主',
     avatarUrl: '',
     submitting: false,
+    demoSubmitting: false,
     restoring: false,
     offlineAvailable: false,
     errorText: ''
@@ -28,9 +29,10 @@ Page({
     if (user) {
       this.setData({ ownerName: user.name, avatarUrl: user.avatarUrl, restoring: true })
       this.syncAndEnter(user).catch(error => {
+        if (user.demo) auth.logout()
         this.setData({
           restoring: false,
-          offlineAvailable: true,
+          offlineAvailable: this.canUseOffline(user),
           errorText: `服务器同步失败：${error.message || '请检查网络和 API 配置'}`
         })
       })
@@ -50,16 +52,24 @@ Page({
     if (remote.exists && remote.state) {
       store.replaceStateFromServer(remote.state, user)
     } else {
+      if (user.demo) throw new Error('体验店尚未初始化，请联系维护人员')
+      if (!store.canInitializeStoreFromCache(user.storeId)) {
+        throw new Error('本机缓存属于其他店铺，不能用于初始化当前店铺')
+      }
       store.setCurrentUser(user)
       await serverSync.pushState(store.getState())
     }
     await catalogSync.refreshProducts()
-    this.setData({ submitting: false, restoring: false, offlineAvailable: false })
+    this.setData({ submitting: false, demoSubmitting: false, restoring: false, offlineAvailable: false })
     wx.switchTab({ url: '/pages/home/index' })
   },
 
+  canUseOffline(user) {
+    return Boolean(user && !user.demo && store.isStateForStore(user.storeId))
+  },
+
   async submitWechatLogin() {
-    if (this.data.submitting || this.data.restoring) return
+    if (this.data.submitting || this.data.demoSubmitting || this.data.restoring) return
     this.setData({ submitting: true, errorText: '', offlineAvailable: false })
     try {
       const user = await auth.loginWithWechat({
@@ -69,11 +79,28 @@ Page({
       await this.syncAndEnter(user)
       wx.showToast({ title: '微信登录成功', icon: 'success' })
     } catch (error) {
-      const hasSession = Boolean(auth.getCurrentUser())
+      const currentUser = auth.getCurrentUser()
       this.setData({
         submitting: false,
-        offlineAvailable: hasSession,
+        offlineAvailable: this.canUseOffline(currentUser),
         errorText: error.message || '微信登录失败，请重试'
+      })
+    }
+  },
+
+  async submitDemoLogin() {
+    if (this.data.submitting || this.data.demoSubmitting || this.data.restoring) return
+    this.setData({ demoSubmitting: true, errorText: '', offlineAvailable: false })
+    try {
+      const user = await auth.loginDemo()
+      await this.syncAndEnter(user)
+      wx.showToast({ title: '已进入面试体验店', icon: 'success' })
+    } catch (error) {
+      if (auth.getCurrentUser()?.demo) auth.logout()
+      this.setData({
+        demoSubmitting: false,
+        offlineAvailable: false,
+        errorText: error.message || '体验模式暂不可用'
       })
     }
   },
@@ -96,7 +123,7 @@ Page({
 
   enterOffline() {
     const user = auth.getCurrentUser()
-    if (!user) return
+    if (!this.canUseOffline(user)) return
     store.setCurrentUser(user)
     wx.switchTab({ url: '/pages/home/index' })
   }

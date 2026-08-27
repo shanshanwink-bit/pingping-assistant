@@ -57,6 +57,9 @@ const created = mergeCatalogProducts([], [{ ...apiProduct, id: 7, code: '0003', 
 assert.strictEqual(created.id, 'admin-product-7')
 assert.strictEqual(created.specs[0].stock, 4)
 assert.strictEqual(created.totalStock, undefined)
+const refreshedCreated = mergeCatalogProducts([created], [{ ...apiProduct, id: 7, code: '0003', stock: 4 }])[0]
+assert.strictEqual(refreshedCreated.specs.length, 1, '重复同步不能再次创建默认规格')
+assert.strictEqual(refreshedCreated.specs[0].id, 'admin-spec-7', '重复同步必须保留同一个默认规格 ID')
 
 const legacyItemNumber = mergeCatalogProducts([{
   ...legacy,

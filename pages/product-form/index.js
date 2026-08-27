@@ -1,6 +1,7 @@
 const store = require('../../utils/store')
 const serverSync = require('../../utils/server-sync')
 const auth = require('../../utils/auth')
+const { isSummarySpec } = require('../../utils/product-specs')
 
 const COLOR_PRESETS = ['黑色', '白色', '灰色', '米白色', '杏色', '蓝色', '粉色', '红色', '绿色', '卡其色']
 const LETTER_SIZE_PRESETS = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '均码']
@@ -80,8 +81,9 @@ Page({
     const isCosmetics = product ? product.businessType === 'cosmetics' : settings.type === 'cosmetics'
     const categories = isCosmetics ? ['护肤', '彩妆', '香水', '洗护', '其他'] : ['上衣', '裤子', '裙子', '外套', '其他']
     const categoryIndex = product ? Math.max(0, categories.indexOf(product.category)) : 0
-    const productColors = product ? product.specs.map(item => item.color).filter((item, index, list) => item !== '通用' && item !== '默认' && list.indexOf(item) === index) : []
-    const productSizes = product ? product.specs.map(item => item.size).filter((item, index, list) => list.indexOf(item) === index) : []
+    const editableSpecs = product ? product.specs.filter(item => !isSummarySpec(item)) : []
+    const productColors = editableSpecs.map(item => item.color).filter((item, index, list) => item !== '通用' && item !== '默认' && list.indexOf(item) === index)
+    const productSizes = editableSpecs.map(item => item.size).filter((item, index, list) => list.indexOf(item) === index)
     const variants = product ? product.specs.map(item => ({
       key: `${item.color === '默认' ? '通用' : item.color}__${item.size}`,
       id: item.id,

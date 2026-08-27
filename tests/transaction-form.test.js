@@ -45,6 +45,17 @@ test('单规格自动选中', () => {
   assert.equal(form.resolveSpec(singleProduct, '', 'sale').id, 'spec-all')
 })
 
+test('同步后的零库存重复默认规格不进入经营选择', () => {
+  const product = {
+    id: 'water', name: '水100ml', businessType: 'cosmetics',
+    specs: [
+      { id: 'admin-spec-6', color: '全部规格', size: '汇总', stock: 104 },
+      { id: 'duplicate', color: '全部规格', size: '100ml', stock: 0 }
+    ]
+  }
+  assert.deepStrictEqual(form.specOptions(product, 'purchase').map(item => item.id), ['admin-spec-6'])
+})
+
 test('多规格未传 specId 时必须选择', () => {
   assert.equal(form.resolveSpec(multiProduct, '', 'sale'), null)
 })

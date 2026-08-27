@@ -4,7 +4,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const storage = {}
-const calls = { modals: [], navigations: [], relaunches: [], clipboards: [], toasts: [] }
+const calls = { modals: [], navigations: [], relaunches: [], toasts: [] }
 let requestMode = 'success'
 let pageDefinition = null
 
@@ -15,7 +15,6 @@ global.wx = {
   showModal(options) { calls.modals.push(options) },
   navigateTo(options) { calls.navigations.push(options) },
   reLaunch(options) { calls.relaunches.push(options) },
-  setClipboardData(options) { calls.clipboards.push(options) },
   showToast(options) { calls.toasts.push(options) },
   request(options) {
     if (requestMode === 'failure') {
@@ -112,25 +111,17 @@ test('操作记录入口进入已注册页面', () => {
   assert.equal(appConfig.pages.includes('pages/operations/index'), true)
 })
 
-test('管理后台入口不在小程序内强行打开外部网页', () => {
+test('管理后台入口仅展示普通说明', () => {
   resetCalls()
   createPage().showAdminConsole()
   assert.equal(calls.navigations.length, 0)
-  assert.match(calls.modals[0].content, /正式管理后台地址/)
-  calls.modals[0].success({ cancel: true })
-  assert.equal(calls.clipboards.length, 0)
+  assert.match(calls.modals[0].content, /电脑浏览器.*正式管理后台/)
+  assert.equal(calls.modals[0].showCancel, false)
+  assert.equal(calls.modals[0].confirmText, '知道了')
 })
 
-test('确认后仅复制正式管理后台地址', () => {
-  resetCalls()
-  createPage().showAdminConsole()
-  calls.modals[0].success({ confirm: true })
-  assert.deepEqual(calls.clipboards[0], { data: profile.ADMIN_CONSOLE_URL })
-  assert.equal(profile.ADMIN_CONSOLE_URL, 'https://shanshanwink.online/pingping/')
-})
-
-test('页面版本来自明确的 1.2.0 应用常量', () => {
-  assert.equal(profile.APP_VERSION, '1.2.0')
+test('页面版本来自明确的 1.0.1 应用常量', () => {
+  assert.equal(profile.APP_VERSION, '1.0.1')
   assert.equal(pageDefinition.data.version, profile.APP_VERSION)
 })
 

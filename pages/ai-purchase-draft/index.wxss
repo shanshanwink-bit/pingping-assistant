@@ -49,8 +49,9 @@
 .success-mark { width: 92rpx; height: 92rpx; margin: 0 auto; border-radius: 50%; background: #e2f5e8; color: #287441; font-size: 52rpx; font-weight: 700; line-height: 92rpx; }
 .success-title { margin-top: 24rpx; color: var(--color-text-primary); font-size: 34rpx; font-weight: 650; }
 .success-copy { margin-top: 14rpx; color: var(--color-text-secondary); font-size: 24rpx; line-height: 1.6; }
-.success-actions { display: flex; gap: 18rpx; margin-top: 34rpx; }
-.success-actions button { flex: 1; margin: 0; border-radius: 20rpx; font-size: 25rpx; }
+.success-actions { display: flex; margin-top: 34rpx; }
+.success-actions button { width: 0; min-width: 0; flex: 1 1 0; box-sizing: border-box; margin: 0; border-radius: 20rpx; font-size: 25rpx; }
+.success-actions button + button { margin-left: 18rpx; }
 .success-actions button::after { border: 0; }
 .outline-action { border: 2rpx solid #8e3655; background: #fff; color: #8e3655; }
 .primary-action { background: #8e3655; color: #fff; }

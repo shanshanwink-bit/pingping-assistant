@@ -9,6 +9,10 @@ function positiveInteger(name, value) {
   return parsed
 }
 
+function enabled(value) {
+  return String(value || '').trim().toLowerCase() === 'true'
+}
+
 function loadConfig(env) {
   const source = env || process.env
   const port = Number(source.PORT || 3000)
@@ -24,6 +28,13 @@ function loadConfig(env) {
     .filter(Boolean)
   if (primaryStoreId && !allowedOpenIds.length) {
     throw new Error('配置 PRIMARY_STORE_ID 时必须同时配置 WECHAT_ALLOWED_OPENIDS')
+  }
+
+  const demoEnabled = enabled(source.DEMO_LOGIN_ENABLED)
+  const demoStoreId = String(source.DEMO_STORE_ID || '').trim()
+  const demoUserId = String(source.DEMO_USER_ID || '').trim()
+  if (demoEnabled && (!demoStoreId || !demoUserId)) {
+    throw new Error('启用体验登录时必须同时配置 DEMO_STORE_ID 和 DEMO_USER_ID')
   }
 
   return {
@@ -43,6 +54,12 @@ function loadConfig(env) {
       appSecret: source.WECHAT_APP_SECRET || '',
       primaryStoreId,
       allowedOpenIds
+    },
+    demo: {
+      enabled: demoEnabled,
+      storeId: demoStoreId,
+      userId: demoUserId,
+      tokenTtlSeconds: positiveInteger('DEMO_TOKEN_TTL_SECONDS', source.DEMO_TOKEN_TTL_SECONDS || 60 * 60 * 2)
     },
     ai: {
       apiKey: String(source.DASHSCOPE_API_KEY || '').trim(),

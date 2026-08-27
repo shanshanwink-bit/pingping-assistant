@@ -119,6 +119,7 @@
 }
 
 .login-button::after,
+.experience-button::after,
 .offline-action::after {
   border: 0;
 }
@@ -164,6 +165,11 @@
   border-color: #8e3655;
   background: #fff;
   color: #8e3655;
+}
+
+.experience-button.is-disabled {
+  border-color: #c9a8b4;
+  color: #a77c8c;
 }
 
 .login-error {

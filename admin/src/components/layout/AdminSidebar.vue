@@ -35,7 +35,7 @@ const navItems = computed(() => visibleNavItems(props.user))
     </nav>
     <div ref="accountArea" class="sidebar-footer account-area">
       <div v-if="menuOpen" class="account-menu" role="menu">
-        <button role="menuitem" @click="choose('profile')"><span class="material-symbols-outlined">manage_accounts</span><span>编辑个人资料</span></button>
+        <button role="menuitem" @click="choose('profile')">编辑个人资料</button>
         <button class="account-menu-logout" role="menuitem" @click="choose('logout')"><span class="material-symbols-outlined">logout</span><span>退出登录</span></button>
       </div>
       <button class="account-button" :aria-expanded="menuOpen" aria-haspopup="menu" @click="menuOpen=!menuOpen">

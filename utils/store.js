@@ -4,6 +4,7 @@ const serverSync = require('./server-sync')
 const { mergeCatalogProducts } = require('./catalog-products')
 const { summarizeProfitRecords } = require('./ledger')
 const { isProductActiveStatus, normalizeProductStatus } = require('./product-status')
+const { isSummarySpec, visibleSpecs } = require('./product-specs')
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -134,13 +135,31 @@ function getState() {
   return clone(ensureState())
 }
 
+function cachedStoreId() {
+  const state = ensureState()
+  return String(state.currentUser && state.currentUser.storeId || '').trim()
+}
+
+function isStateForStore(storeId) {
+  const expected = String(storeId || '').trim()
+  return Boolean(expected && cachedStoreId() === expected)
+}
+
+function canInitializeStoreFromCache(storeId) {
+  const cached = cachedStoreId()
+  const expected = String(storeId || '').trim()
+  return Boolean(expected && (!cached || cached === expected))
+}
+
 function setCurrentUser(user) {
   const state = ensureState()
   state.currentUser = {
     id: user.id,
     name: user.name || '店主',
     account: user.account || '',
-    role: user.role || 'owner'
+    role: user.role || 'owner',
+    storeId: user.storeId || '',
+    demo: user.demo === true
   }
   saveState(state)
   return clone(state.currentUser)
@@ -186,7 +205,9 @@ function replaceStateFromServer(serverState, user) {
     id: user.id,
     name: user.name || '微信店主',
     account: user.openid || user.account || '',
-    role: 'owner'
+    role: user.role || 'owner',
+    storeId: user.storeId || '',
+    demo: user.demo === true
   }
   wx.setStorageSync(STORAGE_KEY, state)
   return clone(state)
@@ -323,7 +344,7 @@ function getSummary(businessType) {
   const todaySaleAmount = roundMoney(todaySales.reduce((sum, item) => sum + item.totalAmount, 0))
   const lowSpecs = []
   products.forEach(product => {
-    product.specs.forEach(spec => {
+    visibleSpecs(product.specs).forEach(spec => {
       if (spec.stock <= product.lowStockThreshold) {
         lowSpecs.push({
           specId: spec.id,
@@ -431,7 +452,10 @@ function updateProduct(id, payload) {
   previousSpecs.forEach(spec => { previousByKey[`${spec.color}__${spec.size}`] = spec })
   const createdAt = nowText()
   const specs = payload.specs.map((spec, index) => {
-    const previous = previousSpecs.find(item => item.id === spec.id) || previousByKey[`${spec.color}__${spec.size}`]
+    const onlyPreviousDefault = previousSpecs.length === 1 && isSummarySpec(previousSpecs[0])
+    const previous = previousSpecs.find(item => item.id === spec.id) ||
+      previousByKey[`${spec.color}__${spec.size}`] ||
+      (payload.specs.length === 1 && onlyPreviousDefault ? previousSpecs[0] : null)
     return {
       id: previous ? previous.id : `${id}s${Date.now()}${index + 1}`,
       color: spec.color,
@@ -938,6 +962,8 @@ function updateStock(payload) {
 module.exports = {
   ensureState,
   getState,
+  isStateForStore,
+  canInitializeStoreFromCache,
   setCurrentUser,
   replaceStateFromServer,
   replaceProductsFromCatalog,

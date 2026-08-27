@@ -1,4 +1,5 @@
 const { productType, specParts, totalStock } = require('./product-display')
+const { visibleSpecs } = require('./product-specs')
 
 function text(value, fallback = '') {
   const result = String(value === undefined || value === null ? '' : value).trim()
@@ -55,7 +56,7 @@ function productOptions(products, keyword) {
 }
 
 function specOptions(product, mode) {
-  return (Array.isArray(product && product.specs) ? product.specs : []).map(spec => {
+  return visibleSpecs(product && product.specs).map(spec => {
     const stock = Math.max(0, Math.round(number(spec.stock)))
     const parts = specParts(spec)
     return {

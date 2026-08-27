@@ -52,6 +52,18 @@ test('正常库存状态', () => {
   assert.equal(stockPresentation({ totalStock: 8, lowStockThreshold: 1, specs: [{ stock: 4 }, { stock: 4 }] }).label, '库存正常')
 })
 
+test('隐藏的零库存汇总规格不误报低库存', () => {
+  const status = stockPresentation({
+    totalStock: 104,
+    lowStockThreshold: 0,
+    specs: [
+      { id: 'active', color: '全部规格', stock: 104 },
+      { id: 'legacy', color: '汇总', stock: 0 }
+    ]
+  })
+  assert.equal(status.label, '库存正常')
+})
+
 test('真实售价格式化为两位小数', () => {
   assert.equal(formatMoney(129), '¥129.00')
   const detail = buildProductDetail({ salePrice: 68, costPrice: 68, specs: [] })

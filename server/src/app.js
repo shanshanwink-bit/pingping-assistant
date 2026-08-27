@@ -158,6 +158,49 @@ async function findOrCreateMembership(pool, identity, profile, config) {
   }
 }
 
+async function findDemoMembership(pool, config) {
+  const demo = config.demo || {}
+  if (!demo.enabled) throw new HttpError(404, '体验模式未开放')
+  const [rows] = await pool.execute(
+    `SELECT u.id, u.display_name, u.avatar_url, sm.role, s.name AS store_name
+     FROM users u
+     INNER JOIN store_members sm ON sm.user_id = u.id
+     INNER JOIN stores s ON s.id = sm.store_id
+     WHERE u.id = ? AND sm.store_id = ?
+       AND sm.status = 'active' AND s.status = 'active'
+     LIMIT 1`,
+    [demo.userId, demo.storeId]
+  )
+  const row = rows[0]
+  if (!row) throw new HttpError(503, '体验环境尚未初始化')
+  if (row.role !== 'clerk') throw new HttpError(503, '体验账号必须使用店员角色')
+  return {
+    id: row.id,
+    name: row.display_name || '面试体验账号',
+    avatarUrl: row.avatar_url || '',
+    storeId: demo.storeId,
+    storeName: row.store_name,
+    role: row.role,
+    demo: true
+  }
+}
+
+function tokenScope(payload, config) {
+  if (!payload.userId || !payload.storeId) throw new HttpError(401, '登录凭证内容不完整')
+  if (payload.demo === true) {
+    const demo = config.demo || {}
+    if (!demo.enabled || payload.userId !== demo.userId || payload.storeId !== demo.storeId) {
+      throw new HttpError(403, '体验凭证无权访问该店铺')
+    }
+    return { storeId: demo.storeId, demo: true }
+  }
+  const primaryStoreId = config.wechat.primaryStoreId
+  if (primaryStoreId && payload.storeId !== primaryStoreId) {
+    throw new HttpError(403, '登录凭证无权访问该店铺')
+  }
+  return { storeId: primaryStoreId || payload.storeId, demo: false }
+}
+
 async function requireMembership(request, pool, config) {
   const token = bearerToken(request)
   if (!token) throw new HttpError(401, '请先登录')
@@ -167,7 +210,8 @@ async function requireMembership(request, pool, config) {
   } catch (error) {
     throw new HttpError(401, error.message)
   }
-  const storeId = config.wechat.primaryStoreId || payload.storeId
+  const scope = tokenScope(payload, config)
+  const storeId = scope.storeId
   const [rows] = await pool.execute(
     `SELECT sm.role, s.name AS store_name
      FROM store_members sm
@@ -177,7 +221,12 @@ async function requireMembership(request, pool, config) {
     [payload.userId, storeId]
   )
   if (!rows[0]) throw new HttpError(403, '当前账号已无权访问该店铺')
-  return { ...payload, storeId, role: rows[0].role, storeName: rows[0].store_name }
+  if (scope.demo && rows[0].role !== 'clerk') throw new HttpError(403, '体验账号权限配置不正确')
+  return { ...payload, storeId, role: rows[0].role, storeName: rows[0].store_name, demo: scope.demo }
+}
+
+function requireOwner(membership) {
+  if (membership.role !== 'owner') throw new HttpError(403, '仅店主可执行此操作')
 }
 
 function catalogProduct(row) {
@@ -367,6 +416,17 @@ function createRequestHandler(pool, config, dependencies) {
         return
       }
 
+      if (request.method === 'POST' && url.pathname === '/api/v1/auth/demo/login') {
+        const user = await findDemoMembership(pool, config)
+        const token = signToken(
+          { userId: user.id, storeId: user.storeId, role: user.role, demo: true },
+          config.jwtSecret,
+          config.demo.tokenTtlSeconds
+        )
+        sendJson(response, 200, { ok: true, token, user }, headers)
+        return
+      }
+
       if (request.method === 'GET' && url.pathname === '/api/v1/features') {
         const membership = await requireMembership(request, pool, config)
         const features = await aiService.features(membership.storeId)
@@ -426,6 +486,7 @@ function createRequestHandler(pool, config, dependencies) {
       const productProfileMatch = url.pathname.match(/^\/api\/v1\/catalog\/products\/(\d+)$/)
       if (request.method === 'PATCH' && productProfileMatch) {
         const membership = await requireMembership(request, pool, config)
+        requireOwner(membership)
         const body = await readJson(request, config.bodyLimitBytes)
         const item = await updateProductProfile(pool, membership, productProfileMatch[1], body, requestId)
         sendJson(response, 200, { ok: true, item }, headers)
@@ -504,4 +565,14 @@ function createRequestHandler(pool, config, dependencies) {
   }
 }
 
-module.exports = { createRequestHandler, validState, HttpError, catalogProduct, commitStoreTransaction, commitPurchaseBatch }
+module.exports = {
+  createRequestHandler,
+  validState,
+  HttpError,
+  catalogProduct,
+  commitStoreTransaction,
+  commitPurchaseBatch,
+  findDemoMembership,
+  requireMembership,
+  tokenScope
+}

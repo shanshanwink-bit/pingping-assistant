@@ -252,6 +252,14 @@ async function commitSale(payload) {
   return result
 }
 
+async function demoLogin() {
+  const result = await request({ path: '/auth/demo/login', method: 'POST' })
+  if (!result.token || !result.user || !result.user.id || result.user.demo !== true) {
+    throw new Error('服务器体验登录响应不完整')
+  }
+  return result
+}
+
 async function commitPurchase(payload) {
   const result = await request({ path: '/store/purchases', method: 'POST', data: clone(payload) })
   currentRevision = Number(result.revision || currentRevision)
@@ -277,7 +285,10 @@ function clearPendingPush() {
 
 function hasServerSession() {
   const activeSession = session()
-  return Boolean(activeSession && activeSession.openid && activeSession.token)
+  return Boolean(
+    activeSession && activeSession.token &&
+    (activeSession.openid || (activeSession.demo === true && activeSession.id))
+  )
 }
 
 function scheduleFlush(delay) {
@@ -333,6 +344,7 @@ function resetSyncState() {
 module.exports = {
   initServer,
   wechatLogin,
+  demoLogin,
   pullState,
   pullProducts,
   updateProductProfile,

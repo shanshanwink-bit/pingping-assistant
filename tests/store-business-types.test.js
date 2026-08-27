@@ -79,6 +79,21 @@ assert.deepStrictEqual(store.getBrands(), ['测试品牌'])
 assert.strictEqual(store.getProduct(cosmetic.id).expiryDate, '2028-08-09')
 assert.strictEqual(store.getState().operations.filter(item => item.businessType === 'cosmetics' && item.type === 'stocktake').length, 1)
 
+storage[storageKey].products.unshift({
+  id: 'admin-product-6', adminProductId: 6, source: 'admin', code: '0006', name: '默认规格商品',
+  businessType: 'cosmetics', category: '护肤', costPrice: 0, salePrice: 0, supplier: '', brand: '',
+  location: '', lowStockThreshold: 0,
+  specs: [{ id: 'admin-spec-6', color: '全部规格', size: '汇总', stock: 104 }]
+})
+const editedDefaultProduct = store.updateProduct('admin-product-6', {
+  name: '默认规格商品', category: '护肤', costPrice: 0, salePrice: 0, supplier: '', brand: '',
+  location: '', lowStockThreshold: 0,
+  specs: [{ id: '', color: '通用', size: '100ml', stock: 104 }]
+})
+assert.strictEqual(editedDefaultProduct.specs.length, 1, '编辑默认规格不能创建第二条规格')
+assert.strictEqual(editedDefaultProduct.specs[0].id, 'admin-spec-6', '编辑默认规格必须复用原 specId')
+applyServerApprovedProductRemoval('admin-product-6')
+
 store.addPurchase({ productId: clothing.id, specId: clothing.specs[0].id, quantity: 2, unitCost: 20 })
 store.addSale({ productId: cosmetic.id, specId: cosmetic.specs[0].id, quantity: 1, unitPrice: 99 })
 
